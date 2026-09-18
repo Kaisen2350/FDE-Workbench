@@ -1,4 +1,4 @@
-# Paraguay Export Economy — Forward Deployed Engineer (FDE) Workbench (Phase 1)
+# Paraguay Export Economy — Forward Deployed Engineer (FDE) Workbench (Phase 1 & Phase 1.5)
 
 > **Mission**: An engineering and research workbench for a Forward Deployed Engineer (FDE) to model the operational reality of Paraguayan export-oriented enterprises, identify mission-critical workflows and bottlenecks, and translate those findings into platform-agnostic AI agent deployment specifications.
 
@@ -46,9 +46,10 @@ python -m unittest discover -s tests -p "test_*.py" -v
 └──────────────────────────────────────┬──────────────────────────────────────┘
                                        │ HTTP / REST API (FastAPI)
 ┌──────────────────────────────────────▼──────────────────────────────────────┐
-│                    LOCAL-FIRST IN-MEMORY GRAPH & AUDIT STORE                │
-│  - Bi-directional Adjacency Lists (Incoming/Outgoing 1-hop Graph Traversal) │
-│  - Append-Only Audit Trail (Entity mutation logs & state transition diffs)  │
+│            LOCAL-FIRST SQLITE GRAPH & CRYPTOGRAPHIC AUDIT STORE             │
+│  - Embedded SQLite Persistence (workbench.db in WAL mode)                   │
+│  - Bi-directional Adjacency Indexing (Incoming/Outgoing 1-hop Graph Traversal)│
+│  - Tamper-Evident SHA-256 Cryptographic Hash-Chained Audit Trail            │
 │  - JSON Snapshot Persistence (Import / Export / Reseed)                     │
 └──────────────────────────────────────┬──────────────────────────────────────┘
                                        │ Validates & Hydrates
@@ -131,6 +132,31 @@ $$\text{OBSERVATION} \longrightarrow \text{CONTEXT} \longrightarrow \text{DECISI
 4. **Authorized Action**: Mandatory human authorization capturing who approved what, when, and with what parameters.
 5. **Outcome**: Verified post-execution measurement checking actual latency, financial delta, and KPI impact.
 
+### Decision Timeout & Escalation Engine (Phase 1.5)
+- Automated timeout checks transition decisions to `ESCALATED` status if unaddressed past a configurable SLA (`escalation_timeout_hours`).
+- Escalation metadata captures `escalation_target_role`, `escalated_at`, and `escalation_reason`.
+- Illustrated in synthetic scenario `evt-2026-005-escalation` $\rightarrow$ `dec-2026-005-escalated` where an unacknowledged customs hold at Ciudad del Este escalates from Customs Compliance to Executive leadership.
+
+---
+
+## Curated Critical Path Narrative (Phase 1.5)
+
+To ground discussions without cognitive overload, the workbench defines and highlights the core **6-step Critical Path**:
+$$\text{Order} \longrightarrow \text{Shipment} \longrightarrow \text{CustomsDeclaration} \longrightarrow \text{OperationalEvent} \longrightarrow \text{Decision} \longrightarrow \text{Outcome}$$
+
+- Displayed as the default operational spine in the **Ontology** and **Workflows** tabs.
+- The UI includes an instant toggle between the **Curated Critical Path** and the **Full 24-Entity Taxonomy**.
+
+---
+
+## Tamper-Evident Audit Hash-Chain (Phase 1.5)
+
+Every entity, event, decision, and configuration mutation appended to the SQLite audit log is cryptographically bound:
+$$\text{entry\_hash} = \text{SHA256}(\text{prev\_hash} + \text{timestamp} + \text{action} + \text{entity\_type} + \text{entity\_id} + \text{canonical\_json\_details})$$
+
+- `verify_audit_chain()` walks every block and flags any insertion, deletion, or bit-flip.
+- Exposed via `GET /api/audit/verify` and visible in the header badge of the web interface.
+
 ---
 
 ## AI Opportunity Model & Platform-Agnostic Agent Specs
@@ -152,12 +178,12 @@ Specifies an agent blueprint without vendor lock-in:
 - `reasoning_requirements` & `human_approval_requirements`
 - `actions`, `failure_modes`, `evaluation_criteria`, `kpis`
 
-### Enterprise Platform Adapters
-The workbench includes compilers that export native manifests on demand:
-- **Google Cloud / Gemini Enterprise**: Generates Vertex AI system instructions, function declarations, grounding datastore configs, and guardrail policies.
-- **OpenAI**: Generates Assistants API instructions, strict function tools, and metadata.
-- **Microsoft Azure AI Foundry**: Generates Semantic Kernel plugins, responsible AI policies, and prompt templates.
-- **Databricks Mosaic AI**: Generates Unity Catalog tool bindings, MLflow experiment bindings, and serving endpoint configurations.
+### Enterprise Platform Adapters & Real Schema Validation (Phase 1.5)
+The workbench includes compilers that export native manifests on demand, each backed by rigorous public schema validation (`validate_manifest_schema()`):
+- **Google Cloud / Gemini Enterprise**: Generates Vertex AI system instructions, function declarations, grounding datastore configs, and guardrail policies. Validates parameter schemas against Vertex AI OpenAPI specifications.
+- **OpenAI**: Generates Assistants API instructions, strict function tools, and metadata. Validates `strict: true` compliance and parameter schemas.
+- **Microsoft Azure AI Foundry**: Generates Semantic Kernel plugins, responsible AI policies, and prompt templates. Validates explicit execution policies (`ReadOnly` vs `RequiresConsent`).
+- **Databricks Mosaic AI**: Generates Unity Catalog tool bindings, MLflow experiment bindings, and serving endpoint configurations. Validates three-tier catalog namespaces (`catalog.schema.function`).
 
 ---
 

@@ -19,6 +19,11 @@ class PlatformAdapter(ABC):
         """Compile a platform-agnostic specification into a platform-compliant configuration manifest."""
         pass
 
+    @abstractmethod
+    def validate_manifest_schema(self, manifest: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate an exported manifest against the platform's public schema specifications."""
+        pass
+
     def validate_compatibility(self, spec: AgentSpecification) -> Dict[str, Any]:
         """Check whether the agent specification satisfies platform-specific requirements."""
         missing_fields: List[str] = []

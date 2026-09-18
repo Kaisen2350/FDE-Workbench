@@ -33,7 +33,7 @@ from fde_workbench.domain.entities import (
 )
 from fde_workbench.domain.relationships import Relationship
 from fde_workbench.domain.events import OperationalEventRecord, EventSeverity, EventStatus
-from fde_workbench.domain.decisions import DecisionRecord, DecisionOption, AuthorizedAction, DecisionOutcome
+from fde_workbench.domain.decisions import DecisionRecord, DecisionOption, AuthorizedAction, DecisionOutcome, DecisionStatus
 from fde_workbench.domain.ai_opportunities import AIOpportunity, DeploymentComplexity
 from fde_workbench.domain.agent_specs import AgentSpecification, ToolDefinition
 
@@ -347,9 +347,7 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
     # ==========================================
     # 7. CUSTOMERS (Exactly 25 Customers)
     # ==========================================
-    # 15 Brazil customers, 10 Argentina customers
     customer_destinations = [
-        # Brazil (15)
         ("Cascavel (PR)", "Brazil", "Nutrição Animal Cascavel Ltda.", "FOB Villeta"),
         ("Chapecó (SC)", "Brazil", "Cooperativa Agroindustrial do Oeste S.A.", "DPU Foz do Iguaçu"),
         ("Maringá (PR)", "Brazil", "Paraná Proteínas e Óleos Vegetais S.A.", "CIF Paranaguá"),
@@ -365,7 +363,6 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         ("Dourados (MS)", "Brazil", "Fronteira Oeste Agronegócios Ltda.", "FOB Villeta"),
         ("Santos (SP)", "Brazil", "Terminal Portuário Exportador Santos S.A.", "FOB Villeta"),
         ("Paranaguá (PR)", "Brazil", "Paranaguá Bulk Terminal Logistics S.A.", "CIF Paranaguá"),
-        # Argentina (10)
         ("Rosario (SF)", "Argentina", "Molinos Fluviales del Paraná S.A.", "FOB Villeta"),
         ("San Lorenzo (SF)", "Argentina", "Terminal Portuaria San Lorenzo S.A.", "FOB Villeta"),
         ("Buenos Aires", "Argentina", "Agropecuaria Rioplatense S.A.", "FOB Villeta"),
@@ -475,7 +472,7 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         id="ord-2026-exp-042",
         name="Export Order EXP-2026-042 (Rosario)",
         order_number="EXP-2026-042",
-        customer_id="cust-016", # Molinos Fluviales del Paraná
+        customer_id="cust-016",
         incoterm="FOB Villeta",
         destination_port_or_border="Puerto de Rosario / Hidrovía",
         quantity_ordered_mt=2400.0,
@@ -624,7 +621,7 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
     ))
 
     # ==========================================
-    # 10. OPERATIONAL EVENTS & DECISIONS (The 5 Core Realistic Disruption Scenarios)
+    # 10. OPERATIONAL EVENTS & DECISIONS (Including Escalation Path)
     # ==========================================
     # Event 1: River Draft Restriction (Paso Queso)
     evt_river = OperationalEventRecord(
@@ -650,6 +647,7 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         timestamp=now - timedelta(hours=10),
         triggering_event_id=evt_river.id,
         decision_owner="role-executive",
+        status=DecisionStatus.EXECUTED,
         context={
             "customer": "cust-016 (Molinos Fluviales del Paraná)",
             "contractual_penalty_delay_per_day_usd": 3500.0,
@@ -712,7 +710,7 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         financial_impact=14800.0,
         currency="USD",
         required_decision="Authorize customs broker emergency re-filing with amended NCM exemption code",
-        status=EventStatus.TRIAGED,
+        status=EventStatus.RESOLVED,
     )
     store.add_event(evt_customs)
 
@@ -721,6 +719,7 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         timestamp=now - timedelta(hours=4),
         triggering_event_id=evt_customs.id,
         decision_owner="role-customs-compliance",
+        status=DecisionStatus.EXECUTED,
         context={
             "affected_shipment_ids": ["shp-truck-cde-01", "shp-truck-cde-02"],
             "receita_federal_shift_cutoff": "20:00 local time",
@@ -794,6 +793,69 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         status=EventStatus.DETECTED,
     )
     store.add_event(evt_payment)
+
+    # Event 5: Unattended Border Hold Escalation Scenario (Demonstrates Decision Timeout & Escalation)
+    evt_escalation = OperationalEventRecord(
+        id="evt-2026-005-escalation",
+        timestamp=now - timedelta(hours=7),
+        entity_id="cust-021", # Córdoba importer
+        entity_type=EntityTypeEnum.CUSTOMER,
+        event_type="customs_document_missing",
+        source="VUE_PORTAL",
+        severity=EventSeverity.HIGH,
+        expected_state={"status": "CLEARED_AT_PUERTO_FALCON", "border_dwell_hours": 2.0},
+        observed_state={"status": "HELD_AT_BORDER", "border_dwell_hours": 7.2, "missing_document": "SENACSA_EXPORT_PERMIT_ANNEX_III"},
+        operational_impact="3 reefer containers of chilled beef stranded at Puerto Falcón / Clorinda crossing. Refrigerator gen-sets running low on diesel fuel.",
+        financial_impact=26500.0,
+        currency="USD",
+        required_decision="Authorize emergency SENACSA electronic stamp amendment and dispatch fuel replenishment truck",
+        status=EventStatus.DECISION_PENDING,
+    )
+    store.add_event(evt_escalation)
+
+    # Create decision that timed out (created 6.5 hours ago, threshold 4.0h)
+    dec_escalated = DecisionRecord(
+        decision_id="dec-2026-005-escalated",
+        timestamp=now - timedelta(hours=6, minutes=30),
+        triggering_event_id=evt_escalation.id,
+        decision_owner="role-customs-compliance",
+        status=DecisionStatus.DECISION_PENDING,
+        escalation_timeout_hours=4.0,
+        escalation_target_role="role-executive",
+        context={
+            "cargo_type": "Vacuno Enfriado al Vacío (Reefer Containers)",
+            "gen_set_fuel_hours_remaining": 5.0,
+            "cold_chain_spoilage_exposure_usd": 68000.0,
+            "border_post": "Puerto Falcón / Clorinda (Argentina)",
+        },
+        options=[
+            DecisionOption(
+                option_id="OPT-ESCAL-A",
+                title="Executive emergency SENACSA liaison & border fuel dispatch",
+                description="General Manager contacts SENACSA Director directly for digital signature bypass, while logistics dispatches diesel to border.",
+                pros=["Saves $68k cold chain meat cargo", "Solves gen-set fuel emergency within 2 hours"],
+                cons=["Requires C-level political intervention", "Fuel dispatch road permit cost"],
+                cost_estimate_usd=3200.0,
+                delay_hours_estimate=2.0,
+                risk_level="HIGH",
+            ),
+            DecisionOption(
+                option_id="OPT-ESCAL-B",
+                title="Wait for standard morning SENACSA shift change",
+                description="Await normal office hours at Asunción central lab to re-issue certificate.",
+                pros=["Standard administrative procedure"],
+                cons=["Gen-sets will exhaust fuel overnight", "Risk total meat spoilage"],
+                cost_estimate_usd=68000.0,
+                delay_hours_estimate=14.0,
+                risk_level="CRITICAL",
+            ),
+        ],
+        recommendation="Option A must be authorized immediately by Executive Management to prevent refrigerated beef spoilage.",
+        authorization_required=True,
+    )
+    # Trigger escalation logic: elapsed time 6.5h > 4.0h timeout!
+    dec_escalated.check_and_escalate(now)
+    store.add_decision(dec_escalated)
 
     # ==========================================
     # 11. AI OPPORTUNITY MODELS
@@ -1092,9 +1154,9 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         "customer_count": len(customer_destinations),
         "product_count": 3,
         "material_count": 2,
-        "event_count": len(store._events),
-        "decision_count": len(store._decisions),
-        "opportunity_count": len(store._opportunities),
-        "agent_spec_count": len(store._agent_specs),
-        "kpi_count": len(store._kpis),
+        "event_count": len(store.list_events()),
+        "decision_count": len(store.list_decisions()),
+        "opportunity_count": len(store.list_opportunities()),
+        "agent_spec_count": len(store.list_agent_specs()),
+        "kpi_count": len(store.list_kpis()),
     }

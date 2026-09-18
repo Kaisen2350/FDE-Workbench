@@ -19,6 +19,16 @@ class TestAPI(unittest.TestCase):
         data = res.json()
         self.assertIn("metadata", data)
         self.assertEqual(len(data["metadata"]["entity_types"]), 24)
+        self.assertIn("critical_path_narrative", data)
+        self.assertEqual(len(data["critical_path_narrative"]), 6)
+
+    def test_verify_audit_trail(self):
+        res = self.client.get("/api/audit/verify")
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertTrue(data["valid"])
+        self.assertGreater(data["total_entries"], 0)
+        self.assertIn("head_hash", data)
 
     def test_list_entities(self):
         res = self.client.get("/api/entities?limit=10")

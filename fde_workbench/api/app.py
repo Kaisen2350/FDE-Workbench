@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 
-from fde_workbench.domain.ontology import EntityTypeEnum, RelationTypeEnum, ONTOLOGY_METADATA
+from fde_workbench.domain.ontology import EntityTypeEnum, RelationTypeEnum, ONTOLOGY_METADATA, CRITICAL_PATH_NARRATIVE
 from fde_workbench.domain.relationships import ALLOWED_RELATIONSHIPS
 from fde_workbench.domain.events import EventSeverity, EventStatus
 from fde_workbench.domain.adapters import ADAPTERS
@@ -36,9 +36,10 @@ app.add_middleware(
 
 @app.get("/api/ontology")
 def get_ontology():
-    """Returns ontology metadata, 24 entity definitions, and relationship rules."""
+    """Returns ontology metadata, 24 entity definitions, critical path narrative, and relationship rules."""
     return {
         "metadata": ONTOLOGY_METADATA,
+        "critical_path_narrative": CRITICAL_PATH_NARRATIVE,
         "allowed_relationships": [
             {
                 "source_type": src.value,
@@ -143,16 +144,39 @@ def list_decisions(event_id: Optional[str] = Query(None)):
     }
 
 
+@app.get("/api/audit/verify")
+def verify_audit():
+    """Verifies the cryptographic hash-chain of the append-only audit trail."""
+    return store.verify_audit_chain()
+
+
 @app.get("/api/workflows")
 def list_workflows():
     """Synthesizes high-level operational lifecycle traces across entities and events."""
     return {
         "workflows": [
             {
+                "id": "wf-critical-path-narrative",
+                "title": "★ Critical Path Narrative: Order ➔ Outcome",
+                "description": "The primary operational narrative spine of the FDE Workbench: walking directly from commercial order placement through multi-modal dispatch, customs clearance, physical operational disruption, managerial decision, to verified operational outcome.",
+                "corridor": "Primary Operational Spine (Featured)",
+                "is_featured": True,
+                "nodes": [
+                    {"step": 1, "entity_type": "order", "entity_id": "ord-2026-exp-042", "name": "1. Order (EXP-2026-042)", "action": "FOB Villeta contract commitment"},
+                    {"step": 2, "entity_type": "shipment", "entity_id": "shp-2026-fluv-019", "name": "2. Shipment (Convoy HB-104)", "action": "Fluvial barge convoy dispatch"},
+                    {"step": 3, "entity_type": "customs_declaration", "entity_id": "cdec-vue-2026-8819", "name": "3. CustomsDeclaration (VUE #8819)", "action": "VUE / SENAVE export clearance"},
+                    {"step": 4, "entity_type": "operational_event", "entity_id": "evt-2026-001", "name": "4. OperationalEvent (River Draft Deficit)", "action": "Disruption: 8.4ft draft at Paso Queso"},
+                    {"step": 5, "entity_type": "decision", "entity_id": "dec-2026-001", "name": "5. Decision (Alijo Lightering)", "action": "Authorized action: charter shallow hoppers"},
+                    {"step": 6, "entity_type": "outcome", "entity_id": "out-2026-001", "name": "6. Outcome (Cleared Safely)", "action": "Verified: $19,200 saved, zero grounding"},
+                ],
+                "active_bottleneck": "Paraguay River low draft restricting permissible barge convoy loading.",
+            },
+            {
                 "id": "wf-export-fluvial-argentina",
-                "title": "Export Order to Fluvial Discharge (Rosario)",
+                "title": "Fluvial Export Execution to Argentina (Rosario)",
                 "description": "Commercial export order fulfillment via Villeta crushing mill, Hidrovía river barge convoys, and international customs clearance.",
                 "corridor": "Hidrovía Paraguay-Paraná (Fluvial)",
+                "is_featured": False,
                 "nodes": [
                     {"step": 1, "entity_type": "customer", "entity_id": "cust-016", "name": "Molinos Fluviales del Paraná", "action": "Contract Order FOB Villeta"},
                     {"step": 2, "entity_type": "order", "entity_id": "ord-2026-exp-042", "name": "Order EXP-2026-042 (2400 MT)", "action": "Order allocation"},

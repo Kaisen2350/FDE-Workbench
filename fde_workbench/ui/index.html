@@ -17,7 +17,8 @@
         <span class="brand-subtitle">Physical Reality · Cross-Border Corridors · Operational Events · Decision Pipelines · AI Opportunities</span>
       </div>
       <div class="masthead-actions">
-        <span class="badge badge-local">Local-First · Deterministic</span>
+        <span class="badge badge-local">Local-First · SQLite WAL</span>
+        <span class="badge" id="auditChainBadge" style="background:var(--green-soft); color:var(--green); border:1px solid var(--green); cursor:pointer;" title="Click to verify cryptographic audit hash chain">Audit: SHA-256 Verified</span>
         <span class="badge badge-status" id="activeCompanyBadge">AIDESA S.A.</span>
         <button class="btn btn-primary" id="btnExportSnapshot">Export Snapshot</button>
         <button class="btn btn-danger" id="btnResetSeed">Reset Synthetic Data</button>
@@ -46,16 +47,43 @@
     <section class="tab-pane active" id="pane-ontology">
       <div class="pane-header">
         <div>
-          <div class="pane-eyebrow">Metamodel & Schemas</div>
+          <div class="pane-eyebrow">Domain Architecture & Narrative</div>
           <h2 class="pane-title">Export Economy Ontology v1.0.0</h2>
-          <p class="pane-desc">24 typed domain entities and explicit relationship constraints modeling physical logistics, river hydrology, Mercosur customs DNA, and industrial processing in Paraguay.</p>
+          <p class="pane-desc">Modeling physical river hydrology, cross-border corridors, and customs DNA in Paraguay. By default, inspect the curated operational spine, or switch to the full 24-entity taxonomy.</p>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-primary" id="btnViewCriticalPath">★ Curated Critical Path</button>
+          <button class="btn" id="btnViewFullTaxonomy">Full 24-Entity Taxonomy</button>
         </div>
       </div>
-      <div class="filter-bar">
-        <input type="text" class="input-search" id="searchOntologyInput" placeholder="Search entity definitions or attributes...">
+
+      <!-- Curated Critical Path Featured View -->
+      <div id="criticalPathFeaturedContainer" style="margin-bottom: 28px;">
+        <div style="background:var(--paper-card); border:1px solid var(--rule); border-left:4px solid var(--river); padding:20px 24px; border-radius:3px; margin-bottom:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+            <div>
+              <span class="badge badge-local" style="margin-bottom:6px;">Featured FDE Backbone</span>
+              <h3 style="font-family:var(--font-serif); margin:2px 0 6px; font-size:19px;">The Critical Path: From Commercial Order to Verified Outcome</h3>
+              <p style="font-size:13.5px; color:var(--ink-soft); margin:0; max-width:850px;">
+                Every export engagement centers on this single operational spine. The other 18 entity types in the ontology provide supporting infrastructure, but this is the primary value narrative.
+              </p>
+            </div>
+            <button class="btn" onclick="document.querySelector('[data-tab=pane-workflows]').click();" style="font-size:11px;">View in Workflows ➔</button>
+          </div>
+          <div class="workflow-chain" id="criticalPathNodesList" style="padding-left:24px;">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
       </div>
-      <div class="grid-3" id="ontologyCardGrid">
-        <!-- Dynamically rendered -->
+
+      <!-- Full Taxonomy View (Depth-on-demand) -->
+      <div id="fullTaxonomyContainer" style="display:none;">
+        <div class="filter-bar">
+          <input type="text" class="input-search" id="searchOntologyInput" placeholder="Search entity definitions or attributes...">
+        </div>
+        <div class="grid-3" id="ontologyCardGrid">
+          <!-- Dynamically rendered -->
+        </div>
       </div>
       <div style="margin-top: 36px;">
         <div class="pane-eyebrow">Graph Schema</div>

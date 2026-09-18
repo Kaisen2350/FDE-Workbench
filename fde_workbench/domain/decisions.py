@@ -1,8 +1,18 @@
-"""Decision abstraction modeling the operational decision-making pipeline."""
+"""Decision abstraction modeling the operational decision-making pipeline with timeout and escalation."""
 
 from datetime import datetime
+from enum import Enum
 from typing import Dict, List, Any, Optional
 from pydantic import BaseModel, Field
+
+
+class DecisionStatus(str, Enum):
+    PROPOSED = "PROPOSED"
+    DECISION_PENDING = "DECISION_PENDING"
+    ESCALATED = "ESCALATED"
+    AUTHORIZED = "AUTHORIZED"
+    EXECUTED = "EXECUTED"
+    CANCELLED = "CANCELLED"
 
 
 class DecisionOption(BaseModel):
@@ -40,17 +50,54 @@ class DecisionRecord(BaseModel):
     """
     Formal Decision abstraction enforcing the conceptual workflow:
     OBSERVATION -> CONTEXT -> DECISION -> AUTHORIZED ACTION -> OUTCOME
+    Includes configurable timeout and escalation hierarchy.
     """
     decision_id: str = Field(..., description="Unique decision ID, e.g. 'dec-2026-001'")
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     triggering_event_id: str = Field(..., description="ID of the OperationalEvent that provoked this decision")
-    decision_owner: str = Field(..., description="Role responsible for the decision, e.g. 'Logistics Operations Director'")
+    decision_owner: str = Field(..., description="Role responsible for the decision, e.g. 'role-logistics-director'")
+    status: DecisionStatus = Field(default=DecisionStatus.DECISION_PENDING, description="Current decision workflow status")
     context: Dict[str, Any] = Field(default_factory=dict, description="Operational context: constraints, river level, stock, contract clauses")
     options: List[DecisionOption] = Field(default_factory=list, description="Candidate actions evaluated")
     recommendation: str = Field(..., description="Recommended path and rationale")
     authorization_required: bool = Field(default=True, description="Whether human executive approval is mandatory")
     authorized_action: Optional[AuthorizedAction] = Field(default=None, description="The authorized action executed")
     outcome: Optional[DecisionOutcome] = Field(default=None, description="The measured post-execution reality")
+
+    # Timeout and escalation parameters
+    escalation_timeout_hours: float = Field(default=4.0, description="Elapsed hours threshold before pending decision triggers escalation")
+    escalation_target_role: str = Field(default="role-executive", description="Next role up in hierarchy receiving escalated decision")
+    escalated_at: Optional[datetime] = Field(default=None, description="Timestamp when decision was escalated")
+    escalation_reason: Optional[str] = Field(default=None, description="Audit note documenting cause of escalation")
+
+    def check_and_escalate(self, current_time: Optional[datetime] = None) -> bool:
+        """
+        Transitions decision from DECISION_PENDING to ESCALATED if elapsed hours exceeds timeout.
+        Returns True if escalation triggered.
+        """
+        if self.status != DecisionStatus.DECISION_PENDING:
+            return False
+
+        now = current_time or datetime.utcnow()
+        elapsed_hours = max(0.0, (now - self.timestamp).total_seconds() / 3600.0)
+
+        if elapsed_hours >= self.escalation_timeout_hours:
+            self.status = DecisionStatus.ESCALATED
+            self.escalated_at = now
+            self.escalation_reason = (
+                f"Decision remained unattended in DECISION_PENDING for {elapsed_hours:.1f}h "
+                f"(threshold: {self.escalation_timeout_hours}h). "
+                f"Escalated from owner '{self.decision_owner}' to '{self.escalation_target_role}'."
+            )
+            return True
+        return False
+
+    def escalate(self, target_role: str, reason: str, timestamp: Optional[datetime] = None):
+        """Force manual or rule-based immediate escalation."""
+        self.status = DecisionStatus.ESCALATED
+        self.escalation_target_role = target_role
+        self.escalated_at = timestamp or datetime.utcnow()
+        self.escalation_reason = reason
 
     def get_pipeline_stages(self) -> List[Dict[str, Any]]:
         """Returns the sequential workflow stages for inspection UI."""
@@ -73,10 +120,15 @@ class DecisionRecord(BaseModel):
                 "label": "Options Evaluation & Recommendation",
                 "data": {
                     "decision_owner": self.decision_owner,
+                    "status": self.status.value,
                     "options_count": len(self.options),
                     "options": [opt.model_dump() for opt in self.options],
                     "recommendation": self.recommendation,
                     "authorization_required": self.authorization_required,
+                    "escalation_timeout_hours": self.escalation_timeout_hours,
+                    "escalation_target_role": self.escalation_target_role,
+                    "escalated_at": self.escalated_at.isoformat() if self.escalated_at else None,
+                    "escalation_reason": self.escalation_reason,
                 },
             },
             {

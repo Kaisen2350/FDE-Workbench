@@ -59,30 +59,58 @@ class RelationTypeEnum(str, Enum):
     AUTHORIZES = "authorizes"
 
 
-class EntitySchemaDefinition(BaseModel):
-    name: str
-    category: str
-    description: str
-    key_attributes: List[str]
-    paraguayan_context: str
-
-
-class RelationSchemaDefinition(BaseModel):
-    source_type: EntityTypeEnum
-    relation_type: RelationTypeEnum
-    target_type: EntityTypeEnum
-    description: str
-
-
-class OntologyVersionInfo(BaseModel):
-    name: str
-    version: str
-    description: str
-    domain: str
-    entity_count: int
-    relationship_types_count: int
-    entities: Dict[str, EntitySchemaDefinition]
-    allowed_relations: List[RelationSchemaDefinition]
+# Curated "Critical Path" single-narrative spine:
+# Order -> Shipment -> CustomsDeclaration -> OperationalEvent -> Decision -> Outcome
+CRITICAL_PATH_NARRATIVE: List[Dict[str, Any]] = [
+    {
+        "step": 1,
+        "entity_type": EntityTypeEnum.ORDER.value,
+        "label": "1. Order",
+        "narrative": "Commercial export sales agreement with Incoterms (e.g. FOB Villeta or CIF Paranaguá) binding quantity, delivery window, and payment terms.",
+        "sample_instance": "Export Order EXP-2026-042 (2,400 MT Soy Meal)",
+        "icon": "📋",
+    },
+    {
+        "step": 2,
+        "entity_type": EntityTypeEnum.SHIPMENT.value,
+        "label": "2. Shipment",
+        "narrative": "Physical multi-modal freight movement (12-16 barge convoys on Hidrovía or bitren trucks across Ciudad del Este) under carrier contract.",
+        "sample_instance": "Convoy Barcazas HB-104 (Villeta -> Rosario)",
+        "icon": "🚢",
+    },
+    {
+        "step": 3,
+        "entity_type": EntityTypeEnum.CUSTOMS_DECLARATION.value,
+        "label": "3. CustomsDeclaration",
+        "narrative": "Statutory export authorization under DNA VUE, DUA, and international transit manifest (MIC/DTA) satisfying SENAVE phytosanitary obligations.",
+        "sample_instance": "VUE #26099-VUE-8819 (Canal Verde)",
+        "icon": "📑",
+    },
+    {
+        "step": 4,
+        "entity_type": EntityTypeEnum.OPERATIONAL_EVENT.value,
+        "label": "4. OperationalEvent",
+        "narrative": "Observed physical disruption comparing planned baseline vs. reality (e.g. Paraguay River low water draft drop at Paso Queso causing grounding hazard).",
+        "sample_instance": "River Draft Deficit (8.4 ft actual vs 10.5 ft convoy draft)",
+        "icon": "⚠️",
+    },
+    {
+        "step": 5,
+        "entity_type": EntityTypeEnum.DECISION.value,
+        "label": "5. Decision",
+        "narrative": "Managerial options evaluation (cost vs. latency trade-offs) producing an authorized action (e.g. emergency shallow-draft alijo charter).",
+        "sample_instance": "Charter Alijo Barge (650 MT cargo transfer)",
+        "icon": "⚖️",
+    },
+    {
+        "step": 6,
+        "entity_type": "outcome",
+        "label": "6. Outcome",
+        "narrative": "Audited post-execution measurement confirming safe passage, zero grounding demurrage, and on-time international delivery.",
+        "sample_instance": "Cleared Paso Queso; $19,200 saved vs. delay; Verified.",
+        "icon": "✅",
+    },
+]
 
 
 ONTOLOGY_METADATA: Dict[str, Any] = {
@@ -90,6 +118,7 @@ ONTOLOGY_METADATA: Dict[str, Any] = {
     "version": "1.0.0",
     "domain": "Paraguayan Export Processing, Agribusiness, Maquila, and Fluvial/Terrestrial Logistics",
     "author": "Forward Deployed Engineer (FDE) Research Workbench",
+    "critical_path_narrative": CRITICAL_PATH_NARRATIVE,
     "entity_types": [e.value for e in EntityTypeEnum],
     "relation_types": [r.value for r in RelationTypeEnum],
     "entity_definitions": {

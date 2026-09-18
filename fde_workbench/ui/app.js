@@ -43,12 +43,52 @@ async function loadOntology() {
     const data = await res.json();
     ontologyData = data;
 
+    renderCriticalPathFeatured(data.metadata.critical_path_narrative || []);
     renderOntologyCards(data.metadata.entity_definitions);
     renderAllowedRelations(data.allowed_relationships);
     populateEntityTypeSelect(data.metadata.entity_types);
+    initOntologyViewToggle();
   } catch (err) {
     console.error("Failed to load ontology:", err);
   }
+}
+
+function initOntologyViewToggle() {
+  const btnCrit = document.getElementById("btnViewCriticalPath");
+  const btnFull = document.getElementById("btnViewFullTaxonomy");
+  const critContainer = document.getElementById("criticalPathFeaturedContainer");
+  const fullContainer = document.getElementById("fullTaxonomyContainer");
+
+  if (btnCrit && btnFull && critContainer && fullContainer) {
+    btnCrit.addEventListener("click", () => {
+      btnCrit.classList.add("btn-primary");
+      btnFull.classList.remove("btn-primary");
+      critContainer.style.display = "block";
+      fullContainer.style.display = "none";
+    });
+
+    btnFull.addEventListener("click", () => {
+      btnFull.classList.add("btn-primary");
+      btnCrit.classList.remove("btn-primary");
+      critContainer.style.display = "none";
+      fullContainer.style.display = "block";
+    });
+  }
+}
+
+function renderCriticalPathFeatured(narrative) {
+  const container = document.getElementById("criticalPathNodesList");
+  if (!container) return;
+  container.innerHTML = narrative.map(node => `
+    <div class="workflow-node" style="border-left:3px solid var(--river); margin-bottom:12px;">
+      <div class="node-step-num">${node.icon || '●'} Step ${node.step} · ${node.entity_type.toUpperCase()}</div>
+      <div class="node-name" style="color:var(--river-deep); font-size:16px;">${node.label}</div>
+      <p style="font-size:13px; margin:4px 0 6px; color:var(--ink);">${node.narrative}</p>
+      <div style="font-family:var(--font-mono); font-size:11.5px; background:var(--paper); padding:4px 8px; border-radius:3px; display:inline-block;">
+        Active Instance: <strong>${node.sample_instance}</strong>
+      </div>
+    </div>
+  `).join("");
 }
 
 function renderOntologyCards(definitions) {
@@ -292,15 +332,31 @@ async function loadDecisions() {
 function renderDecisions(decisions) {
   const container = document.getElementById("decisionsContainer");
   if (!container) return;
-  container.innerHTML = decisions.map(d => `
-    <div class="card card-accent-gold" style="margin-bottom:24px;">
+  container.innerHTML = decisions.map(d => {
+    const isEscalated = d.status === "ESCALATED";
+    return `
+    <div class="card ${isEscalated ? 'card-accent-alert' : 'card-accent-gold'}" style="margin-bottom:24px;">
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
         <div>
           <span class="badge badge-local">${d.decision_id}</span>
           <span class="badge badge-status">Owner: ${d.decision_owner}</span>
+          <span class="badge" style="background:${isEscalated ? 'var(--alert)' : 'var(--river-soft)'}; color:${isEscalated ? '#fff' : 'var(--river-deep)'}; font-weight:600;">
+            ${d.status}
+          </span>
         </div>
         <span style="font-family:var(--font-mono); font-size:11px; color:var(--ink-muted);">${new Date(d.timestamp).toLocaleString()}</span>
       </div>
+
+      ${isEscalated ? `
+        <div style="background:var(--alert-soft); border-left:4px solid var(--alert); padding:10px 14px; margin-bottom:12px; border-radius:3px;">
+          <strong style="color:var(--alert); font-size:12.5px;">⚠️ DECISION TIMEOUT ESCALATION TRIGGERED</strong><br>
+          <span style="font-size:13px; color:var(--ink);">${d.escalation_reason || 'Decision pending past timeout threshold.'}</span><br>
+          <div style="font-family:var(--font-mono); font-size:11px; color:var(--alert); margin-top:4px;">
+            Target Escalation Role: <strong>${d.escalation_target_role || 'role-executive'}</strong>
+          </div>
+        </div>
+      ` : ''}
+
       <h3 style="font-family:var(--font-serif); margin:4px 0 10px;">Triggered by Operational Event: <code>${d.triggering_event_id}</code></h3>
       
       <div class="pipeline-step-container">
@@ -699,8 +755,25 @@ function renderCompany(comp) {
   `;
 }
 
-// Global Actions: Reset & Export
+// Global Actions: Reset, Export & Audit Verification
 function bindGlobalActions() {
+  const auditBadge = document.getElementById("auditChainBadge");
+  if (auditBadge) {
+    auditBadge.addEventListener("click", async () => {
+      try {
+        const res = await fetch("/api/audit/verify");
+        const data = await res.json();
+        if (data.valid) {
+          alert(`✓ Cryptographic Audit Chain Verified (SHA-256)\n\nStatus: 100% Tamper-Free\nTotal Logged Actions: ${data.total_entries}\nHead Hash: ${data.head_hash}`);
+        } else {
+          alert(`⚠️ AUDIT CHAIN INTEGRITY CORRUPTED!\n\nCorrupted Sequence: ${data.corrupted_sequence}\nReason: ${data.reason}`);
+        }
+      } catch (err) {
+        alert("Failed to verify audit chain: " + err);
+      }
+    });
+  }
+
   const btnReset = document.getElementById("btnResetSeed");
   if (btnReset) {
     btnReset.addEventListener("click", async () => {

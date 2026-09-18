@@ -1,10 +1,10 @@
-"""Unit tests for operational events and the 5-stage decision pipeline."""
+"""Unit tests for operational events and the 5-stage decision pipeline with escalation."""
 
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta
 from fde_workbench.domain.ontology import EntityTypeEnum
 from fde_workbench.domain.events import OperationalEventRecord, EventSeverity, EventStatus
-from fde_workbench.domain.decisions import DecisionRecord, DecisionOption, AuthorizedAction, DecisionOutcome
+from fde_workbench.domain.decisions import DecisionRecord, DecisionOption, AuthorizedAction, DecisionOutcome, DecisionStatus
 
 
 class TestEventsAndDecisions(unittest.TestCase):
@@ -39,6 +39,7 @@ class TestEventsAndDecisions(unittest.TestCase):
             decision_id="dec-test-01",
             triggering_event_id="evt-test-01",
             decision_owner="role-logistics-director",
+            status=DecisionStatus.EXECUTED,
             context={"river_gauge": "8.5ft", "anchor_zone": "km 1530"},
             options=[
                 DecisionOption(
@@ -73,6 +74,34 @@ class TestEventsAndDecisions(unittest.TestCase):
         self.assertEqual(stages[3]["stage"], "4. AUTHORIZED ACTION")
         self.assertEqual(stages[4]["stage"], "5. OUTCOME")
         self.assertTrue(stages[4]["data"]["verified"])
+
+    def test_decision_timeout_and_escalation(self):
+        """Verify automatic transition to ESCALATED when pending past threshold."""
+        creation_time = datetime(2026, 9, 18, 10, 0, 0)
+        dec = DecisionRecord(
+            decision_id="dec-timeout-test",
+            timestamp=creation_time,
+            triggering_event_id="evt-timeout-test",
+            decision_owner="role-customs-compliance",
+            status=DecisionStatus.DECISION_PENDING,
+            escalation_timeout_hours=4.0,
+            escalation_target_role="role-executive",
+            recommendation="Urgent broker clearance",
+        )
+
+        # Time advanced by only 2 hours (less than 4.0h threshold)
+        check_2h = dec.check_and_escalate(current_time=creation_time + timedelta(hours=2))
+        self.assertFalse(check_2h)
+        self.assertEqual(dec.status, DecisionStatus.DECISION_PENDING)
+
+        # Time advanced by 5.5 hours (exceeds 4.0h threshold)
+        check_5h = dec.check_and_escalate(current_time=creation_time + timedelta(hours=5, minutes=30))
+        self.assertTrue(check_5h)
+        self.assertEqual(dec.status, DecisionStatus.ESCALATED)
+        self.assertIsNotNone(dec.escalated_at)
+        self.assertEqual(dec.escalation_target_role, "role-executive")
+        self.assertIn("threshold: 4.0h", dec.escalation_reason)
+        self.assertIn("role-customs-compliance", dec.escalation_reason)
 
 
 if __name__ == "__main__":
