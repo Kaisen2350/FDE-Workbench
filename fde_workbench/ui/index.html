@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paraguay Export Economy — FDE Workbench</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <!-- Top Header Masthead -->
+  <header class="top-header">
+    <div class="masthead-bar">
+      <div class="masthead-brand">
+        <span class="brand-label">Forward Deployed Engineer · Domain & Operational Modeling</span>
+        <h1 class="brand-title">Paraguay Export Economy FDE Workbench</h1>
+        <span class="brand-subtitle">Physical Reality · Cross-Border Corridors · Operational Events · Decision Pipelines · AI Opportunities</span>
+      </div>
+      <div class="masthead-actions">
+        <span class="badge badge-local">Local-First · Deterministic</span>
+        <span class="badge badge-status" id="activeCompanyBadge">AIDESA S.A.</span>
+        <button class="btn btn-primary" id="btnExportSnapshot">Export Snapshot</button>
+        <button class="btn btn-danger" id="btnResetSeed">Reset Synthetic Data</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs (10 Sections) -->
+  <nav class="nav-tabs" id="navTabs">
+    <button class="tab-btn active" data-tab="pane-ontology">1. Ontology</button>
+    <button class="tab-btn" data-tab="pane-entities">2. Entities</button>
+    <button class="tab-btn" data-tab="pane-relationships">3. Relationships</button>
+    <button class="tab-btn" data-tab="pane-events">4. Operational Events</button>
+    <button class="tab-btn" data-tab="pane-decisions">5. Decisions</button>
+    <button class="tab-btn" data-tab="pane-workflows">6. Workflows</button>
+    <button class="tab-btn" data-tab="pane-opportunities">7. AI Opportunities</button>
+    <button class="tab-btn" data-tab="pane-agents">8. Agent Specifications</button>
+    <button class="tab-btn" data-tab="pane-kpis">9. KPIs</button>
+    <button class="tab-btn" data-tab="pane-company">10. Synthetic Company</button>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="workbench-content">
+
+    <!-- 1. ONTOLOGY PANE -->
+    <section class="tab-pane active" id="pane-ontology">
+      <div class="pane-header">
+        <div>
+          <div class="pane-eyebrow">Metamodel & Schemas</div>
+          <h2 class="pane-title">Export Economy Ontology v1.0.0</h2>
+          <p class="pane-desc">24 typed domain entities and explicit relationship constraints modeling physical logistics, river hydrology, Mercosur customs DNA, and industrial processing in Paraguay.</p>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <input type="text" class="input-search" id="searchOntologyInput" placeholder="Search entity definitions or attributes...">
+      </div>
+      <div class="grid-3" id="ontologyCardGrid">
+        <!-- Dynamically rendered -->
+      </div>
+      <div style="margin-top: 36px;">
+        <div class="pane-eyebrow">Graph Schema</div>
+        <h3 style="margin: 0 0 12px; font-family: var(--font-serif);">Allowed Relationship Rules</h3>
+        <div class="table-wrap">
+          <table class="fde-table" id="tableAllowedRelations">
+            <thead>
+              <tr>
+                <th>Source Type</th>
+                <th>Relation Type</th>
+                <th>Target Type</th>
+                <th>Operational Description</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. ENTITIES PANE -->
+    <section class="tab-pane" id="pane-entities">
+      <div class="pane-header">
+        <div>
+          <div class="pane-eyebrow">Domain Instances</div>
+          <h2 class="pane-title">Entity Repository & Graph Nodes</h2>
+          <p class="pane-desc">Inspect all instantiated physical, organizational, and regulatory entities. Click any entity row to inspect attributes, metadata, and connected 1-hop relationships.</p>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <select class="select-filter" id="selectEntityType">
+          <option value="">All Entity Types (24)</option>
+        </select>
+        <input type="text" class="input-search" id="searchEntityInput" placeholder="Search by name, ID, or tag...">
+        <span class="badge badge-local" id="entityCountBadge">Loading...</span>
+      </div>
+      <div class="table-wrap">
+        <table class="fde-table" id="tableEntities">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Type</th>
+              <th>Name / Identifier</th>
+              <th>System of Record</th>
+              <th>Tags</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3. RELATIONSHIPS PANE -->
+    <section class="tab-pane" id="pane-relationships">
+      <div class="pane-header">
+        <div>
+          <div class="pane-eyebrow">Graph Topology</div>
+          <h2 class="pane-title">Explicit Relationship Triples</h2>
+          <p class="pane-desc">Deterministic directed graph edges connecting the operational domain: Source Entity ──[Relation]──► Target Entity.</p>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <select class="select-filter" id="selectRelationType">
+          <option value="">All Relation Types</option>
+        </select>
+        <span class="badge badge-local" id="relCountBadge">Loading...</span>
+      </div>
+      <div class="table-wrap">
+        <table class="fde-table" id="tableRelationships">
+          <thead>
+            <tr>
+              <th>Edge ID</th>
+              <th>Source Entity (Type)</th>
+              <th>Relationship</th>
+              <th>Target Entity (Type)</th>
+              <th>Metadata</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 4. OPERATIONAL EVENTS PANE -->
+    <section class="tab-pane" id="pane-events">
+      <div class="pane-header">
+        <div>
+          <div class="pane-eyebrow">Operational Reality</div>
+          <h2 class="pane-title">Operational Events & Disruption Feed</h2>
+          <p class="pane-desc">Real-world incidents comparing planned baseline vs. observed reality. Captures river draft restrictions, missing border customs documents, and quality deviations.</p>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <select class="select-filter" id="selectEventSeverity">
+          <option value="">All Severities</option>
+          <option value="CRITICAL">CRITICAL</option>
+          <option value="HIGH">HIGH</option>
+          <option value="MEDIUM">MEDIUM</option>
+          <option value="LOW">LOW</option>
+        </select>
+        <select class="select-filter" id="selectEventStatus">
+          <option value="">All Statuses</option>
+          <option value="DETECTED">DETECTED</option>
+          <option value="TRIAGED">TRIAGED</option>
+          <option value="DECISION_PENDING">DECISION_PENDING</option>
+          <option value="RESOLVED">RESOLVED</option>
+        </select>
+      </div>
+      <div id="eventListContainer">
+        <!-- Event cards rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- 5. DECISIONS PANE -->
+    <section class="tab-pane" id="pane-decisions">
+      <div class="pane-header">
+        <div>
+          <div class="pane-eyebrow">Managerial Governance</div>
+          <h2 class="pane-title">Decision Pipeline & Observation-to-Outcome Tracing</h2>
+          <p class="pane-desc">Enforcing the FDE tradecraft progression: OBSERVATION ➔ CONTEXT ➔ DECISION ➔ AUTHORIZED ACTION ➔ OUTCOME.</p>
+        </div>
+      </div>
+      <div id="decisionsContainer">
+        <!-- Decisions rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- 6. WORKFLOWS PANE -->
+    <section class="tab-pane" id="pane-workflows">
+      <div class="pane-header">
+        <div>
+          <div class="pane-eyebrow">Operational Chains</div>
+          <h2 class="pane-title">End-to-End Workflow Traces</h2>
+          <p class="pane-desc">Multi-step operational execution flows tracing commercial orders from crushing mill throughput, barge navigation, customs DNA clearance, to payment settlement.</p>
+        </div>
+      </div>
+      <div class="grid-2" id="workflowsContainer">
+        <!-- Workflows rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- 7. AI OPPORTUNITIES PANE -->
+    <section class="tab-pane" id="pane-opportunities">
+      <div class="pane-header">
+        <div>
+          <div class="pane-eyebrow">Leverage Analysis</div>
+          <h2 class="pane-title">AI Intervention Opportunities</h2>
+          <p class="pane-desc">Identified operational bottlenecks with high business payoff, evaluated with strict human-in-the-loop governance and failure mode risk bounds.</p>
+        </div>
+      </div>
+      <div class="grid-2" id="opportunitiesContainer">
+        <!-- AI Opportunities rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- 8. AGENT SPECIFICATIONS PANE -->
+    <section class="tab-pane" id="pane-agents">
+      <div class="pane-header">
+        <div>
+          <div class="pane-eyebrow">Autonomous Specifications</div>
+          <h2 class="pane-title">Platform-Agnostic Agent Blueprints & Enterprise Compilers</h2>
+          <p class="pane-desc">Deterministic agent specifications compiled dynamically into Google Gemini Enterprise, OpenAI Assistants, Azure AI Foundry, or Databricks Mosaic AI manifests.</p>
+        </div>
+      </div>
+      <div id="agentSpecsContainer">
+        <!-- Agent specs rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- 9. KPIS PANE -->
+    <section class="tab-pane" id="pane-kpis">
+      <div class="pane-header">
+        <div>
+          <div class="pane-eyebrow">Enterprise Telemetry</div>
+          <h2 class="pane-title">Key Performance Indicators (Operational & Financial)</h2>
+          <p class="pane-desc">Cash conversion cycle (CCC), border dwell hours, fluvial draft capacity, and grain rejection benchmarks.</p>
+        </div>
+      </div>
+      <div class="grid-3" id="kpisContainer">
+        <!-- KPIs rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- 10. SYNTHETIC COMPANY PANE -->
+    <section class="tab-pane" id="pane-company">
+      <div class="pane-header">
+        <div>
+          <div class="pane-eyebrow">Enterprise Profile</div>
+          <h2 class="pane-title">Agro-Industrial del Este S.A. (AIDESA)</h2>
+          <p class="pane-desc">Synthetic Paraguayan export manufacturer: 250 headcount, 2 facilities, exports to Brazil & Argentina, 80 suppliers, 25 international customers, SAP B1 + Google Workspace + TMS landscape.</p>
+        </div>
+      </div>
+      <div id="companyOverviewContainer">
+        <!-- Company details rendered dynamically -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Side Drawer for Entity Inspection -->
+  <div class="drawer-backdrop" id="drawerBackdrop">
+    <div class="drawer-panel" id="drawerPanel">
+      <div class="drawer-header">
+        <div>
+          <span class="brand-label" id="drawerEntityType">ENTITY TYPE</span>
+          <h3 id="drawerEntityName" style="margin: 2px 0 0; font-family: var(--font-serif);">Entity Name</h3>
+          <span style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-muted);" id="drawerEntityId">ID</span>
+        </div>
+        <button class="close-btn" id="btnCloseDrawer">&times;</button>
+      </div>
+      <div id="drawerBody">
+        <!-- Dynamic entity details -->
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
