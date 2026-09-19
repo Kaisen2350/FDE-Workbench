@@ -128,6 +128,35 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertIn("Paraguay Export Economy", res.text)
 
+    def test_list_and_get_evidence(self):
+        res = self.client.get("/api/evidence")
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertTrue(data["total"] >= 5)
+        first_id = data["evidence"][0]["id"]
+
+        res_detail = self.client.get(f"/api/evidence/{first_id}")
+        self.assertEqual(res_detail.status_code, 200)
+        self.assertEqual(res_detail.json()["evidence"]["id"], first_id)
+
+    def test_get_discovery_intake(self):
+        res = self.client.get("/api/discovery/intake")
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertIn("company_profile", data)
+        self.assertIn("critical_workflows", data)
+        self.assertIn("known_bottlenecks", data)
+
+    def test_gemini_python_scaffold_endpoint(self):
+        specs_res = self.client.get("/api/agent-specs")
+        spec_id = specs_res.json()["agent_specifications"][0]["spec_id"]
+
+        res = self.client.get(f"/api/agent-specs/{spec_id}/scaffold/gemini")
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertIn("python_scaffold", data)
+        self.assertIn("google.genai", data["python_scaffold"])
+
 
 if __name__ == "__main__":
     unittest.main()

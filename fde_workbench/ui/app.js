@@ -4,6 +4,8 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   initTabs();
+  loadDiscoveryIntake();
+  loadEvidence();
   loadOntology();
   loadEntities();
   loadRelationships();
@@ -34,6 +36,240 @@ function initTabs() {
     });
   });
 }
+
+// Helper: Provenance Badge HTML
+function getProvenanceBadge(prov) {
+  if (!prov) prov = "SYNTHETIC";
+  const p = prov.toLowerCase().replace(/_/g, "-");
+  return `<span class="badge-provenance badge-prov-${p}">${escapeHtml(prov)}</span>`;
+}
+
+// 0. FDE DISCOVERY INTAKE & TRANSFORMATION
+async function loadDiscoveryIntake() {
+  const container = document.getElementById("discoveryContent");
+  if (!container) return;
+  container.innerHTML = `<div class="card">Loading enterprise discovery dossier...</div>`;
+
+  try {
+    const res = await fetch("/api/discovery/intake");
+    if (!res.ok) throw new Error("Failed to load discovery intake");
+    const intake = await res.json();
+    renderDiscoveryIntake(intake);
+  } catch (err) {
+    container.innerHTML = `<div class="card" style="color:var(--alert);">Failed to load discovery intake: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function renderDiscoveryIntake(intake) {
+  const container = document.getElementById("discoveryContent");
+  if (!container) return;
+
+  const p = intake.company_profile;
+  const corridors = (p.primary_export_corridors || []).map(c => `<span class="badge badge-local">${escapeHtml(c)}</span>`).join(" ");
+
+  container.innerHTML = `
+    <!-- Company Profile Summary -->
+    <div class="discovery-card" style="border-left: 4px solid var(--river);">
+      <div class="discovery-card-header">
+        <div>
+          <span class="badge badge-provenance badge-prov-customer-provided">CUSTOMER_PROVIDED</span>
+          <h3 style="font-family:var(--font-serif); margin:4px 0 2px;">${escapeHtml(p.company_name)}</h3>
+          <span style="font-family:var(--font-mono); font-size:11.5px; color:var(--ink-muted);">RUC: ${escapeHtml(p.ruc)} · Sector: ${escapeHtml(p.sector)} · Headcount: ${p.approximate_headcount}</span>
+        </div>
+        <div style="text-align:right;">
+          <span class="badge badge-status">${escapeHtml(p.export_regime)}</span>
+          <div style="font-size:12px; margin-top:4px;">Annual Export: <strong>${p.annual_export_volume_usd ? '$' + Number(p.annual_export_volume_usd).toLocaleString() : 'N/A'}</strong></div>
+        </div>
+      </div>
+      <p style="font-size:13.5px; color:var(--ink-soft); margin:0 0 12px;">${escapeHtml(p.core_business)}</p>
+      <div style="font-size:12.5px; margin-bottom:8px;"><strong>Export Corridors:</strong> ${corridors}</div>
+      <div style="font-size:12px; color:var(--ink-muted); font-family:var(--font-mono);">Intake ID: ${escapeHtml(intake.intake_id)} · Interviewed: ${escapeHtml(intake.interviewed_by)} · Date: ${escapeHtml(intake.created_at ? intake.created_at.slice(0,10) : '')}</div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Critical Workflows -->
+      <div class="discovery-card">
+        <div class="discovery-card-header">
+          <span>Critical Operational Workflows (${intake.critical_workflows.length})</span>
+          <span class="badge badge-local">High Impact</span>
+        </div>
+        <div>
+          ${intake.critical_workflows.map(wf => `
+            <div style="border-bottom:1px solid var(--rule-light); padding:8px 0; margin-bottom:8px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <strong style="color:var(--river-deep); font-size:13.5px;">${escapeHtml(wf.name)}</strong>
+                <span class="badge" style="background:${wf.priority === 'CRITICAL' ? 'var(--alert-soft)' : 'var(--gold-soft)'}; color:var(--ink); font-size:10.5px;">${escapeHtml(wf.priority)}</span>
+              </div>
+              <p style="font-size:12.5px; margin:4px 0 6px; color:var(--ink);">${escapeHtml(wf.description)}</p>
+              <div style="font-size:11.5px; color:var(--ink-soft);">
+                <strong>Owner:</strong> ${escapeHtml(wf.primary_owner_role)} | <strong>Cycle:</strong> ${escapeHtml(wf.cycle_time_estimate)}<br>
+                <strong>Pain Point:</strong> <span style="color:var(--rust);">${escapeHtml(wf.current_pain_point)}</span>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+
+      <!-- Operational Bottlenecks -->
+      <div class="discovery-card">
+        <div class="discovery-card-header">
+          <span>Reported Bottlenecks (${intake.bottlenecks.length})</span>
+          <span class="badge" style="background:var(--alert-soft); color:var(--alert);">Financial Drag</span>
+        </div>
+        <div>
+          ${intake.bottlenecks.map(b => `
+            <div style="border-bottom:1px solid var(--rule-light); padding:8px 0; margin-bottom:8px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <strong style="color:var(--rust); font-size:13.5px;">${escapeHtml(b.name)}</strong>
+                <span style="font-family:var(--font-mono); font-weight:700; color:var(--alert); font-size:12px;">-$${(b.monthly_financial_loss_usd || 0).toLocaleString()}/mo</span>
+              </div>
+              <p style="font-size:12.5px; margin:4px 0 4px; color:var(--ink);">${escapeHtml(b.root_cause)}</p>
+              <div style="font-size:11.5px; color:var(--ink-soft);">
+                <strong>Delay:</strong> ~${b.latency_hours_impact} hrs | <strong>Frequency:</strong> ${escapeHtml(b.frequency)}<br>
+                <strong>Current Workaround:</strong> <em>${escapeHtml(b.current_workaround)}</em>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    </div>
+
+    <!-- Operational Constraints & Data Sources -->
+    <div class="grid-2" style="margin-top:16px;">
+      <div class="discovery-card">
+        <div class="discovery-card-header">
+          <span>Hard Enterprise Constraints (${intake.constraints ? intake.constraints.length : 0})</span>
+          <span class="badge badge-status">Boundary Conditions</span>
+        </div>
+        <div>
+          ${(intake.constraints || []).map(c => `
+            <div class="constraint-pill">
+              <div style="display:flex; justify-content:space-between;">
+                <strong>${escapeHtml(c.category)}</strong>
+                <span class="badge" style="font-size:10px; background:${c.rigidness === 'NON_NEGOTIABLE' ? 'var(--alert-soft)' : 'var(--gold-soft)'}; color:var(--ink);">${escapeHtml(c.rigidness)}</span>
+              </div>
+              <div style="margin:4px 0; font-size:12px;">${escapeHtml(c.description)}</div>
+              <div style="font-size:11px; color:var(--ink-muted);">Mitigation: ${escapeHtml(c.mitigation_approach)}</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+
+      <div class="discovery-card">
+        <div class="discovery-card-header">
+          <span>Data Sources & Telemetry (${intake.data_sources.length})</span>
+          <span class="badge badge-local">Systems of Record</span>
+        </div>
+        <div>
+          ${intake.data_sources.map(ds => `
+            <div style="border-bottom:1px solid var(--rule-light); padding:6px 0; font-size:12.5px;">
+              <div style="display:flex; justify-content:space-between;">
+                <strong style="color:var(--river-deep);">${escapeHtml(ds.system_name)}</strong>
+                <span class="badge badge-local" style="font-size:10.5px;">${escapeHtml(ds.source_type)}</span>
+              </div>
+              <div style="color:var(--ink-soft); font-size:12px; margin:2px 0;">${escapeHtml(ds.description)}</div>
+              <div style="font-size:11px; font-family:var(--font-mono); color:var(--ink-muted);">Access: ${escapeHtml(ds.access_method)} · Refresh: ${escapeHtml(ds.refresh_cadence)} · Format: ${escapeHtml(ds.data_format)}</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Bind Discovery Transformation Button
+const btnTransform = document.getElementById("btnRunDiscoveryTransform");
+if (btnTransform) {
+  btnTransform.addEventListener("click", async () => {
+    if (!confirm("Run Discovery Transformation Engine?\\n\\nThis parses the enterprise discovery intake and compiles the operational model into entities, workflows, and prioritized AI opportunities.")) return;
+    btnTransform.disabled = true;
+    btnTransform.textContent = "Processing Transformation...";
+    try {
+      const res = await fetch("/api/discovery/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ intake_file: "aidesa_discovery_intake.json" })
+      });
+      const data = await res.json();
+      alert(`Transformation Succeeded!\\n\\nGenerated:\\n- ${data.summary.entities_count} Entities\\n- ${data.summary.relationships_count} Relationships\\n- ${data.summary.workflows_count} Workflows\\n- ${data.summary.opportunities_count} AI Opportunities\\n- ${data.summary.agent_specs_count} Agent Specifications\\n\\nReloading views...`);
+      window.location.reload();
+    } catch (err) {
+      alert("Transformation failed: " + err);
+    } finally {
+      btnTransform.disabled = false;
+      btnTransform.textContent = "⚡ Ingest Intake & Generate Model";
+    }
+  });
+}
+
+// 0.5. SOURCE EVIDENCE & PROVENANCE REGISTRY
+async function loadEvidence() {
+  const typeSel = document.getElementById("selectEvidenceSourceType");
+  const provSel = document.getElementById("selectEvidenceProvenance");
+  let url = "/api/evidence?limit=100";
+  const params = [];
+  if (typeSel && typeSel.value) params.push(`source_type=${encodeURIComponent(typeSel.value)}`);
+  if (provSel && provSel.value) params.push(`provenance=${encodeURIComponent(provSel.value)}`);
+  if (params.length) url += "&" + params.join("&");
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    renderEvidenceTable(data.evidence);
+
+    const countBadge = document.getElementById("evidenceCountBadge");
+    if (countBadge) countBadge.textContent = `${data.count} Evidence Items`;
+  } catch (err) {
+    console.error("Failed to load evidence:", err);
+  }
+}
+
+function renderEvidenceTable(items) {
+  const tbody = document.querySelector("#tableEvidence tbody");
+  if (!tbody) return;
+  if (!items.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--ink-muted);">No evidence records match current filters.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = items.map(e => {
+    const provBadge = getProvenanceBadge(e.provenance);
+    const refs = [];
+    if (e.references_entities && e.references_entities.length) {
+      refs.push(`Entities: ` + e.references_entities.map(eid => `<a href="javascript:void(0)" onclick="event.stopPropagation(); inspectEntity('${eid}')" style="color:var(--river-deep); font-weight:600;">${eid}</a>`).join(", "));
+    }
+    if (e.references_events && e.references_events.length) {
+      refs.push(`Events: ` + e.references_events.join(", "));
+    }
+    if (e.references_decisions && e.references_decisions.length) {
+      refs.push(`Decisions: ` + e.references_decisions.join(", "));
+    }
+
+    return `
+      <tr style="cursor:pointer;" onclick="inspectEvidence('${e.id}')">
+        <td><code style="font-weight:600; color:var(--river-deep);">${e.id}</code></td>
+        <td>
+          <strong>${escapeHtml(e.source)}</strong>
+          ${e.source_system ? `<br><span style="font-family:var(--font-mono); font-size:11px; color:var(--ink-muted);">${escapeHtml(e.source_system)}</span>` : ''}
+        </td>
+        <td><span class="badge badge-local">${e.source_type}</span></td>
+        <td>${provBadge}</td>
+        <td><span style="font-family:var(--font-mono); font-weight:600; color:var(--river-deep);">${(e.confidence * 100).toFixed(0)}%</span></td>
+        <td>
+          <div class="evidence-quote">${escapeHtml(e.extracted_claim)}</div>
+        </td>
+        <td style="font-size:11.5px; color:var(--ink-soft);">
+          ${refs.length ? refs.join("<br>") : '<span style="color:var(--ink-muted); font-style:italic;">None</span>'}
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+const selectEvidenceSourceType = document.getElementById("selectEvidenceSourceType");
+if (selectEvidenceSourceType) selectEvidenceSourceType.addEventListener("change", loadEvidence);
+const selectEvidenceProvenance = document.getElementById("selectEvidenceProvenance");
+if (selectEvidenceProvenance) selectEvidenceProvenance.addEventListener("change", loadEvidence);
 
 // 1. ONTOLOGY
 let ontologyData = null;
@@ -187,7 +423,10 @@ function renderEntitiesTable(entities) {
       <td><code style="font-weight:600; color:var(--river-deep);">${e.id}</code></td>
       <td><span class="badge badge-local">${e.entity_type}</span></td>
       <td><strong>${escapeHtml(e.name)}</strong></td>
-      <td><span style="font-family:var(--font-mono); font-size:11px;">${e.system_of_record}</span></td>
+      <td>
+        <span style="font-family:var(--font-mono); font-size:11px;">${e.system_of_record}</span>
+        <div style="margin-top:3px;">${getProvenanceBadge(e.provenance)}</div>
+      </td>
       <td>${(e.tags || []).map(t => `<span class="badge" style="background:#EBE7DB; margin-right:4px;">${t}</span>`).join("")}</td>
       <td><button class="btn btn-primary" style="padding:3px 8px; font-size:11px;" onclick="event.stopPropagation(); inspectEntity('${e.id}')">Inspect</button></td>
     </tr>
@@ -282,6 +521,7 @@ function renderEvents(events) {
     <div class="event-item severity-${ev.severity}">
       <div class="event-header">
         <div>
+          ${getProvenanceBadge(ev.provenance)}
           <span class="badge badge-local">${ev.source}</span>
           <span class="badge" style="background:#EBE7DB;">${ev.event_type}</span>
           <span style="font-family:var(--font-mono); font-size:11px; color:var(--ink-muted); margin-left:8px;">${new Date(ev.timestamp).toLocaleString()}</span>
@@ -309,6 +549,13 @@ function renderEvents(events) {
         <div><strong>Financial Exposure:</strong> <span style="font-family:var(--font-mono); font-weight:600; color:var(--alert);">$${(ev.financial_impact || 0).toLocaleString()} ${ev.currency}</span></div>
         <div><strong>Required Decision:</strong> <em>${ev.required_decision || "Under monitoring"}</em></div>
       </div>
+
+      ${ev.evidence_ids && ev.evidence_ids.length ? `
+        <div style="margin-top:10px; padding-top:8px; border-top:1px solid var(--rule-light); font-size:12px; color:var(--ink-soft); display:flex; align-items:center; gap:6px;">
+          <strong>Source Evidence Grounding:</strong>
+          ${ev.evidence_ids.map(eid => `<a href="javascript:void(0)" onclick="inspectEvidence('${eid}')" style="color:var(--river-deep); font-family:var(--font-mono); font-weight:600; text-decoration:underline;">[EVI: ${eid}]</a>`).join(" ")}
+        </div>
+      ` : ''}
     </div>
   `).join("");
 }
@@ -338,6 +585,7 @@ function renderDecisions(decisions) {
     <div class="card ${isEscalated ? 'card-accent-alert' : 'card-accent-gold'}" style="margin-bottom:24px;">
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
         <div>
+          ${getProvenanceBadge(d.provenance)}
           <span class="badge badge-local">${d.decision_id}</span>
           <span class="badge badge-status">Owner: ${d.decision_owner}</span>
           <span class="badge" style="background:${isEscalated ? 'var(--alert)' : 'var(--river-soft)'}; color:${isEscalated ? '#fff' : 'var(--river-deep)'}; font-weight:600;">
@@ -364,6 +612,12 @@ function renderDecisions(decisions) {
         <div class="pipeline-step">
           <div class="pipeline-step-badge">1. OBSERVATION</div>
           <div style="font-size:13px;">Event triggered: <code>${d.triggering_event_id}</code></div>
+          ${d.evidence_ids && d.evidence_ids.length ? `
+            <div style="margin-top:8px; font-size:12px; color:var(--ink-soft); display:flex; align-items:center; gap:6px;">
+              <strong>Source Evidence Grounding:</strong>
+              ${d.evidence_ids.map(eid => `<a href="javascript:void(0)" onclick="inspectEvidence('${eid}')" style="color:var(--river-deep); font-family:var(--font-mono); font-weight:600; text-decoration:underline;">[EVI: ${eid}]</a>`).join(" ")}
+            </div>
+          ` : ''}
         </div>
 
         <!-- 2. Context -->
@@ -477,40 +731,80 @@ async function loadOpportunities() {
 function renderOpportunities(opportunities) {
   const container = document.getElementById("opportunitiesContainer");
   if (!container) return;
-  container.innerHTML = opportunities.map(opp => `
+  container.innerHTML = opportunities.map(opp => {
+    const prio = opp.prioritization;
+    const isPilot = prio && prio.candidate_for_pilot;
+    return `
     <div class="card card-accent-rust">
       <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-        <h3 class="card-title">${opp.title}</h3>
+        <div>
+          ${getProvenanceBadge(opp.provenance)}
+          ${isPilot ? '<span class="pilot-tag" style="margin-left:6px;">★ CANDIDATE FOR FDE PILOT</span>' : ''}
+          <h3 class="card-title" style="margin-top:6px;">${escapeHtml(opp.title)}</h3>
+        </div>
         <span class="badge" style="background:${opp.deployment_complexity === 'LOW' ? 'var(--green-soft)' : 'var(--gold-soft)'}; color:var(--ink);">Complexity: ${opp.deployment_complexity}</span>
       </div>
-      <div class="card-subtitle">Workflow: <strong>${opp.workflow}</strong></div>
+      <div class="card-subtitle">Workflow: <strong>${escapeHtml(opp.workflow)}</strong></div>
       
       <div style="background:#FAF9F5; border:1px solid var(--rule-light); padding:10px 12px; margin-bottom:12px; font-size:13px;">
-        <div style="margin-bottom:6px;"><strong style="color:var(--alert);">Operational Bottleneck:</strong> ${opp.bottleneck}</div>
-        <div><strong style="color:var(--ink);">Business Impact:</strong> ${opp.business_impact} (Est. Annual Payoff: <strong>$${opp.estimated_payoff_annual_usd.toLocaleString()}</strong>)</div>
+        <div style="margin-bottom:6px;"><strong style="color:var(--alert);">Operational Bottleneck:</strong> ${escapeHtml(opp.bottleneck)}</div>
+        <div><strong style="color:var(--ink);">Business Impact:</strong> ${escapeHtml(opp.business_impact)} (Est. Annual Payoff: <strong>$${opp.estimated_payoff_annual_usd.toLocaleString()}</strong>)</div>
       </div>
 
+      ${prio ? `
+        <div class="prio-breakdown">
+          <div class="prio-header">
+            <span style="font-weight:600; font-size:12px; color:var(--river-deep);">FDE Opportunity Prioritization</span>
+            <span style="font-family:var(--font-mono); font-weight:700; font-size:13px; color:var(--river-deep);">${prio.composite_score.toFixed(1)} / 10</span>
+          </div>
+          <div class="prio-row">
+            <span class="prio-label">1. Economic Leverage</span>
+            <div class="prio-bar-track"><div class="prio-bar-fill" style="width:${prio.economic_leverage.dimension_score * 10}%;"></div></div>
+            <span class="prio-val">${prio.economic_leverage.dimension_score.toFixed(1)}</span>
+          </div>
+          <div class="prio-row">
+            <span class="prio-label">2. Ops Characteristics</span>
+            <div class="prio-bar-track"><div class="prio-bar-fill" style="width:${prio.operational_characteristics.dimension_score * 10}%;"></div></div>
+            <span class="prio-val">${prio.operational_characteristics.dimension_score.toFixed(1)}</span>
+          </div>
+          <div class="prio-row">
+            <span class="prio-label">3. Feasibility</span>
+            <div class="prio-bar-track"><div class="prio-bar-fill" style="width:${prio.deployment_feasibility.dimension_score * 10}%;"></div></div>
+            <span class="prio-val">${prio.deployment_feasibility.dimension_score.toFixed(1)}</span>
+          </div>
+          <div class="prio-row">
+            <span class="prio-label">4. Strategic Value</span>
+            <div class="prio-bar-track"><div class="prio-bar-fill" style="width:${prio.strategic_value.dimension_score * 10}%;"></div></div>
+            <span class="prio-val">${prio.strategic_value.dimension_score.toFixed(1)}</span>
+          </div>
+          <div style="font-size:11px; color:var(--ink-muted); margin-top:6px; font-style:italic;">
+            ${escapeHtml(prio.recommendation_rationale)}
+          </div>
+        </div>
+      ` : ''}
+
       <div style="font-size:13px; margin-bottom:12px;">
-        <strong>Proposed AI Intervention:</strong> ${opp.proposed_ai_intervention}
+        <strong>Proposed AI Intervention:</strong> ${escapeHtml(opp.proposed_ai_intervention)}
       </div>
 
       <div style="background:var(--river-soft); padding:10px 12px; border-radius:3px; margin-bottom:10px; font-size:12.5px;">
-        <strong style="color:var(--river-deep);">Human-in-the-Loop Requirement:</strong> ${opp.human_in_the_loop_requirement}
+        <strong style="color:var(--river-deep);">Human-in-the-Loop Requirement:</strong> ${escapeHtml(opp.human_in_the_loop_requirement)}
       </div>
 
       <div style="font-size:12px; color:var(--ink-soft); margin-bottom:6px;">
         <strong>Failure Modes & Guardrails:</strong>
         <ul style="margin:4px 0 8px; padding-left:18px;">
-          ${opp.failure_modes.map(f => `<li>${f}</li>`).join("")}
+          ${opp.failure_modes.map(f => `<li>${escapeHtml(f)}</li>`).join("")}
         </ul>
       </div>
 
       <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:11px; color:var(--ink-muted); border-top:1px solid var(--rule-light); padding-top:8px;">
-        <span>Target KPI: <strong>${opp.kpi}</strong></span>
-        <span>Decision: <code>${opp.decision_involved}</code></span>
+        <span>Target KPI: <strong>${escapeHtml(opp.kpi)}</strong></span>
+        <span>Decision: <code>${escapeHtml(opp.decision_involved)}</code></span>
       </div>
     </div>
-  `).join("");
+    `;
+  }).join("");
 }
 
 // 8. AGENT SPECIFICATIONS & ADAPTER COMPILER
@@ -535,6 +829,7 @@ function renderAgentSpecs(specs) {
           <span class="badge badge-status">Version ${spec.version}</span>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
+          <button class="btn btn-primary" style="padding:4px 10px; font-size:11px;" onclick="viewGeminiScaffold('${spec.spec_id}')">🐍 View Gemini Python Scaffold</button>
           <span style="font-family:var(--font-mono); font-size:11px;">Target Compiler:</span>
           <select class="select-filter" style="min-width:140px; padding:4px 8px; font-size:11.5px;" onchange="exportPlatformManifest('${spec.spec_id}', this.value)">
             <option value="gemini">Gemini Enterprise</option>
@@ -842,7 +1137,7 @@ async function inspectEntity(entityId) {
 
     typeEl.textContent = ent.entity_type.toUpperCase();
     titleEl.textContent = ent.name;
-    idEl.textContent = `ID: ${ent.id} · System: ${ent.system_of_record}`;
+    idEl.innerHTML = `ID: ${ent.id} · System: ${ent.system_of_record} · ${getProvenanceBadge(ent.provenance)}`;
 
     bodyEl.innerHTML = `
       <div style="margin-bottom:16px;">
@@ -874,6 +1169,119 @@ async function inspectEntity(entityId) {
     `;
   } catch (err) {
     bodyEl.innerHTML = `<div style="color:var(--alert);">Failed to load entity details: ${err.message}</div>`;
+  }
+}
+
+// Side Drawer Evidence Inspection
+async function inspectEvidence(evidenceId) {
+  const backdrop = document.getElementById("drawerBackdrop");
+  const titleEl = document.getElementById("drawerEntityName");
+  const idEl = document.getElementById("drawerEntityId");
+  const typeEl = document.getElementById("drawerEntityType");
+  const bodyEl = document.getElementById("drawerBody");
+
+  backdrop.style.display = "flex";
+  titleEl.textContent = "Loading Evidence...";
+  idEl.textContent = evidenceId;
+  bodyEl.innerHTML = "Fetching empirical artifact record...";
+
+  try {
+    const res = await fetch(`/api/evidence/${evidenceId}`);
+    if (!res.ok) throw new Error("Evidence record not found");
+    const data = await res.json();
+    const evi = data.evidence;
+
+    typeEl.textContent = `EVIDENCE · ${evi.source_type}`;
+    titleEl.textContent = evi.source;
+    idEl.innerHTML = `ID: ${evi.id} · Confidence: ${(evi.confidence * 100).toFixed(0)}% · ${getProvenanceBadge(evi.provenance)}`;
+
+    const refs = [];
+    if (evi.references_entities && evi.references_entities.length) {
+      refs.push(`<strong>Referenced Entities:</strong> ` + evi.references_entities.map(eid => `<a href="javascript:void(0)" onclick="inspectEntity('${eid}')" style="color:var(--river-deep); font-weight:600; margin-right:6px;">${eid}</a>`).join(", "));
+    }
+    if (evi.references_events && evi.references_events.length) {
+      refs.push(`<strong>Referenced Events:</strong> ` + evi.references_events.join(", "));
+    }
+    if (evi.references_decisions && evi.references_decisions.length) {
+      refs.push(`<strong>Referenced Decisions:</strong> ` + evi.references_decisions.join(", "));
+    }
+
+    bodyEl.innerHTML = `
+      <div style="margin-bottom:16px;">
+        <div class="pane-eyebrow">Extracted Operational Claim</div>
+        <div class="evidence-quote" style="font-size:13px; margin-top:6px;">${escapeHtml(evi.extracted_claim)}</div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div class="pane-eyebrow">Grounding Telemetry & Origin</div>
+        <div style="font-size:12.5px; line-height:1.8;">
+          <strong>Source System:</strong> ${escapeHtml(evi.source_system || "N/A")}<br>
+          <strong>Observed Timestamp:</strong> <span style="font-family:var(--font-mono);">${new Date(evi.timestamp).toLocaleString()}</span><br>
+          <strong>Provenance:</strong> ${getProvenanceBadge(evi.provenance)}<br>
+          <strong>Confidence Score:</strong> <span style="font-family:var(--font-mono); font-weight:700; color:var(--river-deep);">${(evi.confidence * 100).toFixed(0)}%</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div class="pane-eyebrow">Linked Operational Graph Objects</div>
+        <div style="font-size:12.5px; line-height:1.7;">
+          ${refs.length ? refs.join("<br>") : '<span style="color:var(--ink-muted); font-style:italic;">No linked entities/events</span>'}
+        </div>
+      </div>
+
+      <div>
+        <div class="pane-eyebrow">Full Empirical Artifact Payload</div>
+        <pre class="code-json" style="max-height:220px;">${JSON.stringify(evi, null, 2)}</pre>
+      </div>
+    `;
+  } catch (err) {
+    bodyEl.innerHTML = `<div style="color:var(--alert);">Failed to load evidence details: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+// Side Drawer Gemini Python SDK Scaffold Viewer
+async function viewGeminiScaffold(specId) {
+  const backdrop = document.getElementById("drawerBackdrop");
+  const titleEl = document.getElementById("drawerEntityName");
+  const idEl = document.getElementById("drawerEntityId");
+  const typeEl = document.getElementById("drawerEntityType");
+  const bodyEl = document.getElementById("drawerBody");
+
+  backdrop.style.display = "flex";
+  titleEl.textContent = "Compiling Gemini Scaffold...";
+  idEl.textContent = specId;
+  bodyEl.innerHTML = "Generating runnable google-genai deployment code...";
+
+  try {
+    const res = await fetch(`/api/agent-specs/${specId}/scaffold/gemini`);
+    if (!res.ok) throw new Error("Failed to generate scaffold");
+    const data = await res.json();
+
+    typeEl.textContent = `GEMINI ENTERPRISE · PYTHON SDK SCAFFOLD`;
+    titleEl.textContent = `${specId} — Production Agent`;
+    idEl.textContent = `Model: ${data.model} · Tools: ${data.tools_count} · Platform: Google GenAI SDK`;
+
+    bodyEl.innerHTML = `
+      <div style="margin-bottom:14px; background:var(--river-soft); padding:10px 12px; border-radius:3px; font-size:12.5px;">
+        <strong style="color:var(--river-deep);">Target Framework:</strong> Official <code>google-genai</code> Python SDK<br>
+        <span style="color:var(--ink-soft); font-size:11.5px;">Runnable deployment code with typed function tool definitions, system instructions, and human-in-the-loop review guards.</span>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <div class="pane-eyebrow">Generated Python Deployment Code</div>
+        <button class="btn btn-primary" style="padding:2px 8px; font-size:11px;" onclick="navigator.clipboard.writeText(document.getElementById('scaffoldPythonCode').textContent); alert('Copied Python code to clipboard!');">📋 Copy Code</button>
+      </div>
+      <pre class="code-json" id="scaffoldPythonCode" style="max-height:400px; font-size:11.5px;">${escapeHtml(data.python_code)}</pre>
+
+      <div style="margin-top:14px;">
+        <div class="pane-eyebrow">Installation & Execution</div>
+        <pre class="code-json" style="padding:8px 12px; font-size:11px;">pip install ${(data.dependencies || []).join(" ")}
+export GEMINI_API_KEY="your-api-key"
+python agent_${specId.replace(/-/g, "_")}.py</pre>
+      </div>
+    `;
+  } catch (err) {
+    bodyEl.innerHTML = `<div style="color:var(--alert);">Failed to generate scaffold: ${escapeHtml(err.message)}</div>`;
   }
 }
 

@@ -2,15 +2,20 @@
 
 from typing import Optional, List, Dict, Any
 from pathlib import Path
+import json
 from fastapi import FastAPI, Query, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 
 from fde_workbench.domain.ontology import EntityTypeEnum, RelationTypeEnum, ONTOLOGY_METADATA, CRITICAL_PATH_NARRATIVE
+from fde_workbench.domain.provenance import ProvenanceType
+from fde_workbench.domain.evidence import EvidenceRecord, EvidenceSourceType
+from fde_workbench.domain.discovery import DiscoveryIntake, DiscoveryTransformationEngine
 from fde_workbench.domain.relationships import ALLOWED_RELATIONSHIPS
 from fde_workbench.domain.events import EventSeverity, EventStatus
 from fde_workbench.domain.adapters import ADAPTERS
+from fde_workbench.domain.adapters.gemini_adapter import GeminiEnterpriseAdapter
 from fde_workbench.storage.store import WorkbenchStore
 from fde_workbench.storage.snapshot import export_store_to_dict, import_store_from_dict
 from fde_workbench.synthetic.generator import seed_synthetic_company
@@ -242,6 +247,124 @@ def export_agent_manifest(spec_id: str, platform: str):
         "spec_id": spec_id,
         "compatibility": compatibility,
         "manifest": manifest,
+    }
+
+
+@app.get("/api/agent-specs/{spec_id}/scaffold/gemini")
+def get_gemini_python_scaffold(spec_id: str):
+    spec = store.get_agent_spec(spec_id)
+    if not spec:
+        raise HTTPException(status_code=404, detail="Agent specification not found")
+    adapter = GeminiEnterpriseAdapter()
+    scaffold = adapter.generate_python_scaffold(spec)
+    return {
+        "spec_id": spec_id,
+        "platform": "gemini_enterprise",
+        "title": spec.title,
+        "python_scaffold": scaffold,
+    }
+
+
+# --- SOURCE EVIDENCE ENDPOINTS ---
+
+@app.get("/api/evidence")
+def list_evidence(
+    source_type: Optional[str] = Query(None, description="Filter by source type"),
+    provenance: Optional[str] = Query(None, description="Filter by provenance"),
+    entity_id: Optional[str] = Query(None, description="Filter by referenced entity ID"),
+    limit: int = Query(200, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+):
+    st_enum = None
+    if source_type:
+        try:
+            st_enum = EvidenceSourceType(source_type)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid source_type: {source_type}")
+
+    prov_enum = None
+    if provenance:
+        try:
+            prov_enum = ProvenanceType(provenance)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid provenance: {provenance}")
+
+    evidence_list = store.list_evidence(
+        source_type=st_enum,
+        provenance=prov_enum,
+        entity_id=entity_id,
+        limit=limit,
+        offset=offset,
+    )
+    total_count = store.count_evidence(source_type=st_enum, provenance=prov_enum)
+    return {
+        "total": total_count,
+        "count": len(evidence_list),
+        "evidence": [e.model_dump(mode="json") for e in evidence_list],
+    }
+
+
+@app.get("/api/evidence/{evidence_id}")
+def get_evidence_detail(evidence_id: str):
+    evidence = store.get_evidence(evidence_id)
+    if not evidence:
+        raise HTTPException(status_code=404, detail="Evidence record not found")
+    return {"evidence": evidence.model_dump(mode="json")}
+
+
+@app.post("/api/evidence")
+def create_evidence(evidence_data: Dict[str, Any] = Body(...)):
+    try:
+        evidence = EvidenceRecord.model_validate(evidence_data)
+        saved = store.add_evidence(evidence)
+        return {"status": "CREATED", "evidence": saved.model_dump(mode="json")}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# --- FDE DISCOVERY ENDPOINTS ---
+
+@app.get("/api/discovery/intake")
+def get_discovery_intake():
+    intake_file = Path(__file__).resolve().parent.parent.parent / "aidesa_discovery_intake.json"
+    if intake_file.exists():
+        with open(intake_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+    raise HTTPException(status_code=404, detail="Discovery intake file not found")
+
+
+@app.post("/api/discovery/intake")
+def save_discovery_intake(intake_data: Dict[str, Any] = Body(...)):
+    try:
+        intake = DiscoveryIntake.model_validate(intake_data)
+        intake_file = Path(__file__).resolve().parent.parent.parent / "aidesa_discovery_intake.json"
+        with open(intake_file, "w", encoding="utf-8") as f:
+            f.write(intake.model_dump_json(indent=2))
+        return {"status": "SAVED", "intake_id": intake.intake_id}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/discovery/generate")
+def generate_from_discovery_intake(intake_data: Optional[Dict[str, Any]] = Body(None)):
+    if intake_data:
+        try:
+            intake = DiscoveryIntake.model_validate(intake_data)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
+    else:
+        intake_file = Path(__file__).resolve().parent.parent.parent / "aidesa_discovery_intake.json"
+        if not intake_file.exists():
+            raise HTTPException(status_code=404, detail="No active intake to generate from")
+        with open(intake_file, "r", encoding="utf-8") as f:
+            intake = DiscoveryIntake.model_validate(json.load(f))
+
+    summary = DiscoveryTransformationEngine.generate_operational_model(intake, store)
+    return {
+        "status": "SUCCESS",
+        "intake_id": intake.intake_id,
+        "company": intake.company_profile.name,
+        "summary": summary,
     }
 
 

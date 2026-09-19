@@ -32,9 +32,19 @@ from fde_workbench.domain.entities import (
     KPI,
 )
 from fde_workbench.domain.relationships import Relationship
+from fde_workbench.domain.provenance import ProvenanceType
+from fde_workbench.domain.evidence import EvidenceRecord, EvidenceSourceType
 from fde_workbench.domain.events import OperationalEventRecord, EventSeverity, EventStatus
 from fde_workbench.domain.decisions import DecisionRecord, DecisionOption, AuthorizedAction, DecisionOutcome, DecisionStatus
-from fde_workbench.domain.ai_opportunities import AIOpportunity, DeploymentComplexity
+from fde_workbench.domain.ai_opportunities import (
+    AIOpportunity,
+    DeploymentComplexity,
+    FDEPrioritization,
+    EconomicLeverage,
+    OperationalCharacteristics,
+    DeploymentFeasibility,
+    StrategicValue,
+)
 from fde_workbench.domain.agent_specs import AgentSpecification, ToolDefinition
 
 
@@ -621,6 +631,82 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
     ))
 
     # ==========================================
+    # 9.5. SOURCE EVIDENCE (GROUNDING OPERATIONAL REALITY)
+    # ==========================================
+    evi_gauge = EvidenceRecord(
+        id="evi-2026-001",
+        source="PREFECTURA_NAVAL_GAUGE_KM1530",
+        source_type=EvidenceSourceType.TELEMETRY_STREAM,
+        timestamp=now - timedelta(hours=14, minutes=30),
+        confidence=0.98,
+        provenance=ProvenanceType.SYNTHETIC,
+        extracted_claim="Paraguay River water depth at Paso Queso gauge (km 1530) measured 8.4 ft, falling below the 10.0 ft safe navigation threshold for 16-barge convoys.",
+        raw_payload_snippet="BOLETIN_HIDROMETRICO_DIARIO: FECHA 2026-09-18 06:00 | ESTACION: PASO QUESO KM 1530 | CALADO_MAX_PIES: 8.4 | ALERTA: ESTIAJE_CRITICO",
+        references_entity_ids=[shipment_barge.id, fac_villeta.id],
+        references_event_ids=["evt-2026-001"],
+        references_decision_ids=["dec-2026-001"],
+    )
+    store.add_evidence(evi_gauge)
+
+    evi_customs = EvidenceRecord(
+        id="evi-2026-002",
+        source="DNIT_VUE_CUSTOMS_PORTAL",
+        source_type=EvidenceSourceType.CUSTOMS_DOCUMENT,
+        timestamp=now - timedelta(hours=6, minutes=15),
+        confidence=0.99,
+        provenance=ProvenanceType.SYNTHETIC,
+        extracted_claim="Export transit manifest MIC/DTA rejected with error NCM_EX_CODE_MISMATCH against registered Maquila tariff exemption.",
+        raw_payload_snippet="VUE_WS_RESP: STATUS=REJECTED | DUA=026-EXP-08819 | ERR=NCM_EX_CODE_MISMATCH [Declared: 2304.00.10.00 vs Approved: 2304.00.10.Ex01]",
+        references_entity_ids=[fac_hernandarias.id],
+        references_event_ids=["evt-2026-002"],
+        references_decision_ids=["dec-2026-002"],
+    )
+    store.add_evidence(evi_customs)
+
+    evi_scale = EvidenceRecord(
+        id="evi-2026-003",
+        source="TOLEDO_BASCULA_SCALE_VILLETA",
+        source_type=EvidenceSourceType.PHYSICAL_INSPECTION,
+        timestamp=now - timedelta(hours=3, minutes=15),
+        confidence=0.96,
+        provenance=ProvenanceType.SYNTHETIC,
+        extracted_claim="Weighbridge automatic NIR grain sampler recorded 15.7% moisture on inbound truck lot vs 14.0% contractual maximum.",
+        raw_payload_snippet="ROMANEO_FISCAL_TICKET: #88412 | BRUTO: 48,200 KG | TARA: 14,100 KG | NETO: 34,100 KG | HUMEDAD: 15.7% | MAT_EXTRAÑA: 1.4%",
+        references_entity_ids=[mat_soybeans.id, "sup-001"],
+        references_event_ids=["evt-2026-003"],
+    )
+    store.add_evidence(evi_scale)
+
+    evi_swift = EvidenceRecord(
+        id="evi-2026-004",
+        source="BANCO_CONTINENTAL_SWIFT_PORTAL",
+        source_type=EvidenceSourceType.ERP_RECORD,
+        timestamp=now - timedelta(hours=2, minutes=20),
+        confidence=0.94,
+        provenance=ProvenanceType.SYNTHETIC,
+        extracted_claim="Expected SWIFT MT103 wire transfer of USD 185,000 overdue by 5 business days due to Central Bank of Argentina (BCRA) foreign exchange authorization hold.",
+        raw_payload_snippet="SWIFT_INQUIRY: REF_INV=FAC-2026-001 | MT103_STATUS=PENDING_CENTRAL_BANK_CLEARING | CORRESPONDENT=BANCO_NACION_ARG | AMOUNT=USD 185,000",
+        references_entity_ids=[inv_01.id],
+        references_event_ids=["evt-2026-004"],
+    )
+    store.add_evidence(evi_swift)
+
+    evi_whatsapp = EvidenceRecord(
+        id="evi-2026-005",
+        source="CUSTOMS_BROKER_DISPATCH_WHATSAPP",
+        source_type=EvidenceSourceType.INTERVIEW_STATEMENT,
+        timestamp=now - timedelta(hours=7, minutes=10),
+        confidence=0.91,
+        provenance=ProvenanceType.SYNTHETIC,
+        extracted_claim="Customs broker statement confirms 3 refrigerated containers of beef halted at Puerto Falcón border post due to missing SENACSA Annex III health certificate.",
+        raw_payload_snippet="\"Licenciado, Aduana Clorinda rechazó el ingreso de los 3 camiones reefer. Falta el Anexo III firmado de SENACSA. Los motores tienen combustible para 5 horas más nomás.\"",
+        references_entity_ids=["cust-021"],
+        references_event_ids=["evt-2026-005-escalation"],
+        references_decision_ids=["dec-2026-005-escalated"],
+    )
+    store.add_evidence(evi_whatsapp)
+
+    # ==========================================
     # 10. OPERATIONAL EVENTS & DECISIONS (Including Escalation Path)
     # ==========================================
     # Event 1: River Draft Restriction (Paso Queso)
@@ -631,6 +717,8 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         entity_type=EntityTypeEnum.SHIPMENT,
         event_type="river_draft_restriction",
         source="PREFECTURA_NAVAL_GAUGE",
+        provenance=ProvenanceType.SYNTHETIC,
+        evidence_ids=[evi_gauge.id],
         severity=EventSeverity.CRITICAL,
         expected_state={"permissible_draft_ft": 10.5, "convoy_actual_draft_ft": 10.2, "status": "NAVIGABLE"},
         observed_state={"permissible_draft_ft": 8.4, "convoy_actual_draft_ft": 10.2, "deficit_inches": 21.6, "critical_pass": "Paso Queso (km 1530)"},
@@ -648,6 +736,8 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         triggering_event_id=evt_river.id,
         decision_owner="role-executive",
         status=DecisionStatus.EXECUTED,
+        provenance=ProvenanceType.SYNTHETIC,
+        evidence_ids=[evi_gauge.id],
         context={
             "customer": "cust-016 (Molinos Fluviales del Paraná)",
             "contractual_penalty_delay_per_day_usd": 3500.0,
@@ -703,6 +793,8 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         entity_type=EntityTypeEnum.FACILITY,
         event_type="customs_document_missing",
         source="VUE_PORTAL",
+        provenance=ProvenanceType.SYNTHETIC,
+        evidence_ids=[evi_customs.id],
         severity=EventSeverity.HIGH,
         expected_state={"document": "MIC_DTA_ELECTRONICO", "status": "TRANSMITTED_TO_RECEITA_FEDERAL_BRASIL"},
         observed_state={"document": "MIC_DTA_ELECTRONICO", "status": "REJECTED_SYNTAX_ERROR", "error_code": "NCM_EX_CODE_MISMATCH"},
@@ -720,6 +812,8 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         triggering_event_id=evt_customs.id,
         decision_owner="role-customs-compliance",
         status=DecisionStatus.EXECUTED,
+        provenance=ProvenanceType.SYNTHETIC,
+        evidence_ids=[evi_customs.id],
         context={
             "affected_shipment_ids": ["shp-truck-cde-01", "shp-truck-cde-02"],
             "receita_federal_shift_cutoff": "20:00 local time",
@@ -764,6 +858,8 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         entity_type=EntityTypeEnum.MATERIAL,
         event_type="quality_failure",
         source="WEIGHBRIDGE_SAMPLE",
+        provenance=ProvenanceType.SYNTHETIC,
+        evidence_ids=[evi_scale.id],
         severity=EventSeverity.MEDIUM,
         expected_state={"moisture_pct_max": 14.0, "foreign_matter_max": 1.0},
         observed_state={"moisture_pct_actual": 15.7, "foreign_matter_actual": 1.4, "supplier": "sup-001 (Agropecuaria Alto Paraná)"},
@@ -783,6 +879,8 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         entity_type=EntityTypeEnum.INVOICE,
         event_type="payment_delayed",
         source="SWIFT_PORTAL",
+        provenance=ProvenanceType.SYNTHETIC,
+        evidence_ids=[evi_swift.id],
         severity=EventSeverity.MEDIUM,
         expected_state={"invoice_due_date": (now - timedelta(days=5)).isoformat(), "wire_received": True},
         observed_state={"wire_received": False, "bcra_approval_pending_status": "SEPA_SIRA_HOLD", "days_overdue": 5},
@@ -802,6 +900,8 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         entity_type=EntityTypeEnum.CUSTOMER,
         event_type="customs_document_missing",
         source="VUE_PORTAL",
+        provenance=ProvenanceType.SYNTHETIC,
+        evidence_ids=[evi_whatsapp.id],
         severity=EventSeverity.HIGH,
         expected_state={"status": "CLEARED_AT_PUERTO_FALCON", "border_dwell_hours": 2.0},
         observed_state={"status": "HELD_AT_BORDER", "border_dwell_hours": 7.2, "missing_document": "SENACSA_EXPORT_PERMIT_ANNEX_III"},
@@ -820,6 +920,8 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         triggering_event_id=evt_escalation.id,
         decision_owner="role-customs-compliance",
         status=DecisionStatus.DECISION_PENDING,
+        provenance=ProvenanceType.SYNTHETIC,
+        evidence_ids=[evi_whatsapp.id],
         escalation_timeout_hours=4.0,
         escalation_target_role="role-executive",
         context={
@@ -858,7 +960,7 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
     store.add_decision(dec_escalated)
 
     # ==========================================
-    # 11. AI OPPORTUNITY MODELS
+    # 11. AI OPPORTUNITY MODELS & FDE PRIORITIZATION
     # ==========================================
     opp_customs = AIOpportunity(
         id="opp-01-customs-recon",
@@ -880,6 +982,37 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         kpi="Customs Border Dwell Time (Hours)",
         deployment_complexity=DeploymentComplexity.LOW,
         estimated_payoff_annual_usd=320000.0,
+        provenance=ProvenanceType.SYNTHETIC,
+        prioritization=FDEPrioritization(
+            economic_leverage=EconomicLeverage(
+                revenue_impact=7,
+                cost_impact=9,
+                working_capital_impact=8,
+                risk_exposure=8,
+            ),
+            operational_characteristics=OperationalCharacteristics(
+                frequency=9,
+                decision_complexity=6,
+                current_manual_effort=9,
+                latency_sensitivity=9,
+                cross_system_fragmentation=8,
+            ),
+            deployment_feasibility=DeploymentFeasibility(
+                data_availability=9,
+                integration_complexity=8,
+                security_sensitivity=9,
+                human_approval_clarity=9,
+                change_management_readiness=8,
+            ),
+            strategic_value=StrategicValue(
+                repeatability=10,
+                adjacent_workflows_count=8,
+                cross_customer_applicability=10,
+                reusable_ip_potential=9,
+            ),
+            pilot_recommendation="HIGH_PRIORITY_PILOT",
+            prioritization_rationale="Prime candidate for initial FDE pilot: Extremely high frequency, structured VUE/SAP data inputs, clear single broker approval checkpoint, and $320k annual savings.",
+        ),
     )
     store.add_opportunity(opp_customs)
 
@@ -902,6 +1035,37 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         kpi="Fluvial Convoy Draft Capacity Utilization (%)",
         deployment_complexity=DeploymentComplexity.MEDIUM,
         estimated_payoff_annual_usd=520000.0,
+        provenance=ProvenanceType.SYNTHETIC,
+        prioritization=FDEPrioritization(
+            economic_leverage=EconomicLeverage(
+                revenue_impact=9,
+                cost_impact=9,
+                working_capital_impact=7,
+                risk_exposure=10,
+            ),
+            operational_characteristics=OperationalCharacteristics(
+                frequency=7,
+                decision_complexity=8,
+                current_manual_effort=8,
+                latency_sensitivity=9,
+                cross_system_fragmentation=7,
+            ),
+            deployment_feasibility=DeploymentFeasibility(
+                data_availability=7,
+                integration_complexity=7,
+                security_sensitivity=9,
+                human_approval_clarity=8,
+                change_management_readiness=7,
+            ),
+            strategic_value=StrategicValue(
+                repeatability=9,
+                adjacent_workflows_count=9,
+                cross_customer_applicability=9,
+                reusable_ip_potential=10,
+            ),
+            pilot_recommendation="HIGH_PRIORITY_PILOT",
+            prioritization_rationale="High economic leverage and critical vessel grounding risk avoidance. Core vertical IP for Paraguayan fluvial logistics.",
+        ),
     )
     store.add_opportunity(opp_river)
 
@@ -921,6 +1085,37 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         kpi="Grain Intake Processing Time per Truck (Minutes)",
         deployment_complexity=DeploymentComplexity.LOW,
         estimated_payoff_annual_usd=140000.0,
+        provenance=ProvenanceType.SYNTHETIC,
+        prioritization=FDEPrioritization(
+            economic_leverage=EconomicLeverage(
+                revenue_impact=5,
+                cost_impact=7,
+                working_capital_impact=6,
+                risk_exposure=5,
+            ),
+            operational_characteristics=OperationalCharacteristics(
+                frequency=10,
+                decision_complexity=5,
+                current_manual_effort=9,
+                latency_sensitivity=6,
+                cross_system_fragmentation=6,
+            ),
+            deployment_feasibility=DeploymentFeasibility(
+                data_availability=8,
+                integration_complexity=8,
+                security_sensitivity=9,
+                human_approval_clarity=8,
+                change_management_readiness=8,
+            ),
+            strategic_value=StrategicValue(
+                repeatability=8,
+                adjacent_workflows_count=6,
+                cross_customer_applicability=8,
+                reusable_ip_potential=7,
+            ),
+            pilot_recommendation="PHASE_2_EXPANSION",
+            prioritization_rationale="Solid operational ROI with high daily frequency, but lower aggregate cost exposure ($140k/yr) than customs clearance ($380k/yr) and river draft ($650k/yr).",
+        ),
     )
     store.add_opportunity(opp_quality)
 
@@ -1159,4 +1354,5 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         "opportunity_count": len(store.list_opportunities()),
         "agent_spec_count": len(store.list_agent_specs()),
         "kpi_count": len(store.list_kpis()),
+        "evidence_count": store.count_evidence(),
     }

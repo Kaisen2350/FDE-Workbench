@@ -539,3 +539,140 @@ pre.code-json {
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
   .state-diff-box { grid-template-columns: 1fr; }
 }
+
+/* Phase 2: Provenance Badges */
+.badge-provenance {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 2px;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.badge-prov-synthetic {
+  background: var(--rust-soft);
+  color: var(--rust);
+  border: 1px solid var(--rust);
+}
+.badge-prov-customer-observed {
+  background: var(--green-soft);
+  color: var(--green);
+  border: 1px solid var(--green);
+}
+.badge-prov-public-source {
+  background: var(--river-soft);
+  color: var(--river-deep);
+  border: 1px solid var(--river);
+}
+.badge-prov-customer-provided {
+  background: var(--gold-soft);
+  color: var(--gold);
+  border: 1px solid var(--gold);
+}
+.badge-prov-derived {
+  background: var(--paper-subtle);
+  color: var(--ink-soft);
+  border: 1px solid var(--rule);
+}
+
+/* Phase 2: Evidence Styling */
+.evidence-quote {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--paper-subtle);
+  padding: 8px 12px;
+  border-left: 3px solid var(--river);
+  margin: 8px 0;
+  border-radius: 0 3px 3px 0;
+  color: var(--ink-soft);
+  white-space: pre-wrap;
+}
+
+/* Phase 2: FDE Prioritization Breakdown Bars */
+.prio-breakdown {
+  margin: 14px 0 8px;
+  padding: 12px 14px;
+  background: var(--paper-subtle);
+  border: 1px solid var(--rule-light);
+  border-radius: 3px;
+}
+.prio-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.prio-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 35px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+.prio-label {
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+.prio-bar-track {
+  height: 7px;
+  background: var(--paper-card);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.prio-bar-fill {
+  height: 100%;
+  background: var(--river);
+  border-radius: 3px;
+}
+.prio-val {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 11px;
+  text-align: right;
+  color: var(--river-deep);
+}
+.pilot-tag {
+  background: var(--green-soft);
+  color: var(--green);
+  border: 1px solid var(--green);
+  padding: 3px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 2px;
+  letter-spacing: 0.04em;
+  display: inline-block;
+}
+
+/* Phase 2: Discovery Intake Styling */
+.discovery-card {
+  background: var(--paper-card);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+.discovery-card-header {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--rule-light);
+  padding-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.constraint-pill {
+  background: var(--paper-subtle);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  font-size: 12.5px;
+}

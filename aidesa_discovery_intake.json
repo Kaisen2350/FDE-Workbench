@@ -1,0 +1,201 @@
+{
+  "intake_id": "intake-2026-aidesa",
+  "date_conducted": "2026-09-18T14:00:00Z",
+  "lead_fde": "Forward Deployed Engineer",
+  "company_profile": {
+    "name": "Agro-Industrial del Este S.A. (AIDESA)",
+    "ruc": "80099412-4",
+    "industry": "Agro-Industrial Crushing, Grain Trading & Maquila Export",
+    "headcount": 250,
+    "annual_revenue_usd": "$85,000,000 USD",
+    "export_markets": [
+      "Brazil (Terrestrial / BR-277)",
+      "Argentina (Fluvial Hidrovía Paraná-Paraguay)",
+      "Chile (Terrestrial Corredor Bioceánico)"
+    ],
+    "facilities": [
+      {
+        "id": "fac-villeta",
+        "name": "Planta Fluvial Villeta",
+        "type": "RIVER_PORT_AND_CRUSHING_MILL",
+        "department": "Central",
+        "city": "Villeta",
+        "capacity_tpd": 2800.0,
+        "has_barge_dock": true
+      },
+      {
+        "id": "fac-hernandarias",
+        "name": "Planta Maquila Hernandarias",
+        "type": "MAQUILA_PACKAGING_AND_ASSEMBLY",
+        "department": "Alto Paraná",
+        "city": "Hernandarias",
+        "capacity_tpd": 650.0,
+        "has_barge_dock": false
+      }
+    ],
+    "erp": "SAP Business One v10 (SQL Server)",
+    "crm": "None / Commercial Spreadsheets & WhatsApp",
+    "tms_wms": "Trans-Chaco TMS (Fluvial & Terrestrial Dispatch)",
+    "cloud_ecosystem": "Google Workspace (Gmail, Sheets, Drive)"
+  },
+  "critical_workflows": [
+    {
+      "id": "wf-fluvial-export",
+      "name": "Hidrovía Fluvial Grain Barge Export",
+      "description": "Crushed high-protein soybean meal pellets loaded at Villeta port into 16-barge push-convoys traveling down the Paraguay-Paraná river to Rosario/San Lorenzo ports.",
+      "volume_per_month": "45,000 MT",
+      "lead_time_days": 18.0,
+      "primary_systems": ["Trans-Chaco TMS", "SAP B1", "Prefectura Naval Bulletins"]
+    },
+    {
+      "id": "wf-border-customs",
+      "name": "Cross-Border Terrestrial Trucking to Brazil via CDE",
+      "description": "Double-trailer bitren trucks carrying grain or packaged expeller products across the Friendship Bridge (Puente de la Amistad) to Paraná state feed mills.",
+      "volume_per_month": "140 bitren trucks",
+      "lead_time_days": 3.5,
+      "primary_systems": ["DNIT VUE Portal", "SAP B1", "Trans-Chaco TMS"]
+    },
+    {
+      "id": "wf-inbound-procurement",
+      "name": "Inbound Raw Soybean Procurement & Grain Scale Intake",
+      "description": "Grain intake from 80 regional farmers across Alto Paraná and Itapúa, weighed and sampled at facility báscula fiscal.",
+      "volume_per_month": "75,000 MT",
+      "lead_time_days": 2.0,
+      "primary_systems": ["Toledo Weighbridge Báscula Scale", "SAP B1", "QC Lab LIMS"]
+    }
+  ],
+  "known_bottlenecks": [
+    {
+      "id": "bnk-river-draft",
+      "workflow_id": "wf-fluvial-export",
+      "title": "Hydrological River Draft Restrictions at Critical Passes",
+      "description": "Severe shallow-water alerts at Paso Queso (km 1590) force convoy halts or expensive cargo offloading (alijo) when permissible draft drops below 9.5 feet.",
+      "estimated_cost_exposure_annual_usd": 185000.0,
+      "delay_hours": 72.0,
+      "primary_cause": "Manual, delayed extraction of Prefectura Naval hydrometric bulletins; pilot notification lag of 6+ hours."
+    },
+    {
+      "id": "bnk-customs-hold",
+      "workflow_id": "wf-border-customs",
+      "title": "Cross-Border Transit Document Discrepancy & Customs Dwell",
+      "description": "Mismatches between SAP export invoices, packing lists, and DNIT VUE transit permits (MIC/DTA) stall trucks in fiscal parking at Ciudad del Este for up to 36 hours.",
+      "estimated_cost_exposure_annual_usd": 92000.0,
+      "delay_hours": 24.0,
+      "primary_cause": "Double data entry across ERP and customs broker portals; weekend unattended approval holds."
+    },
+    {
+      "id": "bnk-moisture-deduction",
+      "workflow_id": "wf-inbound-procurement",
+      "title": "Grain Intake Moisture and Quality Assay Dispute Resolution",
+      "description": "Discrepancies in moisture assays (>14% max threshold) cause line blockages at the báscula fiscal and retrospective commercial penalty disputes with producers.",
+      "estimated_cost_exposure_annual_usd": 48000.0,
+      "delay_hours": 4.5,
+      "primary_cause": "Manual calculation of CAPPRO standard discount tables across silo operators."
+    }
+  ],
+  "key_decisions": [
+    {
+      "id": "dec-alijo-charter",
+      "title": "Charter Emergency Alijo Shallow-Draft Barge vs Hold Convoy",
+      "decision_maker_role": "role-logistics-director",
+      "frequency": "During low river level periods (15-20 times/year)",
+      "information_sources": ["Prefectura Naval Hydrometric Bulletins", "Barge Pilot Position GPS", "Rosario Port Receiving Schedules"],
+      "consequence_of_delay": "Demurrage fines of $6,400/day per push-boat plus ocean-vessel missed laycan in San Lorenzo."
+    },
+    {
+      "id": "dec-customs-rectify",
+      "title": "Authorize Emergency Customs Broker Fee & Re-filing",
+      "decision_maker_role": "role-customs-compliance",
+      "frequency": "Weekly (3-5 incidents/month)",
+      "information_sources": ["VUE Customs Declaration Status", "Carrier Driver WhatsApp Dispatch", "Fiscal Inspector Observations"],
+      "consequence_of_delay": "Detention charges of $150/truck/day and driver border stranding."
+    }
+  ],
+  "current_kpis": [
+    {
+      "id": "kpi-ccc",
+      "name": "Cash Conversion Cycle",
+      "current_value": "64",
+      "target_value": "45",
+      "unit": "days"
+    },
+    {
+      "id": "kpi-customs-dwell",
+      "name": "Customs Border Dwell Time",
+      "current_value": "18.4",
+      "target_value": "6.0",
+      "unit": "hours"
+    },
+    {
+      "id": "kpi-river-util",
+      "name": "Fluvial Fleet Draft Utilization",
+      "current_value": "78.5",
+      "target_value": "92.0",
+      "unit": "%"
+    },
+    {
+      "id": "kpi-otif",
+      "name": "On-Time In-Full (OTIF) Delivery",
+      "current_value": "84.2",
+      "target_value": "95.0",
+      "unit": "%"
+    }
+  ],
+  "data_sources": [
+    {
+      "id": "ds-sap",
+      "name": "SAP Business One SQL Server",
+      "system": "SAP B1",
+      "format": "SQL Database Tables (OINV, ODLN, POR1)",
+      "accessibility": "Direct Read Replica Access"
+    },
+    {
+      "id": "ds-tms",
+      "name": "Trans-Chaco TMS Dispatch Logs",
+      "system": "Trans-Chaco",
+      "format": "REST API & Scheduled CSV Exports",
+      "accessibility": "API & Shared SFTP"
+    },
+    {
+      "id": "ds-vue",
+      "name": "DNIT VUE Customs Portal",
+      "system": "VUE",
+      "format": "XML / PDF Official Manifests",
+      "accessibility": "Broker Web Portal Export"
+    },
+    {
+      "id": "ds-gdrive",
+      "name": "Export Operations Google Drive",
+      "system": "Google Workspace",
+      "format": "PDFs (Bills of Lading, CRTs, SENAVE Phytosanitary Certificates)",
+      "accessibility": "Google Drive API"
+    }
+  ],
+  "stakeholders": [
+    {
+      "role_title": "Logistics & Fleet Director",
+      "department": "Fluvial & Terrestrial Transport",
+      "interviews_completed": 2,
+      "key_priorities": ["Predictive river pass warnings", "Demurrage minimization", "Barge convoy turnaround"]
+    },
+    {
+      "role_title": "Customs & Comex Compliance Chief",
+      "department": "Foreign Trade & Regulatory Affairs",
+      "interviews_completed": 2,
+      "key_priorities": ["Automated cross-checking of export documentation", "Weekend automated escalation"]
+    },
+    {
+      "role_title": "Treasury & Finance Manager",
+      "department": "Finance & Administration",
+      "interviews_completed": 1,
+      "key_priorities": ["Accelerating Cash Conversion Cycle", "Border documentation factoring releases"]
+    }
+  ],
+  "constraints": {
+    "security": "Export customer pricing and supplier banking credentials must remain within client Google Cloud / SQLite boundary.",
+    "compliance": "DNIT and SENAVE regulatory submissions legally mandate certified human customs broker approval.",
+    "budget_tier": "Enterprise FDE Pilot Scope ($30,000-$60,000 implementation ceiling).",
+    "integration": "Google Workspace already deployed across all 250 staff; SAP B1 read-only replica available.",
+    "change_management": "Dispatchers and barge captains rely on simple WhatsApp summaries and Google Sheets dashboards."
+  }
+}

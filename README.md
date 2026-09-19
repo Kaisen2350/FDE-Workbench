@@ -1,6 +1,6 @@
-# Paraguay Export Economy — Forward Deployed Engineer (FDE) Workbench (Phase 1 & Phase 1.5)
+# Paraguay Export Economy — Forward Deployed Engineer (FDE) Workbench (Phase 1, 1.5 & Phase 2)
 
-> **Mission**: An engineering and research workbench for a Forward Deployed Engineer (FDE) to model the operational reality of Paraguayan export-oriented enterprises, identify mission-critical workflows and bottlenecks, and translate those findings into platform-agnostic AI agent deployment specifications.
+> **Mission**: An engineering, research, and operational control plane for a Forward Deployed Engineer (FDE) to model the physical reality of Paraguayan export-oriented enterprises, capture source evidence with explicit provenance, identify mission-critical workflows and bottlenecks via structured discovery, evaluate opportunities across 4 operational dimensions, and compile platform-agnostic agent blueprints into production Gemini Enterprise Python SDK scaffolds.
 
 ---
 
@@ -8,8 +8,8 @@
 
 - **NOT a SaaS product**: No billing layer, multi-tenancy, or commercial subscriptions.
 - **NOT an autonomous agent**: No unsupervised execution or black-box agents.
-- **NOT a production customer system**: Does not connect to live customer databases, send emails, or make external API calls.
-- **Purpose**: Establishes the **deterministic domain-modeling foundation** grounded in physical reality (fluvial draft levels, Mercosur road freight, customs documentation, Maquila regimes, and cash conversion cycles).
+- **NOT a production customer system**: Does not connect to live customer databases, send emails, or execute unauthorized external actions.
+- **The FDE Reasoning & Control Plane**: Establishes a deterministic operational model grounded in empirical evidence and physical reality (fluvial draft restrictions, Mercosur cross-border customs DNA, Maquila regimes, and cash conversion cycles).
 
 ---
 
@@ -29,47 +29,52 @@ Open your browser at:
 - **Workbench UI**: [http://127.0.0.1:8000](http://127.0.0.1:8000)
 - **Interactive REST API Docs**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
-To run the automated test suite:
+To run the automated test suite (45 unit tests):
 ```powershell
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
 ---
 
-## Architecture & Layers
+## Architecture & Layers (Phase 2 Reasoning Plane)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                       FDE WORKBENCH WEB INTERFACE                           │
-│  [1.Ontology] [2.Entities] [3.Relations] [4.Events] [5.Decisions]           │
-│  [6.Workflows] [7.AI Opportunities] [8.Agent Specs] [9.KPIs] [10.Company]   │
+│                       FDE WORKBENCH WEB INTERFACE (12 Panes)                │
+│  [1. Discovery] [2. Evidence] [3. Ontology] [4. Entities] [5. Relationships]│
+│  [6. Events] [7. Decisions] [8. Workflows] [9. AI Opportunities]            │
+│  [10. Agent Specs & Gemini] [11. KPIs] [12. Synthetic Company]              │
 └──────────────────────────────────────┬──────────────────────────────────────┘
                                        │ HTTP / REST API (FastAPI)
 ┌──────────────────────────────────────▼──────────────────────────────────────┐
 │            LOCAL-FIRST SQLITE GRAPH & CRYPTOGRAPHIC AUDIT STORE             │
 │  - Embedded SQLite Persistence (workbench.db in WAL mode)                   │
-│  - Bi-directional Adjacency Indexing (Incoming/Outgoing 1-hop Graph Traversal)│
+│  - Source Evidence Table (with indexed source types and provenance enums)   │
+│  - Bi-directional Adjacency Indexing (Incoming/Outgoing 1-hop Traversal)    │
 │  - Tamper-Evident SHA-256 Cryptographic Hash-Chained Audit Trail            │
-│  - JSON Snapshot Persistence (Import / Export / Reseed)                     │
+│  - JSON Snapshot Persistence & Evidence Hydration (Import / Export / Reseed)│
 └──────────────────────────────────────┬──────────────────────────────────────┘
                                        │ Validates & Hydrates
 ┌──────────────────────────────────────▼──────────────────────────────────────┐
 │                  TYPED DOMAIN & ONTOLOGY LAYER (Pydantic v2)                 │
+│  - Provenance Model (SYNTHETIC, CUSTOMER_OBSERVED, PUBLIC_SOURCE, etc.)    │
+│  - Source Evidence Layer (EvidenceRecord linked to events and decisions)    │
+│  - Discovery Intake Engine (Translates questionnaire into domain models)    │
 │  - 24 Core Domain Entities (Organization, Facility, Shipment, Batch...)     │
 │  - Explicit Typed Relationship Triples (operates, transports, settles...)   │
-│  - Operational Event Model (Expected vs Observed state diffs & impact)      │
-│  - Decision Pipeline (Observation -> Context -> Decision -> Action -> Result)│
-│  - AI Opportunity Framework (Bottleneck, HITL, Permissions, Failure Modes)  │
-│  - Platform-Agnostic Agent Specs + Platform Adapters (Gemini, OpenAI, etc.) │
+│  - Operational Event Model (Expected vs Observed state diffs & financial)   │
+│  - 5-Stage Decision Pipeline (Observation -> Context -> Decision -> Action)│
+│  - 4D FDE Prioritization (Economic Leverage, Ops, Feasibility, Strategy)   │
+│  - Gemini Enterprise Substrate + Runnable google-genai Python SDK Scaffolding│
 └──────────────────────────────────────┬──────────────────────────────────────┘
-                                       │ Seed Data
+                                       │ Grounded Reference
 ┌──────────────────────────────────────▼──────────────────────────────────────┐
-│          SYNTHETIC EXPORTER SEED: Agro-Industrial del Este S.A. (AIDESA)     │
+│          REFERENCE DOSSIER: Agro-Industrial del Este S.A. (AIDESA)           │
+│  - Explicit Provenance: SYNTHETIC (modeling real Paraguayan physical reality)│
 │  - 250 Headcount across Operations, Quality, Logistics, Comex, & Finance    │
 │  - 2 Facilities: Planta Villeta (River Port) & Planta Hernandarias (Maquila) │
 │  - Trade Corridors: Brazil (CDE/Foz BR-277) & Argentina (Falcón & Hidrovía) │
-│  - 80 Approved Suppliers & 25 International B2B Customers                   │
-│  - IT Landscape: SAP B1 + Google Workspace + Trans-Chaco TMS + Spreadsheets │
+│  - 80 Approved Suppliers, 25 International Customers, 5 Empirical Evidences │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -159,68 +164,90 @@ $$\text{entry\_hash} = \text{SHA256}(\text{prev\_hash} + \text{timestamp} + \tex
 
 ---
 
-## AI Opportunity Model & Platform-Agnostic Agent Specs
+---
 
-### AI Opportunity
-Connects operational bottlenecks to high-leverage AI interventions:
-- `workflow` & `bottleneck`
-- `business_impact` & estimated annual payoff
-- `proposed_ai_intervention`
-- `human_in_the_loop_requirement`
-- `permissions_required`
-- `failure_modes` & guardrails
-- `deployment_complexity` (`LOW`, `MEDIUM`, `HIGH`)
+## Provenance Model & Physical Grounding (Phase 2)
 
-### Platform-Agnostic Agent Specifications
-Specifies an agent blueprint without vendor lock-in:
-- `objective`, `trigger`, `inputs`, `entities`, `context`
-- `tools` (typed schema, read-only vs state-mutating, permissions)
-- `reasoning_requirements` & `human_approval_requirements`
-- `actions`, `failure_modes`, `evaluation_criteria`, `kpis`
-
-### Enterprise Platform Adapters & Real Schema Validation (Phase 1.5)
-The workbench includes compilers that export native manifests on demand, each backed by rigorous public schema validation (`validate_manifest_schema()`):
-- **Google Cloud / Gemini Enterprise**: Generates Vertex AI system instructions, function declarations, grounding datastore configs, and guardrail policies. Validates parameter schemas against Vertex AI OpenAPI specifications.
-- **OpenAI**: Generates Assistants API instructions, strict function tools, and metadata. Validates `strict: true` compliance and parameter schemas.
-- **Microsoft Azure AI Foundry**: Generates Semantic Kernel plugins, responsible AI policies, and prompt templates. Validates explicit execution policies (`ReadOnly` vs `RequiresConsent`).
-- **Databricks Mosaic AI**: Generates Unity Catalog tool bindings, MLflow experiment bindings, and serving endpoint configurations. Validates three-tier catalog namespaces (`catalog.schema.function`).
+Every fact, entity, event, evidence, and decision in the workbench carries an explicit data origin:
+- `SYNTHETIC`: Deterministic test data generated to mirror real physical patterns (e.g. AIDESA reference dossier).
+- `CUSTOMER_OBSERVED`: Directly measured or observed by an FDE on-site (e.g. weighbridge scale tickets, terminal inspections).
+- `PUBLIC_SOURCE`: Verified official external sources (e.g. Prefectura Naval hydrometric water level bulletins, DNIT customs tariffs).
+- `CUSTOMER_PROVIDED`: Unverified claims from customer interviews or self-reported questionnaires.
+- `DERIVED`: Computed via deterministic inference, transformation engines, or simulation models.
 
 ---
 
-## Synthetic Company: Agro-Industrial del Este S.A. (AIDESA)
+## Source Evidence Layer (Phase 2)
 
-- **Headcount**: Exactly **250 employees** distributed across:
-  - Plant & Silos (120)
-  - Maintenance & Engineering (30)
-  - Logistics, Scale & Dispatch (25)
-  - Quality Control & Laboratory (20)
-  - Comex, Customs & Regulatory (15)
-  - Finance, Treasury & Foreign Exchange (18)
-  - Commercial & Grain Trading (12)
-  - Executive & Operations Direction (10)
+Operational events and managerial decisions link backward to empirical evidence records:
+$$\text{EvidenceRecord} \longrightarrow \text{OperationalEvent} \longrightarrow \text{DecisionRecord} \longrightarrow \text{Outcome}$$
+
+- `EvidenceRecord`: Models empirical artifacts (`ERP_RECORD`, `TELEMETRY_STREAM`, `CUSTOMS_DOCUMENT`, `INTERVIEW_STATEMENT`, `PHYSICAL_INSPECTION`).
+- Stores raw extracted claim text, confidence rating, source system, and graph references (`references_entities`, `references_events`, `references_decisions`).
+- Stored in SQLite `evidence` table with indexed queries and full SHA-256 audit hash-chain logging.
+
+---
+
+## FDE Discovery Intake & Model Transformation (Phase 2)
+
+When an FDE enters an enterprise, they capture operational reality through a structured intake dossier (`DiscoveryIntake`):
+- Company Profile, Critical Workflows, Bottlenecks, Constraints, Systems of Record, and Key Decisions.
+- Stored canonically in `aidesa_discovery_intake.json`.
+- `DiscoveryTransformationEngine`: Programmatically compiles the intake into domain entities, relationships, workflows, and prioritized AI opportunities.
+- CLI command: `python run_workbench.py discover --intake aidesa_discovery_intake.json`.
+
+---
+
+## Multi-Dimensional FDE Opportunity Prioritization (Phase 2)
+
+Rather than an arbitrary "AI score", opportunities are evaluated across 4 distinct operational vectors (1-10 scale):
+1. **Economic Leverage**: Annual payoff, cash-cycle impact, and margin sensitivity.
+2. **Operational Characteristics**: Transaction volume, structured telemetry, error costs, and latency impact.
+3. **Deployment Feasibility**: Integration friction, data readiness, HITL governance, and regulatory barriers.
+4. **Strategic Value**: Client buy-in, corridor criticality, and pilot-to-expansion leverage.
+
+- Identifies explicit **Candidates for FDE Pilot** (`candidate_for_pilot: true`) based on high leverage and actionable feasibility.
+
+---
+
+## Gemini Enterprise Deployment Substrate & Python SDK Scaffold (Phase 2)
+
+While maintaining vendor-agnostic blueprints, the workbench treats **Google Cloud / Gemini Enterprise** as the primary deployment substrate:
+- **Vertex AI Agent Engine Manifest**: Native system instructions, function declarations, grounding datastore configs, and security policies.
+- **Runnable Python SDK Scaffold**: `generate_python_scaffold()` creates production-grade, executable code using the official `google-genai` SDK (`gemini-2.5-pro` / `gemini-2.5-flash`), with typed function tools and human-in-the-loop review guards.
+- Inspected dynamically in the UI side drawer or fetched via `GET /api/agent-specs/{id}/scaffold/gemini`.
+
+---
+
+## Synthetic Reference Exporter: Agro-Industrial del Este S.A. (AIDESA)
+
+- **Provenance**: Explicitly marked `ProvenanceType.SYNTHETIC` representing real physical Paraguayan trade corridors.
+- **Headcount**: Exactly **250 employees** distributed across 8 functional roles.
 - **Facilities**:
-  1. *Planta Fluvial Villeta*: km 1590 on Paraguay River, 2,800 TPD crushing mill, barge loading dock, 60k MT silos.
-  2. *Planta Maquila Hernandarias*: Alto Paraná near Friendship Bridge to Brazil, packaging and export assembly under Ley de Maquila 1064/97.
+  1. *Planta Fluvial Villeta*: km 1590 on Paraguay River, 2,800 TPD crushing mill, barge dock, 60k MT silos.
+  2. *Planta Maquila Hernandarias*: Alto Paraná near Friendship Bridge to Brazil, packaging under Ley 1064/97.
 - **Corridors**:
   - *Brazil*: Terrestrial bitren highway PY-02 / BR-277 to Cascavel, Curitiba, and Port of Paranaguá.
-  - *Argentina*: Fluvial barge push-convoys down Hidrovía Paraná-Paraguay to Rosario/San Lorenzo, and road freight via Puerto Falcón / Clorinda.
+  - *Argentina*: Fluvial barge push-convoys down Hidrovía to Rosario/San Lorenzo, and road freight via Falcón.
 - **Network**: Exactly **80 suppliers** and **25 international customers**.
 - **IT Systems**: SAP Business One, Google Workspace, Trans-Chaco TMS, Spreadsheets.
 
 ---
 
-## 10-View Inspection Interface
+## 12-View Inspection Interface
 
-1. **Ontology**: Schema browser, 24 entity definitions with Paraguayan context, and relationship rules.
-2. **Entities**: Searchable, filterable directory with side-drawer attribute and graph inspector.
-3. **Relationships**: Directed edge browser with source, relation, and target links.
-4. **Operational Events**: Feed of real-world disruptions comparing expected baseline vs observed reality.
-5. **Decisions**: 5-stage pipeline inspector (`Observation ➔ Context ➔ Decision ➔ Action ➔ Outcome`).
-6. **Workflows**: Lifecycle trace chains for fluvial and terrestrial export corridors.
-7. **AI Opportunities**: High-leverage bottleneck analysis cards with human-in-the-loop gates.
-8. **Agent Specifications**: Platform-agnostic blueprints with live live adapter compilation to Gemini, OpenAI, Azure, and Databricks.
-9. **KPIs**: Metrics telemetry (Cash Conversion Cycle, Customs Dwell Time, Fluvial Draft Capacity, OTIF).
-10. **Synthetic Company**: Enterprise dossier, 250-headcount distribution, IT landscape, and reset controls.
+1. **FDE Discovery**: Intake dossier browser and one-click model transformation compiler.
+2. **Source Evidence**: Empirical telemetry & document registry with provenance and confidence badges.
+3. **Ontology**: Schema browser, 24 entity definitions with Paraguayan context, and relationship rules.
+4. **Entities**: Searchable, filterable directory with side-drawer attribute and graph inspector.
+5. **Relationships**: Directed edge browser with source, relation, and target links.
+6. **Operational Events**: Feed of real-world disruptions comparing expected baseline vs observed reality, with evidence links.
+7. **Decisions**: 5-stage pipeline inspector (`Observation ➔ Context ➔ Decision ➔ Action ➔ Outcome`) with evidence citations.
+8. **Workflows**: Lifecycle trace chains for fluvial and terrestrial export corridors.
+9. **AI Opportunities**: 4D prioritization breakdown bars and `★ CANDIDATE FOR FDE PILOT` designations.
+10. **Agent Specifications & Gemini**: Platform-agnostic blueprints with live compiler and Python SDK code generator.
+11. **KPIs**: Metrics telemetry (Cash Conversion Cycle, Customs Dwell Time, Fluvial Draft Capacity, OTIF).
+12. **Synthetic Company**: Enterprise dossier, 250-headcount distribution, IT landscape, and reset controls.
 
 ---
 
@@ -230,8 +257,14 @@ The workbench includes compilers that export native manifests on demand, each ba
 # Start workbench web interface
 python -m fde_workbench serve --host 127.0.0.1 --port 8000
 
+# Ingest FDE discovery intake and compile operational model
+python -m fde_workbench discover --intake aidesa_discovery_intake.json
+
 # Generate synthetic dataset and verify counts
 python -m fde_workbench seed --export aidesa_snapshot.json
+
+# Verify cryptographic SHA-256 audit log hash-chain
+python -m fde_workbench verify-audit
 
 # Export snapshot
 python -m fde_workbench export my_snapshot.json

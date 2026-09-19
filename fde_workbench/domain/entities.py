@@ -5,6 +5,7 @@ from typing import Dict, List, Any, Optional, Type
 from pydantic import BaseModel, Field
 
 from fde_workbench.domain.ontology import EntityTypeEnum
+from fde_workbench.domain.provenance import ProvenanceType
 
 
 class BaseEntity(BaseModel):
@@ -16,6 +17,7 @@ class BaseEntity(BaseModel):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     version: int = Field(default=1, description="Entity schema/revision version")
     system_of_record: str = Field(default="MANUAL", description="Source system: SAP_B1, TMS, GOOGLE_WORKSPACE, VUE_PORTAL, SPREADSHEET")
+    provenance: ProvenanceType = Field(default=ProvenanceType.SYNTHETIC, description="Origin classification: SYNTHETIC, CUSTOMER_OBSERVED, PUBLIC_SOURCE, CUSTOMER_PROVIDED, DERIVED")
     attributes: Dict[str, Any] = Field(default_factory=dict, description="Domain-specific structured attributes")
     tags: List[str] = Field(default_factory=list, description="Categorization tags, e.g. ['hidrovia', 'brazil_corridor', 'maquila']")
 

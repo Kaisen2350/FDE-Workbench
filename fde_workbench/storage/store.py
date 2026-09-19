@@ -8,6 +8,8 @@ from typing import Dict, List, Any, Optional, Set, Tuple
 from pathlib import Path
 
 from fde_workbench.domain.ontology import EntityTypeEnum, RelationTypeEnum
+from fde_workbench.domain.provenance import ProvenanceType
+from fde_workbench.domain.evidence import EvidenceRecord, EvidenceSourceType
 from fde_workbench.domain.entities import BaseEntity, KPI, ENTITY_TYPE_TO_CLASS
 from fde_workbench.domain.relationships import Relationship
 from fde_workbench.domain.events import OperationalEventRecord, EventSeverity, EventStatus
@@ -116,6 +118,21 @@ class WorkbenchStore:
                     payload_json TEXT NOT NULL
                 );
             """)
+
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS evidence (
+                    id TEXT PRIMARY KEY,
+                    source TEXT NOT NULL,
+                    source_type TEXT NOT NULL,
+                    provenance TEXT NOT NULL,
+                    confidence REAL NOT NULL,
+                    extracted_claim TEXT NOT NULL,
+                    payload_json TEXT NOT NULL,
+                    timestamp TEXT NOT NULL
+                );
+            """)
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_evidence_source_type ON evidence(source_type);")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_evidence_provenance ON evidence(provenance);")
 
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS audit_log (
@@ -614,6 +631,106 @@ class WorkbenchStore:
             return None
         return AgentSpecification.model_validate(json.loads(row["payload_json"]))
 
+    # --- SOURCE EVIDENCE ---
+
+    def add_evidence(self, evidence: EvidenceRecord) -> EvidenceRecord:
+        payload_str = evidence.model_dump_json()
+        with self._conn:
+            cursor = self._conn.cursor()
+            cursor.execute("""
+                INSERT INTO evidence (id, source, source_type, provenance, confidence, extracted_claim, payload_json, timestamp)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    source = excluded.source,
+                    source_type = excluded.source_type,
+                    provenance = excluded.provenance,
+                    confidence = excluded.confidence,
+                    extracted_claim = excluded.extracted_claim,
+                    payload_json = excluded.payload_json,
+                    timestamp = excluded.timestamp;
+            """, (
+                evidence.id,
+                evidence.source,
+                evidence.source_type.value,
+                evidence.provenance.value,
+                evidence.confidence,
+                evidence.extracted_claim,
+                payload_str,
+                evidence.timestamp.isoformat(),
+            ))
+
+        self.log_audit("RECORD_EVIDENCE", evidence.id, {
+            "source": evidence.source,
+            "source_type": evidence.source_type.value,
+            "provenance": evidence.provenance.value,
+            "extracted_claim": evidence.extracted_claim[:100],
+        })
+        return evidence
+
+    def get_evidence(self, evidence_id: str) -> Optional[EvidenceRecord]:
+        cursor = self._conn.cursor()
+        cursor.execute("SELECT payload_json FROM evidence WHERE id = ?;", (evidence_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        return EvidenceRecord.model_validate(json.loads(row["payload_json"]))
+
+    def list_evidence(
+        self,
+        source_type: Optional[EvidenceSourceType] = None,
+        provenance: Optional[ProvenanceType] = None,
+        entity_id: Optional[str] = None,
+        limit: int = 200,
+        offset: int = 0,
+    ) -> List[EvidenceRecord]:
+        query = "SELECT payload_json FROM evidence WHERE 1=1"
+        params: List[Any] = []
+        if source_type:
+            query += " AND source_type = ?"
+            params.append(source_type.value if hasattr(source_type, "value") else str(source_type))
+        if provenance:
+            query += " AND provenance = ?"
+            params.append(provenance.value if hasattr(provenance, "value") else str(provenance))
+
+        query += " ORDER BY timestamp DESC LIMIT ? OFFSET ?;"
+        params.extend([limit, offset])
+
+        cursor = self._conn.cursor()
+        cursor.execute(query, params)
+        records = [EvidenceRecord.model_validate(json.loads(row["payload_json"])) for row in cursor.fetchall()]
+
+        if entity_id:
+            records = [e for e in records if entity_id in e.references_entity_ids]
+
+        return records
+
+    def count_evidence(
+        self,
+        source_type: Optional[EvidenceSourceType] = None,
+        provenance: Optional[ProvenanceType] = None,
+    ) -> int:
+        query = "SELECT COUNT(*) as cnt FROM evidence WHERE 1=1"
+        params: List[Any] = []
+        if source_type:
+            query += " AND source_type = ?"
+            params.append(source_type.value if hasattr(source_type, "value") else str(source_type))
+        if provenance:
+            query += " AND provenance = ?"
+            params.append(provenance.value if hasattr(provenance, "value") else str(provenance))
+
+        cursor = self._conn.cursor()
+        cursor.execute(query, params)
+        return cursor.fetchone()["cnt"]
+
+    def delete_evidence(self, evidence_id: str) -> bool:
+        with self._conn:
+            cursor = self._conn.cursor()
+            cursor.execute("DELETE FROM evidence WHERE id = ?;", (evidence_id,))
+            deleted = cursor.rowcount > 0
+        if deleted:
+            self.log_audit("DELETE_EVIDENCE", evidence_id, {})
+        return deleted
+
     # --- KPIS ---
 
     def add_kpi(self, kpi: KPI) -> KPI:
@@ -636,9 +753,19 @@ class WorkbenchStore:
             cursor.execute("DELETE FROM decisions;")
             cursor.execute("DELETE FROM opportunities;")
             cursor.execute("DELETE FROM agent_specs;")
+            cursor.execute("DELETE FROM evidence;")
             cursor.execute("DELETE FROM audit_log;")
 
     # Compatibility properties for snapshot export
+    @property
+    def _evidence(self) -> Dict[str, EvidenceRecord]:
+        cursor = self._conn.cursor()
+        cursor.execute("SELECT payload_json FROM evidence;")
+        return {
+            json.loads(r["payload_json"])["id"]: EvidenceRecord.model_validate(json.loads(r["payload_json"]))
+            for r in cursor.fetchall()
+        }
+
     @property
     def _entities(self) -> Dict[str, BaseEntity]:
         cursor = self._conn.cursor()

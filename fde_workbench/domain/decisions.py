@@ -5,6 +5,8 @@ from enum import Enum
 from typing import Dict, List, Any, Optional
 from pydantic import BaseModel, Field
 
+from fde_workbench.domain.provenance import ProvenanceType
+
 
 class DecisionStatus(str, Enum):
     PROPOSED = "PROPOSED"
@@ -57,6 +59,8 @@ class DecisionRecord(BaseModel):
     triggering_event_id: str = Field(..., description="ID of the OperationalEvent that provoked this decision")
     decision_owner: str = Field(..., description="Role responsible for the decision, e.g. 'role-logistics-director'")
     status: DecisionStatus = Field(default=DecisionStatus.DECISION_PENDING, description="Current decision workflow status")
+    provenance: ProvenanceType = Field(default=ProvenanceType.SYNTHETIC, description="Origin classification")
+    evidence_ids: List[str] = Field(default_factory=list, description="IDs of Evidence records informing this decision")
     context: Dict[str, Any] = Field(default_factory=dict, description="Operational context: constraints, river level, stock, contract clauses")
     options: List[DecisionOption] = Field(default_factory=list, description="Candidate actions evaluated")
     recommendation: str = Field(..., description="Recommended path and rationale")

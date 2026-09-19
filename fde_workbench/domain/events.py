@@ -6,6 +6,7 @@ from typing import Dict, List, Any, Optional
 from pydantic import BaseModel, Field
 
 from fde_workbench.domain.ontology import EntityTypeEnum
+from fde_workbench.domain.provenance import ProvenanceType
 
 
 class EventSeverity(str, Enum):
@@ -31,6 +32,8 @@ class OperationalEventRecord(BaseModel):
     entity_type: EntityTypeEnum = Field(..., description="Target entity type")
     event_type: str = Field(..., description="e.g. shipment_delayed, customs_doc_missing, river_draft_restriction")
     source: str = Field(..., description="Source of truth: TMS, ERP, VUE_PORTAL, RIVER_GAUGE, QUALITY_LAB, SPREADSHEET")
+    provenance: ProvenanceType = Field(default=ProvenanceType.SYNTHETIC, description="Origin classification")
+    evidence_ids: List[str] = Field(default_factory=list, description="IDs of Evidence records supporting this operational event")
     severity: EventSeverity = Field(default=EventSeverity.MEDIUM)
     expected_state: Dict[str, Any] = Field(default_factory=dict, description="Operational baseline or planned state")
     observed_state: Dict[str, Any] = Field(default_factory=dict, description="Observed reality or failure state")
