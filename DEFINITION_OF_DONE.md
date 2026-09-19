@@ -7,10 +7,10 @@
 
 ## The 6 Core Invariants
 
-### Invariant 1: Automated Test Suite & Zero-Regression Baseline
-* **Standard**: 100% test pass rate across all domain, synthetic generator, SQLite storage, API, and platform adapter test suites.
-* **Current Measure**: **69 tests passing** (`Ran 69 tests in ~1.8s`, `OK`).
-* **Enforcement Rule**: Any PR, commit, or modification that breaks or skips any of the 69 tests violates the Definition of Done.
+### Invariant 1: Automated Test Suite & Non-Decreasing Regression Baseline
+* **Standard**: Full test suite passes with zero failures and zero errors across all domain, synthetic generator, SQLite storage, API, and platform adapter test suites.
+* **Baseline & Monotonicity Rule**: Total test count must be **strictly non-decreasing** across changes (current baseline: $\ge$ 69 passing tests). The addition of new tests for customer field requirements, live connectors, and edge cases is encouraged and monotonically ratchets the baseline upward.
+* **Enforcement Rule**: Any commit or modification that introduces test failures, skips tests, or decreases the passing test count below the established baseline violates the Definition of Done.
 * **Verification Command**:
   ```powershell
   python -m unittest discover -s tests -p "test_*.py" -v
