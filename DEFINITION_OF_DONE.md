@@ -5,11 +5,11 @@
 
 ---
 
-## The 6 Core Invariants
+## The 7 Core Invariants
 
 ### Invariant 1: Automated Test Suite & Non-Decreasing Regression Baseline
 * **Standard**: Full test suite passes with zero failures and zero errors across all domain, synthetic generator, SQLite storage, API, and platform adapter test suites.
-* **Baseline & Monotonicity Rule**: Total test count must be **strictly non-decreasing** across changes (current baseline: $\ge$ 69 passing tests). The addition of new tests for customer field requirements, live connectors, and edge cases is encouraged and monotonically ratchets the baseline upward.
+* **Baseline & Monotonicity Rule**: Total test count must be **strictly non-decreasing** across changes (current baseline: $\ge$ 72 passing tests). The addition of new tests for customer field requirements, live connectors, and edge cases is encouraged and monotonically ratchets the baseline upward.
 * **Enforcement Rule**: Any commit or modification that introduces test failures, skips tests, or decreases the passing test count below the established baseline violates the Definition of Done.
 * **Verification Command**:
   ```powershell
@@ -75,6 +75,18 @@
   * Every pilot is accompanied by an explicit **Assumptions Ledger** documenting operational baselines and target metrics.
   * Every pilot features a **Tripartite Sensitivity Matrix** reporting Conservative (-20%), Base, and Aggressive (+20%) scenarios.
 * **Non-Tautological Verification Rule**: Tests must **never** assert `roi_pct == net_roi / investment * 100` (formula verifying itself). Tests must assert against **independently derived numerical constants** with full step-by-step arithmetic shown in test comments.
+
+---
+
+### Invariant 7: Field Calibration Brief Leak-Free Baseline
+* **Standard**: Any calibration brief produced via `generate_calibration_brief` or `python run_workbench.py pilot calibration-brief <pilot_id>` must pass automated zero-occurrence assumption-leak assertions (`test_zero_occurrences_of_pilot_assumption_values_in_calibration_brief`) before being used as an operator-facing instrument.
+* **Scope & Bound**: Eliminates synthetic numerical anchoring across all 12 sections while preserving qualitative operational structure. Replaces Section 4 with blank fill-in lines (`baseline: _____`) and unanchored interview prompts, and clears specific numerical targets/thresholds in Sections 1, 6, 9, 10, and 11.
+* **Enforcement Rule**: Calibration briefs must contain zero occurrences of the pilot's specific synthetic assumption values (volume, minutes, rates, dollar costs, and fees) outside the blanked field ledger.
+* **Human-in-the-Loop Qualitative Calibration Caveat**: Automated regex/substring scans prove absence of specific numbers, but qualitative problem narratives still signal directional friction. Therefore, human review of the generated brief is required before meetings to ensure narrative text doesn't inadvertently telegraph ranges or anchor the operator.
+* **Verification Command**:
+  ```powershell
+  python -m unittest tests.test_pilots.TestPilotEngine.test_zero_occurrences_of_pilot_assumption_values_in_calibration_brief -v
+  ```
 
 ---
 
