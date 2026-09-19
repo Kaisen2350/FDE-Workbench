@@ -58,6 +58,11 @@ def main():
     pilot_brief.add_argument("pilot_id", type=str, help="Pilot ID (e.g. pilot-2026-customs-recon)")
     pilot_brief.add_argument("--export", type=str, default="", help="Optional markdown file destination")
 
+    # pilot calibration-brief
+    pilot_calib = pilot_sub.add_parser("calibration-brief", help="Generate assumption-stripped calibration brief for operator interviews")
+    pilot_calib.add_argument("pilot_id", type=str, help="Pilot ID (e.g. pilot-2026-customs-recon)")
+    pilot_calib.add_argument("--export", type=str, default="", help="Optional markdown file destination")
+
     # pilot economics
     pilot_econ = pilot_sub.add_parser("economics", help="Calculate economic bridge for a pilot")
     pilot_econ.add_argument("pilot_id", type=str, help="Pilot ID (e.g. pilot-2026-customs-recon)")
@@ -168,6 +173,20 @@ def main():
                 with open(args.export, "w", encoding="utf-8") as f:
                     f.write(md)
                 print(f"FDE Deployment Brief exported to: {args.export}")
+            else:
+                print(md)
+
+        elif args.pilot_action == "calibration-brief":
+            from fde_workbench.domain.brief_generator import generate_calibration_brief
+            try:
+                md = generate_calibration_brief(args.pilot_id, store=store)
+            except ValueError as e:
+                print(f"Error: {e}")
+                sys.exit(1)
+            if args.export:
+                with open(args.export, "w", encoding="utf-8") as f:
+                    f.write(md)
+                print(f"FDE Calibration Brief exported to: {args.export}")
             else:
                 print(md)
 

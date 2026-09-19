@@ -491,6 +491,62 @@ class TestPilotEngine(unittest.TestCase):
         # Reset back
         self.client.post("/api/pilots/pilot-2026-customs-recon/status", json={"status": "PROPOSED"})
 
+    def test_calibration_brief_sections_and_numeric_absence(self):
+        """Confirm Section 4's numeric fields are absent from calibration output while every other section matches standard brief."""
+        from fde_workbench.domain.brief_generator import generate_calibration_brief
+        for pilot_id in ["pilot-2026-customs-recon", "pilot-2026-fluvial-draft"]:
+            pilot = store.get_pilot(pilot_id)
+            self.assertIsNotNone(pilot)
+
+            std_md = FDEBriefGenerator.generate_markdown(pilot, store=store, calibration_mode=False)
+            calib_md = generate_calibration_brief(pilot_id, store=store)
+
+            # Split both briefs into sections using markdown header 2 (## )
+            import re
+            std_sections = re.split(r"\n(?=## \d+\. )", std_md)
+            calib_sections = re.split(r"\n(?=## \d+\. )", calib_md)
+
+            # Must have preamble + 12 sections = 13 parts
+            self.assertEqual(len(std_sections), 13)
+            self.assertEqual(len(calib_sections), 13)
+
+            # Preamble (index 0) must match
+            self.assertEqual(std_sections[0], calib_sections[0])
+
+            # Every section other than Section 4 (index 4) must match character-for-character
+            for idx in [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12]:
+                self.assertEqual(
+                    std_sections[idx],
+                    calib_sections[idx],
+                    f"Section {idx} differs between standard and calibration brief for {pilot_id}!"
+                )
+
+            # Section 4 verification:
+            s4_calib = calib_sections[4]
+            self.assertTrue(s4_calib.startswith("## 4. Economic Impact & ROI Equation"))
+            self.assertIn("Values pending field validation — see operator interview.", s4_calib)
+            self.assertIn("baseline: `_____`", s4_calib)
+
+            # Assert numeric calculations, dollar amounts, ROI percentages, and sensitivity analysis are ABSENT
+            self.assertNotIn("Net 1st-Year ROI ($):", s4_calib)
+            self.assertNotIn("ROI %:", s4_calib)
+            self.assertNotIn("Capital Payback Period:", s4_calib)
+            self.assertNotIn("Sensitivity Analysis", s4_calib)
+            self.assertNotIn("Addressable Annual Savings:", s4_calib)
+            self.assertNotIn("Baseline Annual Cost:", s4_calib)
+            self.assertNotIn("Total 1st-Year Investment:", s4_calib)
+
+    def test_api_get_calibration_brief(self):
+        """Verify GET /api/pilots/{pilot_id}/calibration-brief endpoint returns valid calibration markdown."""
+        res = self.client.get("/api/pilots/pilot-2026-customs-recon/calibration-brief")
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertEqual(data["pilot_id"], "pilot-2026-customs-recon")
+        calib_md = data["calibration_markdown"]
+        self.assertIn("Values pending field validation — see operator interview.", calib_md)
+        self.assertIn("baseline: `_____`", calib_md)
+        self.assertNotIn("Net 1st-Year ROI ($):", calib_md)
+
 
 if __name__ == "__main__":
     unittest.main()

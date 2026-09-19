@@ -11,6 +11,22 @@ from datetime import datetime
 from fde_workbench.domain.pilots import PilotSpecification
 
 
+CALIBRATION_PARAMETER_PROMPTS: Dict[str, str] = {
+    "annual_decision_volume": "Annual outbound export volume (shipments / convoy departures per year)",
+    "manual_effort_minutes_per_decision": "Active manual touch time required per decision (not counting waiting time)",
+    "hourly_labor_cost_usd": "Fully-loaded hourly cost of the role performing this work (salary, benefits, overhead)",
+    "current_error_or_exception_rate": "Historical rate of serious clerical or physical exceptions requiring rework",
+    "cost_per_exception_usd": "Average direct & indirect cost per exception incident (demurrage, lightering, penalties)",
+    "target_manual_effort_minutes": "Estimated hands-on review time required with pre-compiled draft",
+    "target_exception_rate": "Target residual exception rate under automated pre-validation",
+    "pilot_decision_volume": "Planned shipment / convoy sample size for controlled pilot evaluation",
+    "pilot_implementation_cost_usd": "One-off deployment engineering and connector integration fee",
+    "annual_software_subscription_usd": "Annual software runtime, model inference, and infrastructure subscription",
+    "working_capital_acceleration_days": "Days reduction in clearance dwell time or fluvial cycle time",
+    "annual_working_capital_financial_value_usd": "Annual financial carrying cost savings on accelerated receivables or inventory",
+}
+
+
 class FDEBriefGenerator:
     """Compiles a PilotSpecification into a client-ready executive brief."""
 
@@ -26,9 +42,9 @@ class FDEBriefGenerator:
             evis = store.list_evidence()
             for evi in evis:
                 # Include evidence if linked to this opportunity or customer
-                if (pilot.opportunity_id in (evi.references_events or [])) or \
-                   (pilot.decision in (evi.references_decisions or [])) or \
-                   any(e in (evi.references_entities or []) for e in [pilot.customer, "org-aidesa"]):
+                if (pilot.opportunity_id in (evi.references_event_ids or [])) or \
+                   (pilot.decision in (evi.references_decision_ids or [])) or \
+                   any(e in (evi.references_entity_ids or []) for e in [pilot.customer, "org-aidesa"]):
                     evidence_claims.append({
                         "id": evi.id,
                         "source": evi.source,
@@ -198,8 +214,8 @@ class FDEBriefGenerator:
         }
 
     @classmethod
-    def generate_markdown(cls, pilot: PilotSpecification, store: Optional[Any] = None) -> str:
-        """Generate client-ready formatted Markdown document."""
+    def generate_markdown(cls, pilot: PilotSpecification, store: Optional[Any] = None, calibration_mode: bool = False) -> str:
+        """Generate client-ready formatted Markdown document (standard or calibration mode)."""
         data = cls.generate_brief_dict(pilot, store)
         s = data["sections"]
         econ = s["4_economic_impact"]["equations"]
@@ -256,34 +272,48 @@ class FDEBriefGenerator:
         ei = s["4_economic_impact"]
         md.append(f"## {ei['title']}")
         md.append(f"*{ei['question']}*  \n")
-        md.append("```text")
-        md.append(f"Baseline Annual Cost:          ${econ['baseline_annual_cost']:>12,.2f}  (Labor: ${econ['baseline_labor_cost']:,.2f} + Exceptions: ${econ['baseline_exception_cost']:,.2f})")
-        md.append(f"Target Annual Post-Pilot:      ${econ['target_annual_cost']:>12,.2f}")
-        md.append("--------------------------------------------------------------------------------")
-        md.append(f"Addressable Annual Savings:    ${econ['addressable_annual_savings']:>12,.2f} / year")
-        md.append(f"Implementation Cost:           ${econ['implementation_cost']:>12,.2f}  (One-time engineering & deployment)")
-        md.append(f"Annual Software License:       ${econ['annual_software_license']:>12,.2f}  (Subscription runtime)")
-        md.append(f"Total 1st-Year Investment:     ${econ['total_first_year_investment']:>12,.2f}  (Implementation + License)")
-        md.append("--------------------------------------------------------------------------------")
-        md.append(f"Net 1st-Year ROI ($):          ${econ['net_first_year_roi']:>12,.2f}  (Savings - Total Investment)")
-        md.append(f"ROI %:                          {econ['roi_percentage']:>12.1f}%  (Net 1st-Year ROI / Total Investment * 100)")
-        md.append(f"Capital Payback Period:         {econ['payback_months']:>12.1f} months")
-        md.append(f"Pilot Batch Measured Value:    ${econ['pilot_batch_value']:>12,.2f}  (During controlled pilot scope)")
-        md.append("```")
-        md.append("")
-        md.append("### Assumptions Ledger")
-        md.append("| Parameter | Baseline Value | Unit | Operational Source / Rationale |")
-        md.append("|:---|:---:|:---|:---|")
-        for item in ei["assumptions_ledger"]:
-            md.append(f"| `{item['parameter']}` | **{item['value']}** | {item['unit']} | *{item['source_or_rationale']}* |")
-        md.append("")
-        md.append("### Sensitivity Analysis (±20% Sensitivity Range)")
-        md.append("| Scenario | Volume | Touch Time | Residual Errors | Annual Savings | Net 1st-Year ROI ($) | Net ROI (%) | Payback |")
-        md.append("|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|")
-        scenarios = ei["sensitivity_analysis"].get("scenarios", {})
-        for sc_key, sc in scenarios.items():
-            md.append(f"| **{sc['label']}** | {sc['annual_volume']:,} | {sc['target_manual_minutes']}m | {sc['target_exception_rate_pct']:.1f}% | ${sc['addressable_annual_savings_usd']:,.2f} | ${sc['net_first_year_roi_usd']:,.2f} | **{sc['roi_percentage']:.1f}%** | {sc['payback_period_months']:.1f} mo |")
-        md.append("")
+        if calibration_mode:
+            md.append("> [!NOTE]")
+            md.append("> **Values pending field validation — see operator interview.**")
+            md.append("> Baseline figures, economic costs, and ROI projections are intentionally omitted in this calibration document to prevent anchoring bias during operator discovery interviews.\n")
+            md.append("### Assumptions Ledger (Field Calibration)")
+            md.append("| Parameter | Unit | Operational Prompt | Field Calibrated Value |")
+            md.append("|:---|:---:|:---|:---:|")
+            for item in ei["assumptions_ledger"]:
+                p_key = item['parameter']
+                clean_name = p_key.replace('_', ' ').capitalize()
+                prompt_desc = CALIBRATION_PARAMETER_PROMPTS.get(p_key, "Operational parameter for field calibration.")
+                md.append(f"| **{clean_name}** (`{p_key}`) | {item['unit']} | *{prompt_desc}* | baseline: `_____` |")
+            md.append("")
+        else:
+            md.append("```text")
+            md.append(f"Baseline Annual Cost:          ${econ['baseline_annual_cost']:>12,.2f}  (Labor: ${econ['baseline_labor_cost']:,.2f} + Exceptions: ${econ['baseline_exception_cost']:,.2f})")
+            md.append(f"Target Annual Post-Pilot:      ${econ['target_annual_cost']:>12,.2f}")
+            md.append("--------------------------------------------------------------------------------")
+            md.append(f"Addressable Annual Savings:    ${econ['addressable_annual_savings']:>12,.2f} / year")
+            md.append(f"Implementation Cost:           ${econ['implementation_cost']:>12,.2f}  (One-time engineering & deployment)")
+            md.append(f"Annual Software License:       ${econ['annual_software_license']:>12,.2f}  (Subscription runtime)")
+            md.append(f"Total 1st-Year Investment:     ${econ['total_first_year_investment']:>12,.2f}  (Implementation + License)")
+            md.append("--------------------------------------------------------------------------------")
+            md.append(f"Net 1st-Year ROI ($):          ${econ['net_first_year_roi']:>12,.2f}  (Savings - Total Investment)")
+            md.append(f"ROI %:                          {econ['roi_percentage']:>12.1f}%  (Net 1st-Year ROI / Total Investment * 100)")
+            md.append(f"Capital Payback Period:         {econ['payback_months']:>12.1f} months")
+            md.append(f"Pilot Batch Measured Value:    ${econ['pilot_batch_value']:>12,.2f}  (During controlled pilot scope)")
+            md.append("```")
+            md.append("")
+            md.append("### Assumptions Ledger")
+            md.append("| Parameter | Baseline Value | Unit | Operational Source / Rationale |")
+            md.append("|:---|:---:|:---|:---|")
+            for item in ei["assumptions_ledger"]:
+                md.append(f"| `{item['parameter']}` | **{item['value']}** | {item['unit']} | *{item['source_or_rationale']}* |")
+            md.append("")
+            md.append("### Sensitivity Analysis (±20% Sensitivity Range)")
+            md.append("| Scenario | Volume | Touch Time | Residual Errors | Annual Savings | Net 1st-Year ROI ($) | Net ROI (%) | Payback |")
+            md.append("|:---|:---:|:---:|:---|:---:|:---:|:---:|:---:|")
+            scenarios = ei["sensitivity_analysis"].get("scenarios", {})
+            for sc_key, sc in scenarios.items():
+                md.append(f"| **{sc['label']}** | {sc['annual_volume']:,} | {sc['target_manual_minutes']}m | {sc['target_exception_rate_pct']:.1f}% | ${sc['addressable_annual_savings_usd']:,.2f} | ${sc['net_first_year_roi_usd']:,.2f} | **{sc['roi_percentage']:.1f}%** | {sc['payback_period_months']:.1f} mo |")
+            md.append("")
 
         # 5. Proposed Intervention
         pi = s["5_proposed_intervention"]
@@ -379,4 +409,28 @@ class FDEBriefGenerator:
         return "\n".join(md)
 
     generate_brief_data = generate_brief_dict
+
+    @classmethod
+    def generate_calibration_brief(cls, pilot_id_or_pilot: Any, store: Optional[Any] = None) -> str:
+        """Produces a variant of the 12-section brief where Section 4 is replaced with an unlabeled calibration ledger."""
+        return generate_calibration_brief(pilot_id_or_pilot, store=store)
+
+
+def generate_calibration_brief(pilot_id_or_pilot: Any, store: Optional[Any] = None) -> str:
+    """
+    Produces a variant of the existing 12-section brief where Section 4 is replaced with
+    an unlabeled version of the assumptions ledger with blank fill-in lines and the note:
+    'Values pending field validation — see operator interview.'
+    All other 11 sections remain fully populated to test operational structure without anchoring bias.
+    """
+    if hasattr(pilot_id_or_pilot, "pilot_id"):
+        pilot = pilot_id_or_pilot
+    else:
+        if store is None:
+            from fde_workbench.storage.store import WorkbenchStore
+            store = WorkbenchStore()
+        pilot = store.get_pilot(str(pilot_id_or_pilot))
+        if not pilot:
+            raise ValueError(f"Pilot not found: {pilot_id_or_pilot}")
+    return FDEBriefGenerator.generate_markdown(pilot, store=store, calibration_mode=True)
 

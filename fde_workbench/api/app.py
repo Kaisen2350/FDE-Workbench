@@ -363,6 +363,22 @@ def get_pilot_brief(pilot_id: str, format: Optional[str] = Query("markdown", des
     }
 
 
+@app.get("/api/pilots/{pilot_id}/calibration-brief")
+def get_pilot_calibration_brief(pilot_id: str):
+    pilot = store.get_pilot(pilot_id)
+    if not pilot:
+        raise HTTPException(status_code=404, detail="Pilot specification not found")
+
+    from fde_workbench.domain.brief_generator import generate_calibration_brief
+    calibration_markdown = generate_calibration_brief(pilot, store=store)
+    return {
+        "pilot_id": pilot_id,
+        "title": pilot.title,
+        "customer": pilot.customer,
+        "calibration_markdown": calibration_markdown,
+    }
+
+
 @app.get("/api/pilots/{pilot_id}/economic-bridge")
 def get_pilot_economic_bridge(pilot_id: str):
     pilot = store.get_pilot(pilot_id)
