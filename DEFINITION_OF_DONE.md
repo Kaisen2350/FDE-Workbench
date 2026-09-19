@@ -83,4 +83,4 @@
 With the completion and verification of Phase 3.7:
 1. **The Reasoning & Control Plane is Feature-Complete**: Ontology, synthetic seed generator, SQLite persistence, audit hash chaining, decision escalation, economic modeling, and enterprise adapters are fully hardened.
 2. **End of Speculative Passes**: No further internal synthetic refactorings or speculative model additions will be undertaken without real customer inputs.
-3. **Next Phase (Phase 4)**: Deployment of Pilot 1 (`pilot-aidesa-customs-001`) and Pilot 2 (`pilot-capexa-fluvial-002`) into real customer environments, connecting live ERP connectors (SAP B1 Service Layer) and customs/telemetry APIs.
+3. **Next Phase (Phase 4)**: Deployment of Pilot 1 (`pilot-2026-customs-recon`) and Pilot 2 (`pilot-2026-fluvial-draft`) into real customer environments, connecting live ERP connectors (SAP B1 Service Layer) and customs/telemetry APIs.
