@@ -240,11 +240,19 @@ class FDEBriefGenerator:
         md.append(f"## {p['title']}")
         md.append(f"*{p['question']}*  \n")
         md.append(f"{p['summary']}\n")
-        md.append("**Observed Operational Baseline:**")
-        for k, v in p["baseline_kpi"].items():
-            md.append(f"- **{k.replace('_', ' ').title()}**: `{v}`")
-        for pt in p["pain_points"]:
-            md.append(f"- ⚠️ {pt}")
+        if calibration_mode:
+            md.append("**Operational Baseline Focus Areas (Pending Field Calibration):**")
+            for k in p["baseline_kpi"].keys():
+                md.append(f"- **{k.replace('_', ' ').title()}**: `[ Pending field validation — see Section 4 ]`")
+            md.append("- ⚠️ Manual cycle time and administrative touch time per decision")
+            md.append("- ⚠️ Current exception frequency across annual export shipment volume")
+            md.append("- ⚠️ Direct cost per exception (truck demurrage, re-inspection fees, lightering, and delay penalties)")
+        else:
+            md.append("**Observed Operational Baseline:**")
+            for k, v in p["baseline_kpi"].items():
+                md.append(f"- **{k.replace('_', ' ').title()}**: `{v}`")
+            for pt in p["pain_points"]:
+                md.append(f"- ⚠️ {pt}")
         md.append("")
 
         # 2. Evidence
@@ -309,7 +317,7 @@ class FDEBriefGenerator:
             md.append("")
             md.append("### Sensitivity Analysis (±20% Sensitivity Range)")
             md.append("| Scenario | Volume | Touch Time | Residual Errors | Annual Savings | Net 1st-Year ROI ($) | Net ROI (%) | Payback |")
-            md.append("|:---|:---:|:---:|:---|:---:|:---:|:---:|:---:|")
+            md.append("|:---|:---:|:---|:---|:---:|:---:|:---:|:---:|")
             scenarios = ei["sensitivity_analysis"].get("scenarios", {})
             for sc_key, sc in scenarios.items():
                 md.append(f"| **{sc['label']}** | {sc['annual_volume']:,} | {sc['target_manual_minutes']}m | {sc['target_exception_rate_pct']:.1f}% | ${sc['addressable_annual_savings_usd']:,.2f} | ${sc['net_first_year_roi_usd']:,.2f} | **{sc['roi_percentage']:.1f}%** | {sc['payback_period_months']:.1f} mo |")
@@ -335,7 +343,12 @@ class FDEBriefGenerator:
         for act in ha["authorized_actions"]:
             md.append(f"- `✓ {act}`")
         md.append("")
-        md.append(f"**Rollback Condition / Kill Switch**:  \n*{ha['rollback_condition']}*\n")
+        if calibration_mode:
+            import re
+            cleaned_rollback = re.sub(r"\s*\(\d+\s*mins?\)", "", ha['rollback_condition'])
+            md.append(f"**Rollback Condition / Kill Switch**:  \n*{cleaned_rollback}*\n")
+        else:
+            md.append(f"**Rollback Condition / Kill Switch**:  \n*{ha['rollback_condition']}*\n")
         md.append("**Safety Invariants:**")
         for sc in ha["safety_constraints"]:
             md.append(f"- 🛡️ {sc}")
@@ -370,7 +383,13 @@ class FDEBriefGenerator:
         md.append(f"## {ps['title']}")
         md.append(f"*{ps['question']}*  \n")
         md.append(f"- **Calendar Duration**: **{ps['duration']}**")
-        md.append(f"- **Deployment Boundary**: {ps['scope']} ({ps['volume']})")
+        if calibration_mode:
+            import re
+            clean_scope = re.sub(r"^\d+\s+consecutive", "Consecutive", ps['scope'])
+            clean_scope = re.sub(r"\(\d+\s+decisions\s*/\s*shipments\)", "", clean_scope).strip()
+            md.append(f"- **Deployment Boundary**: {clean_scope} (Pilot decision volume pending field validation — see Section 4)")
+        else:
+            md.append(f"- **Deployment Boundary**: {ps['scope']} ({ps['volume']})")
         md.append(f"- **FDE Engineering Effort**: {ps['effort']}")
         md.append("")
 
@@ -378,12 +397,26 @@ class FDEBriefGenerator:
         sc = s["10_success_criteria"]
         md.append(f"## {sc['title']}")
         md.append(f"*{sc['question']}*  \n")
-        md.append("**Target KPI Outcomes:**")
-        for k, v in sc["target_kpi"].items():
-            md.append(f"- **{k.replace('_', ' ').title()}**: `{v}`")
-        md.append("\n**Rigorous Acceptance Criteria for Production Graduation:**")
-        for ac in sc["acceptance_criteria"]:
-            md.append(f"- [ ] **{ac}**")
+        if calibration_mode:
+            md.append("**Target KPI Outcomes (Thresholds Pending Field Calibration):**")
+            for k in sc["target_kpi"].keys():
+                md.append(f"- **{k.replace('_', ' ').title()}**: `[ Target threshold pending field validation — see Section 4 ]`")
+            md.append("\n**Rigorous Acceptance Criteria for Production Graduation (Qualitative Framework):**")
+            for ac in sc["acceptance_criteria"]:
+                import re
+                qual_ac = ac
+                qual_ac = re.sub(r"<\s*\d+(\.\d+)?\s*(minutes?|mins?)", "< validated target minutes", qual_ac)
+                qual_ac = re.sub(r">=\s*\d+(\.\d+)?%\s*increase in cargo payload", "Material percentage increase (target % pending field calibration) in cargo payload", qual_ac)
+                qual_ac = qual_ac.replace("100% human sign-off", "Mandatory human sign-off on all decisions")
+                qual_ac = re.sub(r"[<≤=]\s*\d+(\.\d+)?%", "<= validated target rate", qual_ac)
+                md.append(f"- [ ] **{qual_ac}**")
+        else:
+            md.append("**Target KPI Outcomes:**")
+            for k, v in sc["target_kpi"].items():
+                md.append(f"- **{k.replace('_', ' ').title()}**: `{v}`")
+            md.append("\n**Rigorous Acceptance Criteria for Production Graduation:**")
+            for ac in sc["acceptance_criteria"]:
+                md.append(f"- [ ] **{ac}**")
         md.append("")
 
         # 11. Platform Options
@@ -395,7 +428,8 @@ class FDEBriefGenerator:
         md.append("|:---|:---|:---|:---|")
         for pkey, pval in po["platform_breakdown"].items():
             is_active = " **(Selected)**" if pkey == po["active_platform"] else ""
-            md.append(f"| **{pval['name']}**{is_active} | `{pval['core_service']}` | {pval['tooling']} | {pval['grounding']} |")
+            tooling_display = pval['tooling'].replace("OpenAPI 3.0", "OpenAPI (JSON Schema)") if calibration_mode else pval['tooling']
+            md.append(f"| **{pval['name']}**{is_active} | `{pval['core_service']}` | {tooling_display} | {pval['grounding']} |")
         md.append("")
 
         # 12. Expansion Path

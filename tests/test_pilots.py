@@ -492,7 +492,7 @@ class TestPilotEngine(unittest.TestCase):
         self.client.post("/api/pilots/pilot-2026-customs-recon/status", json={"status": "PROPOSED"})
 
     def test_calibration_brief_sections_and_numeric_absence(self):
-        """Confirm Section 4's numeric fields are absent from calibration output while every other section matches standard brief."""
+        """Confirm Section 4's numeric fields are absent from calibration output and structural sections match."""
         from fde_workbench.domain.brief_generator import generate_calibration_brief
         for pilot_id in ["pilot-2026-customs-recon", "pilot-2026-fluvial-draft"]:
             pilot = store.get_pilot(pilot_id)
@@ -513,13 +513,18 @@ class TestPilotEngine(unittest.TestCase):
             # Preamble (index 0) must match
             self.assertEqual(std_sections[0], calib_sections[0])
 
-            # Every section other than Section 4 (index 4) must match character-for-character
-            for idx in [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12]:
+            # Qualitative non-numeric sections must match exactly
+            for idx in [2, 3, 5, 7, 8, 12]:
                 self.assertEqual(
                     std_sections[idx],
                     calib_sections[idx],
                     f"Section {idx} differs between standard and calibration brief for {pilot_id}!"
                 )
+
+            # Section 1 verification (qualitative baseline focus areas without numbers):
+            s1_calib = calib_sections[1]
+            self.assertIn("Operational Baseline Focus Areas (Pending Field Calibration)", s1_calib)
+            self.assertIn("[ Pending field validation — see Section 4 ]", s1_calib)
 
             # Section 4 verification:
             s4_calib = calib_sections[4]
@@ -535,6 +540,48 @@ class TestPilotEngine(unittest.TestCase):
             self.assertNotIn("Addressable Annual Savings:", s4_calib)
             self.assertNotIn("Baseline Annual Cost:", s4_calib)
             self.assertNotIn("Total 1st-Year Investment:", s4_calib)
+
+            # Section 10 verification (qualitative acceptance criteria without hardcoded assumption thresholds):
+            s10_calib = calib_sections[10]
+            self.assertIn("Thresholds Pending Field Calibration", s10_calib)
+            self.assertIn("[ Target threshold pending field validation — see Section 4 ]", s10_calib)
+
+    def test_zero_occurrences_of_pilot_assumption_values_in_calibration_brief(self):
+        """Assert zero occurrences of the pilot's specific assumption values anywhere in calibration brief outside the ledger's own blank-field labels."""
+        from fde_workbench.domain.brief_generator import generate_calibration_brief
+        for pilot_id in ["pilot-2026-customs-recon", "pilot-2026-fluvial-draft"]:
+            pilot = store.get_pilot(pilot_id)
+            econ = pilot.economic_model
+            calib_md = generate_calibration_brief(pilot_id, store=store)
+
+            # Specific numeric assumption values from the economic model that must NEVER appear as anchoring leaks:
+            checks = [
+                ("annual_decision_volume", str(econ.annual_decision_volume)),
+                ("annual_decision_volume_comma", f"{econ.annual_decision_volume:,}"),
+                ("manual_effort_minutes", f"{econ.manual_effort_minutes_per_decision}"),
+                ("manual_effort_minutes_int", f"{int(econ.manual_effort_minutes_per_decision)} min"),
+                ("hourly_labor_cost", f"${econ.hourly_labor_cost_usd:.2f}"),
+                ("hourly_labor_cost_raw", f"${int(econ.hourly_labor_cost_usd)}"),
+                ("error_rate_pct", f"{econ.current_error_or_exception_rate * 100:.1f}%"),
+                ("cost_per_exception", f"${econ.cost_per_exception_usd:,.2f}"),
+                ("cost_per_exception_raw", f"${int(econ.cost_per_exception_usd)}"),
+                ("target_mins", f"{econ.target_manual_effort_minutes:.1f} min"),
+                ("target_mins_raw", f"{int(econ.target_manual_effort_minutes)} min"),
+                ("target_err_pct", f"{econ.target_exception_rate * 100:.1f}%"),
+                ("pilot_vol_shipments", f"{econ.pilot_decision_volume} decisions"),
+                ("pilot_vol_consecutive", f"{econ.pilot_decision_volume} consecutive"),
+                ("impl_cost", f"${int(econ.pilot_implementation_cost_usd):,}"),
+                ("license_cost", f"${int(econ.annual_software_subscription_usd):,}"),
+            ]
+
+            lines = calib_md.split("\n")
+            for name, val in checks:
+                for idx, line in enumerate(lines):
+                    self.assertNotIn(
+                        val,
+                        line,
+                        f"Found anchoring leak of {name}='{val}' at L{idx+1} in calibration brief for {pilot_id}!\nLine content: {line}"
+                    )
 
     def test_api_get_calibration_brief(self):
         """Verify GET /api/pilots/{pilot_id}/calibration-brief endpoint returns valid calibration markdown."""
