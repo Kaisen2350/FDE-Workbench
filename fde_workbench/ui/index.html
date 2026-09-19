@@ -276,8 +276,11 @@
           <h2 class="pane-title">Decision Pipeline & Observation-to-Outcome Tracing</h2>
           <p class="pane-desc">Enforcing the FDE tradecraft progression: OBSERVATION ➔ CONTEXT ➔ DECISION ➔ AUTHORIZED ACTION ➔ OUTCOME.</p>
         </div>
-        <div style="display:flex; gap:8px;">
-          <button class="btn btn-primary" id="btnCheckEscalations">Check Escalation Timeouts</button>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+          <button class="btn btn-primary" id="btnCheckEscalations">⏱️ Trigger Escalation Sweep</button>
+          <span style="font-size:0.75rem; color:var(--ink-soft); text-align:right;">
+            Trigger Model: <em>On-Demand / Scheduled Sweep</em> (via <code>POST /api/decisions/check-escalations</code>; no background daemon in local mode)
+          </span>
         </div>
       </div>
       <div id="decisionsContainer">

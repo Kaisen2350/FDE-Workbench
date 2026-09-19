@@ -63,11 +63,14 @@ class TestPilotEngine(unittest.TestCase):
         self.assertAlmostEqual(econ.first_year_net_roi_usd(), 73750.0, places=2)
         # Total investment: 15,000 + 18,000 = 33,000
         self.assertEqual(econ.total_investment_usd(), 33000.0)
-        # Reconciled ROI %: (73,750 / 33,000) * 100 = 223.4848...% -> 223.5%
-        expected_reconciled_roi = (73750.0 / 33000.0) * 100.0
-        self.assertAlmostEqual(econ.expected_roi_percentage(), expected_reconciled_roi, places=1)
-        # Payback period: 15,000 / (106,750 / 12) = ~1.686 months
-        self.assertAlmostEqual(econ.payback_period_months(), 15000.0 / (106750.0 / 12.0), places=1)
+        # Reconciled ROI %: Hardcoded hand-calculated expected value:
+        # (73,750 / 33,000) * 100 = 223.484848...% -> 223.5%
+        # Strictly assert against independently hand-calculated values (both unrounded and rounded)
+        self.assertAlmostEqual(econ.expected_roi_percentage(), 223.484848, places=4)
+        self.assertEqual(round(econ.expected_roi_percentage(), 1), 223.5)
+        # Payback period: 15,000 / (106,750 / 12) = ~1.68618... months -> 1.7 months
+        self.assertAlmostEqual(econ.payback_period_months(), 1.68618, places=4)
+        self.assertEqual(round(econ.payback_period_months(), 1), 1.7)
 
         summary = econ.summary()
         self.assertEqual(summary["baseline_annual_total_usd"], 131950.0)
@@ -94,20 +97,92 @@ class TestPilotEngine(unittest.TestCase):
             annual_software_subscription_usd=10000.0,
             annual_working_capital_financial_value_usd=10000.0,
         )
-        # Savings:
-        # Baseline = 2000*(20/60)*30 + 2000*0.05*1000 + 10000 = 20000 + 100000 + 10000 = 130,000
-        # Target = 2000*(5/60)*30 + 2000*0.01*1000 = 5000 + 20000 = 25,000
-        # Savings = 105,000
-        # Total Investment = 20,000 + 10,000 = 30,000
-        # Net ROI ($) = 105,000 - 30,000 = 75,000
-        # Formula: Net 1st-Year ROI / (Implementation Cost + Annual Software License) * 100
-        # ROI % = (75,000 / 30,000) * 100 = 250.0%
-        net_roi_usd = econ.first_year_net_roi_usd()
-        total_outlay = econ.pilot_implementation_cost_usd + econ.annual_software_subscription_usd
-        expected_roi_pct = (net_roi_usd / total_outlay) * 100.0
-
-        self.assertEqual(econ.expected_roi_percentage(), expected_roi_pct)
+        # Independent Hand-Calculation (computed completely external to the codebase):
+        # Baseline labor: 2000 * (20/60) * 30 = 20,000.00
+        # Baseline exceptions: 2000 * 0.05 * 1000 = 100,000.00
+        # Working capital carrying drag: 10,000.00
+        # Baseline total cost: 20000 + 100000 + 10000 = 130,000.00
+        # Target labor: 2000 * (5/60) * 30 = 5,000.00
+        # Target exceptions: 2000 * 0.01 * 1000 = 20,000.00
+        # Target total cost: 5000 + 20000 = 25,000.00
+        # Addressable annual savings: 130,000 - 25,000 = 105,000.00
+        # Total 1st-year outlay: 20,000 (implementation) + 10,000 (license) = 30,000.00
+        # Net 1st-year ROI ($): 105,000 - 30,000 = 75,000.00
+        # Expected ROI %: (75,000 / 30,000) * 100 = 250.0% exactly
+        # Expected Payback: 20,000 / (105,000 / 12) = 2.285714... -> 2.3 months
+        self.assertEqual(econ.addressable_annual_savings(), 105000.0)
+        self.assertEqual(econ.total_investment_usd(), 30000.0)
+        self.assertEqual(econ.first_year_net_roi_usd(), 75000.0)
         self.assertEqual(econ.expected_roi_percentage(), 250.0)
+        self.assertAlmostEqual(econ.payback_period_months(), 2.285714, places=4)
+        self.assertEqual(round(econ.payback_period_months(), 1), 2.3)
+        self.assertEqual(econ.summary()["expected_roi_percentage"], 250.0)
+        self.assertEqual(econ.summary()["payback_period_months"], 2.3)
+
+    def test_canonical_pilots_hand_calculated_roi_verifications(self):
+        """
+        Verify both canonical enterprise pilots against external hand-calculated benchmarks.
+        Ensures zero formula drift or tautological circular assertions.
+        """
+        # --- 1. Customs Reconciler Pilot ---
+        pilot_customs = store.get_pilot("pilot-2026-customs-recon")
+        self.assertIsNotNone(pilot_customs)
+        econ_c = pilot_customs.economic_model
+
+        # Hand-calculated independently outside the codebase:
+        # Volume: 1800 trucks
+        # Baseline Labor: 1800 * (14/60) * $25 = $10,500.00
+        # Baseline Exceptions: 1800 * 0.065 * $850 = $99,450.00
+        # Working Capital: $22,000.00
+        # Total Baseline: $131,950.00
+        # Target Labor: 1800 * (3/60) * $25 = $2,250.00
+        # Target Exceptions: 1800 * 0.015 * $850 = $22,950.00
+        # Total Target: $25,200.00
+        # Addressable Savings: $131,950 - $25,200 = $106,750.00
+        # Total 1st-Year Investment: $15,000 + $18,000 = $33,000.00
+        # Net 1st-Year ROI ($): $106,750 - $33,000 = $73,750.00
+        # Net 1st-Year ROI (%): 73,750 / 33,000 * 100 = 223.4848... -> 223.5%
+        # Payback Period: 15,000 / (106,750 / 12) = 1.686... -> 1.7 months
+        self.assertEqual(econ_c.baseline_annual_total_cost(), 131950.0)
+        self.assertEqual(econ_c.target_annual_total_cost(), 25200.0)
+        self.assertEqual(econ_c.addressable_annual_savings(), 106750.0)
+        self.assertEqual(econ_c.total_investment_usd(), 33000.0)
+        self.assertEqual(econ_c.first_year_net_roi_usd(), 73750.0)
+        self.assertAlmostEqual(econ_c.expected_roi_percentage(), 223.484848, places=4)
+        self.assertEqual(round(econ_c.expected_roi_percentage(), 1), 223.5)
+        self.assertEqual(round(econ_c.payback_period_months(), 1), 1.7)
+        self.assertEqual(econ_c.summary()["expected_roi_percentage"], 223.5)
+        self.assertEqual(econ_c.summary()["payback_period_months"], 1.7)
+
+        # --- 2. Fluvial Draft Optimizer Pilot ---
+        pilot_fluvial = store.get_pilot("pilot-2026-fluvial-draft")
+        self.assertIsNotNone(pilot_fluvial)
+        econ_f = pilot_fluvial.economic_model
+
+        # Hand-calculated independently outside the codebase:
+        # Volume: 240 push-convoys
+        # Baseline Labor: 240 * (45/60) * $40 = $7,200.00
+        # Baseline Exceptions: 240 * 0.08 * $18,500 = $355,200.00
+        # Working Capital: $15,000.00
+        # Total Baseline: $377,400.00
+        # Target Labor: 240 * (10/60) * $40 = $1,600.00
+        # Target Exceptions: 240 * 0.01 * $18,500 = $44,400.00
+        # Total Target: $46,000.00
+        # Addressable Savings: $377,400 - $46,000 = $331,400.00
+        # Total 1st-Year Investment: $22,000 + $24,000 = $46,000.00
+        # Net 1st-Year ROI ($): $331,400 - $46,000 = $285,400.00
+        # Net 1st-Year ROI (%): 285,400 / 46,000 * 100 = 620.4347... -> 620.4%
+        # Payback Period: 22,000 / (331,400 / 12) = 0.7966... -> 0.8 months
+        self.assertEqual(econ_f.baseline_annual_total_cost(), 377400.0)
+        self.assertEqual(econ_f.target_annual_total_cost(), 46000.0)
+        self.assertEqual(econ_f.addressable_annual_savings(), 331400.0)
+        self.assertEqual(econ_f.total_investment_usd(), 46000.0)
+        self.assertEqual(econ_f.first_year_net_roi_usd(), 285400.0)
+        self.assertAlmostEqual(econ_f.expected_roi_percentage(), 620.43478, places=4)
+        self.assertEqual(round(econ_f.expected_roi_percentage(), 1), 620.4)
+        self.assertEqual(round(econ_f.payback_period_months(), 1), 0.8)
+        self.assertEqual(econ_f.summary()["expected_roi_percentage"], 620.4)
+        self.assertEqual(econ_f.summary()["payback_period_months"], 0.8)
 
     def test_assumptions_ledger(self):
         """Verify that every economic model parameter is tracked with operational rationale."""

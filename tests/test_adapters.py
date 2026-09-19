@@ -153,12 +153,143 @@ class TestAdapters(unittest.TestCase):
             val = adapter.validate_deployment_plan_schema(plan)
             self.assertTrue(val["valid"], f"Plan validation failed for {p_name}: {val.get('errors')}")
             self.assertEqual(len(val["errors"]), 0)
+            self.assertIn("vendor_schema_status", val)
+            self.assertIn("infrastructure_schema_status", val)
+            self.assertIn("platform_manifest", plan)
 
         # Test broken plan
         broken_plan = {"platform": "invalid_platform"}
         bad_val = ADAPTERS["gemini"].validate_deployment_plan_schema(broken_plan)
         self.assertFalse(bad_val["valid"])
         self.assertGreaterEqual(len(bad_val["errors"]), 3)
+
+    def test_canonical_public_vendor_schemas_verification(self):
+        """
+        Verify that each adapter validates against canonical schemas pulled directly
+        from official vendor public documentation, and detects real-world schema violations.
+        """
+        # --- 1. Google Cloud Vertex AI FunctionDeclaration ---
+        # Spec: https://cloud.google.com/vertex-ai/docs/reference/rest/v1beta1/Tool#FunctionDeclaration
+        gemini = ADAPTERS["gemini"]
+        canonical_vertex_manifest = {
+            "platform": "Google Cloud Vertex AI / Gemini Enterprise",
+            "spec_version": "v1beta",
+            "agent_resource": {
+                "display_name": "VertexAICanonicalAgent",
+                "instruction": {"system_instruction": {"parts": [{"text": "You are a customs officer"}]}},
+                "tools": [
+                    {
+                        "function_declarations": [
+                            {
+                                "name": "get_current_weather",
+                                "description": "Get current weather in given location",
+                                "parameters": {
+                                    "type": "object",
+                                    "properties": {
+                                        "location": {"type": "string", "description": "City and state"}
+                                    },
+                                    "required": ["location"]
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+        val_gemini = gemini.validate_manifest_schema(canonical_vertex_manifest)
+        self.assertTrue(val_gemini["valid"], f"Canonical Vertex AI manifest failed: {val_gemini.get('errors')}")
+
+        # Negative test: Name violates Vertex AI naming regex '^[a-zA-Z0-9_-]{1,64}$'
+        bad_vertex = dict(canonical_vertex_manifest)
+        bad_vertex["agent_resource"]["tools"][0]["function_declarations"][0]["name"] = "invalid name with spaces!"
+        self.assertFalse(gemini.validate_manifest_schema(bad_vertex)["valid"])
+
+        # --- 2. OpenAI Assistants API v2 Strict Function Calling ---
+        # Spec: https://platform.openai.com/docs/api-reference/assistants/createAssistant#assistants-createassistant-tools
+        openai_adapter = ADAPTERS["openai"]
+        canonical_openai_manifest = {
+            "platform": "OpenAI Assistants API",
+            "name": "OpenAICanonicalAssistant",
+            "instructions": "You are a helpful assistant.",
+            "tools": [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "get_weather",
+                        "description": "Determine weather in my location",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "location": {"type": "string", "description": "The city and state"}
+                            },
+                            "required": ["location"],
+                            "additionalProperties": False
+                        },
+                        "strict": True
+                    }
+                }
+            ]
+        }
+        val_openai = openai_adapter.validate_manifest_schema(canonical_openai_manifest)
+        self.assertTrue(val_openai["valid"], f"Canonical OpenAI manifest failed: {val_openai.get('errors')}")
+
+        # Negative test: strict: true requires additionalProperties: False
+        bad_openai = dict(canonical_openai_manifest)
+        bad_openai["tools"][0]["function"]["parameters"]["additionalProperties"] = True
+        self.assertFalse(openai_adapter.validate_manifest_schema(bad_openai)["valid"])
+
+        # --- 3. Microsoft Semantic Kernel Plugin Manifest ---
+        # Spec: https://learn.microsoft.com/en-us/semantic-kernel/concepts/plugins/
+        ms_adapter = ADAPTERS["microsoft"]
+        canonical_ms_manifest = {
+            "platform": "Microsoft Azure AI Foundry / Semantic Kernel",
+            "agent_definition": {
+                "id": "sk-agent-001",
+                "displayName": "SemanticKernelCanonicalAgent",
+                "promptTemplate": "<system>You are a foreign trade specialist</system>",
+                "plugins": [
+                    {
+                        "plugin_name": "WeatherPlugin",
+                        "description": "Provides weather telemetry for barge convoys",
+                        "schema": {"type": "object", "properties": {"lat": {"type": "number"}}},
+                        "execution_policy": "RequiresConsent"
+                    }
+                ]
+            }
+        }
+        val_ms = ms_adapter.validate_manifest_schema(canonical_ms_manifest)
+        self.assertTrue(val_ms["valid"], f"Canonical Semantic Kernel manifest failed: {val_ms.get('errors')}")
+
+        # Negative test: invalid execution policy
+        bad_ms = dict(canonical_ms_manifest)
+        bad_ms["agent_definition"]["plugins"][0]["execution_policy"] = "UncontrolledExecution"
+        self.assertFalse(ms_adapter.validate_manifest_schema(bad_ms)["valid"])
+
+        # --- 4. Databricks Mosaic AI & Unity Catalog Tool Binding ---
+        # Spec: https://docs.databricks.com/en/generative-ai/agent-framework/create-agent.html
+        db_adapter = ADAPTERS["databricks"]
+        canonical_db_manifest = {
+            "platform": "Databricks Mosaic AI Agent Framework",
+            "model_serving_endpoint": "endpoint-dbrx-customs",
+            "system_prompt": "You are a Databricks Lakehouse agent.",
+            "mlflow_experiment": "/Shared/fde_pilots/customs_agent",
+            "unity_catalog_tools": [
+                {
+                    "catalog": "main_catalog",
+                    "schema": "customs_schema",
+                    "function_name": "check_tariff_code",
+                    "description": "SQL UDF in Unity Catalog checking Mercosur NCM tariffs",
+                    "read_only": True
+                }
+            ]
+        }
+        val_db = db_adapter.validate_manifest_schema(canonical_db_manifest)
+        self.assertTrue(val_db["valid"], f"Canonical Databricks manifest failed: {val_db.get('errors')}")
+
+        # Negative test: missing 3-tier catalog namespace
+        bad_db = dict(canonical_db_manifest)
+        bad_db["unity_catalog_tools"][0]["catalog"] = ""
+        self.assertFalse(db_adapter.validate_manifest_schema(bad_db)["valid"])
 
 
 if __name__ == "__main__":

@@ -193,13 +193,19 @@ class WorkbenchStore:
         Walks the entire cryptographic hash-chain from sequence 1 to HEAD.
         Verifies every prev_hash and recomputes SHA-256 for each entry.
         Flags any tampering, deletion, or modification.
+
+        SCOPE & GUARANTEE:
+        Proves cryptographic tamper-evidence strictly within the current active database session
+        from the initial genesis block. Seeding or re-initializing the database resets the table
+        and starts a new hash chain; it does not maintain an immutable historical ledger across
+        environment resets.
         """
         cursor = self._conn.cursor()
         cursor.execute("SELECT sequence, timestamp, action, entity_id, details_json, prev_hash, entry_hash FROM audit_log ORDER BY sequence ASC;")
         rows = cursor.fetchall()
 
         if not rows:
-            return {"valid": True, "total_entries": 0, "head_hash": None}
+            return {"valid": True, "total_entries": 0, "head_hash": None, "guarantee": "Empty audit log (genesis state)"}
 
         expected_prev_hash = GENESIS_HASH
         for idx, row in enumerate(rows, start=1):
@@ -240,6 +246,7 @@ class WorkbenchStore:
             "valid": True,
             "total_entries": len(rows),
             "head_hash": rows[-1]["entry_hash"],
+            "guarantee": "Cryptographically tamper-evident from initial genesis block within current active database session (resets on database reseed).",
         }
 
     def get_audit_trail(self, limit: int = 100) -> List[Dict[str, Any]]:
@@ -632,7 +639,15 @@ class WorkbenchStore:
         return dec
 
     def check_all_escalations(self, current_time: Optional[datetime] = None) -> List[DecisionRecord]:
-        """Checks all pending decisions and escalates any exceeding timeout threshold."""
+        """
+        Checks all pending decisions and escalates any exceeding timeout threshold.
+
+        TRIGGER MODEL:
+        Runs on-demand via manual operator click or external scheduled trigger (e.g. cron /
+        Cloud Scheduler webhook calling POST /api/decisions/check-escalations). The local-first
+        workbench deliberately avoids unmonitored background daemon threads to preserve
+        deterministic operational execution and reproducibility.
+        """
         cursor = self._conn.cursor()
         cursor.execute("SELECT payload_json FROM decisions WHERE status = 'DECISION_PENDING';")
         rows = cursor.fetchall()

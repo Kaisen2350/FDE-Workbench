@@ -30,7 +30,12 @@ class PlatformAdapter(ABC):
         pass
 
     def validate_deployment_plan_schema(self, plan: Dict[str, Any]) -> Dict[str, Any]:
-        """Validate a generated deployment plan against required enterprise deployment schema."""
+        """
+        Validate a generated deployment plan against required enterprise deployment schema.
+        Combines:
+        1. FDE Operational Blueprint requirements (steps, credentials, human gates).
+        2. Real public vendor schema validation of the embedded platform-native manifest.
+        """
         errors: List[str] = []
         required_fields = [
             "platform",
@@ -42,10 +47,11 @@ class PlatformAdapter(ABC):
             "credentials_and_env",
             "human_in_loop_mechanism",
             "verification_command",
+            "platform_manifest",
         ]
         for field in required_fields:
             val = plan.get(field)
-            if val is None or (isinstance(val, (str, list)) and len(val) == 0):
+            if val is None or (isinstance(val, (str, list, dict)) and len(val) == 0):
                 errors.append(f"Missing or empty required deployment plan field: '{field}'")
 
         if plan.get("platform") != self.platform_name:
@@ -69,11 +75,27 @@ class PlatformAdapter(ABC):
         if not any(k in hil for k in ["human", "review", "approval", "consent", "gate", "sign"]):
             errors.append("human_in_loop_mechanism must explicitly define human oversight/approval gates")
 
+        # Validate embedded platform-native manifest against real vendor schema
+        manifest = plan.get("platform_manifest")
+        manifest_val = None
+        if manifest and isinstance(manifest, dict):
+            manifest_val = self.validate_manifest_schema(manifest)
+            if not manifest_val.get("valid"):
+                for m_err in manifest_val.get("errors", []):
+                    errors.append(f"Vendor Manifest Schema Error: {m_err}")
+
         return {
             "valid": len(errors) == 0,
             "platform": self.platform_name,
             "errors": errors,
-            "schema_doc": "Enterprise FDE Deployment Plan Specification v1.0",
+            "schema_doc": "Enterprise FDE Deployment Plan Specification v1.1",
+            "vendor_schema_status": manifest_val.get("schema_doc") if manifest_val else "Not Validated",
+            "infrastructure_schema_status": (
+                "Reference Architecture — Cloud providers (Google Cloud, Azure, Databricks, OpenAI) "
+                "publish formal JSON schemas for tool calling and API payloads, but deployment infrastructure "
+                "topologies (Cloud Run, Container Apps, Clusters) adhere to vendor Well-Architected frameworks "
+                "and IaC templates rather than universal runtime JSON schemas."
+            ),
         }
 
     def validate_compatibility(self, spec: AgentSpecification) -> Dict[str, Any]:

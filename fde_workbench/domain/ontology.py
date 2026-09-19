@@ -61,6 +61,11 @@ class RelationTypeEnum(str, Enum):
 
 # Curated "Critical Path" single-narrative spine:
 # Order -> Shipment -> CustomsDeclaration -> OperationalEvent -> Decision -> Outcome
+# NOTE ON ENTITY COUNT & MAPPING:
+# The ontology defines strictly 24 domain entities (see EntityTypeEnum).
+# River barge convoys (Barcazas / Convoy fluvial) and truck bitren dispatches are instances
+# of the existing 'Shipment' entity (with transport_mode='RIVER' or 'ROAD').
+# BargeConvoy is NOT a separate 25th entity type.
 CRITICAL_PATH_ENTITY_TYPES: List[str] = [
     EntityTypeEnum.ORDER.value,
     EntityTypeEnum.SHIPMENT.value,

@@ -249,6 +249,7 @@ class FDEBriefGenerator:
         md.append(f"- **Manual Decision Point**: `{dl['decision']}`")
         md.append(f"- **Accountable Decision Owner**: **{dl['decision_owner']}**")
         md.append(f"- **Operational Trigger**: {dl['trigger']}")
+        md.append(f"- **Escalation Trigger Model**: Evaluated on-demand via operator review sweep or automated hourly cron sweep calling `POST /api/decisions/check-escalations` (timeout threshold: 2.0 hours; does not rely on an unmonitored background daemon in local-first mode).")
         md.append("")
 
         # 4. Economic Impact
@@ -308,6 +309,8 @@ class FDEBriefGenerator:
         md.append("**Safety Invariants:**")
         for sc in ha["safety_constraints"]:
             md.append(f"- 🛡️ {sc}")
+        md.append("- 🛡️ Audit guarantee: All human actions logged to append-only SHA-256 hash-chain (tamper-evident within current seeded database session; resets on database reseed).")
+        md.append("- 🛡️ Decision timeout governance: Pending decisions escalate via on-demand sweep or scheduled cron webhook, maintaining determinism without unmonitored background daemons.")
         md.append("")
 
         # 7. Required Data

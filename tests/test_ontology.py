@@ -13,6 +13,13 @@ class TestOntology(unittest.TestCase):
         metadata_types = ONTOLOGY_METADATA["entity_types"]
         self.assertEqual(len(metadata_types), 24)
 
+        from fde_workbench.domain.ontology import CRITICAL_PATH_ENTITY_TYPES
+        valid_enum_values = {e.value for e in EntityTypeEnum}
+        for cp_type in CRITICAL_PATH_ENTITY_TYPES:
+            self.assertIn(cp_type, valid_enum_values, f"Critical path type {cp_type} not in 24 EntityTypeEnum values")
+        # Ensure 'shipment' covers fluvial barge convoys and road dispatches
+        self.assertIn(EntityTypeEnum.SHIPMENT.value, CRITICAL_PATH_ENTITY_TYPES)
+
     def test_all_24_entities_documented(self):
         """Every entity type must have a rich description and Paraguayan context note."""
         definitions = ONTOLOGY_METADATA["entity_definitions"]

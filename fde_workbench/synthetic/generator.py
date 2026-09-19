@@ -1454,7 +1454,7 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         acceptance_criteria=[
             ">= 95% of test shipments processed in < 3 minutes",
             "Zero Canal Rojo (red-channel) inspections caused by clerical documentation discrepancy",
-            "100% human sign-off recorded with tamper-evident audit hash",
+            "100% human sign-off recorded with tamper-evident audit hash (within current database session)",
         ],
         economic_model=econ_customs,
         implementation_effort="2 weeks configuration + 1 week shadow testing",

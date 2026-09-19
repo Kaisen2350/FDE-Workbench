@@ -1578,7 +1578,7 @@ function bindGlobalActions() {
       try {
         const res = await fetch("/api/decisions/check-escalations", { method: "POST" });
         const data = await res.json();
-        alert(`Checked all decisions. ${data.escalated_count} decision(s) timed out and escalated.`);
+        alert(`Escalation Sweep Complete (Trigger Model: On-Demand / Scheduled Sweep):\nEvaluated all decisions against timeout threshold.\n${data.escalated_count} decision(s) timed out and transitioned to ESCALATED.`);
         await loadDecisions();
       } catch (err) {
         alert("Failed to check escalations: " + err);

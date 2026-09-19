@@ -128,9 +128,12 @@ def main():
         store = WorkbenchStore()
         result = store.verify_audit_chain()
         if result["valid"]:
-            print("Cryptographic Audit Chain: VALID (100% Tamper-Free)")
+            print("Cryptographic Audit Chain: VALID (100% Tamper-Free within current seeded session)")
             print(f"  Total Verified Entries: {result['total_entries']}")
             print(f"  Head Hash:              {result['head_hash']}")
+            print("  Scope & Guarantee:      Tamper-evident guarantee covers all state transitions within")
+            print("                          the current active database session from initial genesis block.")
+            print("                          (Resets to genesis upon explicit database reseed).")
         else:
             print("Cryptographic Audit Chain: CORRUPTED!")
             print(f"  Corrupted Sequence:     {result.get('corrupted_sequence')}")

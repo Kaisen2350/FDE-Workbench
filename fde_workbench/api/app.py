@@ -183,9 +183,14 @@ def escalate_decision(decision_id: str, body: Dict[str, Any] = Body(...)):
 
 @app.post("/api/decisions/check-escalations")
 def check_decision_escalations():
-    """Checks all pending decisions and escalates any exceeding timeout threshold."""
+    """
+    Evaluates pending decisions against timeout threshold and transitions timed-out items to ESCALATED.
+    Trigger Model: On-demand sweep (operator invocation or external cron/webhook).
+    Local-first workbench intentionally does not run background daemon polling.
+    """
     escalated = store.check_all_escalations()
     return {
+        "trigger_model": "on_demand_or_scheduled_sweep",
         "escalated_count": len(escalated),
         "escalated_decisions": [d.model_dump(mode="json") for d in escalated],
     }

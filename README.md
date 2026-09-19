@@ -256,9 +256,9 @@ Proves the architectural doctrine: **Same operational model, different deploymen
 
 ### 5. Flagship Production Pilots Instantiated
 - **`pilot-2026-customs-recon`**: Automated Export Customs Clearance & Tariff Reconciliation Pilot.
-  - *491.7% Net 1st-Year ROI ($73,750 net value, 1.7 month payback)*
+  - *223.5% Net 1st-Year ROI ($73,750 net value, 1.7 month payback)*
 - **`pilot-2026-fluvial-draft`**: Hidrovía Dynamic Convoy Draft & Loading Allocation Pilot.
-  - *1,297.3% Net 1st-Year ROI ($285,400 net value, 0.8 month payback)*
+  - *620.4% Net 1st-Year ROI ($285,400 net value, 0.8 month payback)*
 
 ---
 
@@ -308,6 +308,8 @@ python -m fde_workbench discover --intake aidesa_discovery_intake.json
 python -m fde_workbench seed --export aidesa_snapshot.json
 
 # Verify cryptographic SHA-256 audit log hash-chain
+# NOTE: 'Tamper-free' guarantees integrity within the current active database session from initial genesis block.
+# Running 'seed' resets the database to genesis state rather than maintaining an immutable ledger across resets.
 python -m fde_workbench verify-audit
 
 # List registered FDE pilots

@@ -72,6 +72,8 @@ class DatabricksAdapter(PlatformAdapter):
 
     def generate_pilot_deployment_plan(self, pilot: Any) -> Dict[str, Any]:
         """Generate Databricks Mosaic AI deployment architecture on the Lakehouse."""
+        fn_name = "reconcile_customs_clearance_pack" if "customs" in pilot.pilot_id else "optimize_fluvial_convoy_draft"
+        schema_name = "pilot_customs" if "customs" in pilot.pilot_id else "pilot_fluvial"
         return {
             "platform": self.platform_name,
             "platform_display_name": "Databricks Mosaic AI",
@@ -81,7 +83,7 @@ class DatabricksAdapter(PlatformAdapter):
             "model_deployment": "Databricks Model Serving: DBRX / Meta-Llama-3-70B-Instruct or Azure OpenAI endpoint",
             "architecture_pattern": "Lakehouse-native agent reading Delta Lake tables, executing Unity Catalog functions, logged to MLflow",
             "integration_steps": [
-                f"1. Configure Unity Catalog catalog for {pilot.customer} (catalog 'aidesa_export', schema 'pilot_customs')",
+                f"1. Configure Unity Catalog catalog for {pilot.customer} (catalog 'aidesa_export', schema '{schema_name}')",
                 f"2. Register Python tools as Unity Catalog SQL/Python user-defined functions with column-level permissions",
                 f"3. Build Databricks Vector Search index over Delta table containing customs regulations and historical audits",
                 f"4. Package agent using MLflow pyfunc with Databricks Review App enabled for {pilot.decision_owner} feedback",
@@ -91,10 +93,29 @@ class DatabricksAdapter(PlatformAdapter):
                 "DATABRICKS_HOST=https://aidesa-workspace.cloud.databricks.com",
                 "DATABRICKS_TOKEN=dapi-secrets://vault/databricks-token",
                 "DATABRICKS_CATALOG=aidesa_export",
-                "DATABRICKS_SCHEMA=pilot_customs",
+                f"DATABRICKS_SCHEMA={schema_name}",
             ],
             "human_in_loop_mechanism": f"Databricks Mosaic AI Review App + Lakehouse workflow gating. Mutations require row-level authorization approval from {pilot.decision_owner} in the operational Delta staging table.",
             "verification_command": "databricks clusters list --output JSON",
+            "platform_manifest": {
+                "platform": "Databricks Mosaic AI Agent Framework",
+                "model_serving_endpoint": f"endpoint-{pilot.pilot_id}",
+                "system_prompt": (
+                    f"# OBJECTIVE: {pilot.decision}\n"
+                    f"# OPERATIONAL CONTEXT: {pilot.workflow}\n"
+                    f"# HUMAN GOVERNANCE: {pilot.human_approval_required}"
+                ),
+                "mlflow_experiment": f"/Shared/fde_pilots/{pilot.pilot_id}",
+                "unity_catalog_tools": [
+                    {
+                        "catalog": "aidesa_export",
+                        "schema": schema_name,
+                        "function_name": fn_name,
+                        "description": f"Unity Catalog registered operational tool for {pilot.decision}",
+                        "read_only": False,
+                    }
+                ],
+            },
         }
 
     def validate_deployment_plan_schema(self, plan: Dict[str, Any]) -> Dict[str, Any]:
@@ -112,6 +133,7 @@ class DatabricksAdapter(PlatformAdapter):
 
         result["valid"] = len(errors) == 0
         result["errors"] = errors
-        result["schema_doc"] = "Databricks Mosaic AI Deployment Plan Specification"
+        result["schema_doc"] = "Databricks Mosaic AI Deployment Plan Specification (Unity Catalog Tool Binding)"
+        result["vendor_schema_url"] = "https://docs.databricks.com/en/generative-ai/agent-framework/create-agent.html"
         return result
 

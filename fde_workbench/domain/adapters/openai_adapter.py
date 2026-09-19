@@ -16,12 +16,22 @@ class OpenAIAdapter(PlatformAdapter):
     def export_manifest(self, spec: AgentSpecification) -> Dict[str, Any]:
         tools = []
         for tool in spec.tools:
+            params = dict(tool.input_schema) if tool.input_schema else {"type": "object", "properties": {}}
+            if "type" not in params:
+                params["type"] = "object"
+            if "properties" not in params:
+                params["properties"] = {}
+            if "required" not in params:
+                params["required"] = list(params.get("properties", {}).keys())
+            if "additionalProperties" not in params:
+                params["additionalProperties"] = False
+
             tools.append({
                 "type": "function",
                 "function": {
                     "name": tool.name,
                     "description": tool.description,
-                    "parameters": tool.input_schema or {"type": "object", "properties": {}},
+                    "parameters": params,
                     "strict": True,
                 },
             })
@@ -48,7 +58,7 @@ class OpenAIAdapter(PlatformAdapter):
 
     def validate_manifest_schema(self, manifest: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Validates against OpenAI Assistants API Tool definition schema.
+        Validates against official OpenAI Assistants API v2 Function Calling JSON Schema.
         Spec: https://platform.openai.com/docs/api-reference/assistants/createAssistant#assistants-createassistant-tools
         """
         errors: List[str] = []
@@ -76,17 +86,28 @@ class OpenAIAdapter(PlatformAdapter):
                 params = fn.get("parameters")
                 if not isinstance(params, dict) or params.get("type") != "object":
                     errors.append(f"Tool {i} function parameters must be an object schema with type='object'")
+                else:
+                    if fn.get("strict") is True:
+                        if params.get("additionalProperties") is not False:
+                            errors.append(f"Tool {i} strict function schema requires 'additionalProperties: false'")
+                        props = params.get("properties", {})
+                        reqs = params.get("required", [])
+                        for prop_key in props:
+                            if prop_key not in reqs:
+                                errors.append(f"Tool {i} strict function schema requires property '{prop_key}' to be in 'required'")
                 if fn.get("strict") is not True:
                     errors.append(f"Tool {i} function strict mode should be True for deterministic execution")
 
         return {
             "valid": len(errors) == 0,
             "errors": errors,
-            "schema_doc": "OpenAI Assistants API Function Tool Specification",
+            "schema_doc": "OpenAI Assistants API v2 Function Calling Specification (strict: true)",
+            "vendor_schema_url": "https://platform.openai.com/docs/api-reference/assistants",
         }
 
     def generate_pilot_deployment_plan(self, pilot: Any) -> Dict[str, Any]:
         """Generate OpenAI Enterprise deployment architecture and execution steps."""
+        fn_name = "reconcile_customs_clearance_pack" if "customs" in pilot.pilot_id else "optimize_fluvial_convoy_draft"
         return {
             "platform": self.platform_name,
             "platform_display_name": "OpenAI Enterprise",
@@ -107,6 +128,41 @@ class OpenAIAdapter(PlatformAdapter):
             ],
             "human_in_loop_mechanism": f"Assistant Run pauses in 'requires_action' state. Application waits for {pilot.decision_owner} approval in operator portal before submitting tool outputs back to the Run.",
             "verification_command": "curl https://api.openai.com/v1/models -H \"Authorization: Bearer $OPENAI_API_KEY\"",
+            "platform_manifest": {
+                "platform": "OpenAI Assistants API",
+                "name": pilot.title[:64],
+                "description": f"FDE agent for {pilot.customer} - {pilot.workflow}",
+                "instructions": (
+                    f"OBJECTIVE: {pilot.decision}\n\n"
+                    f"OPERATIONAL WORKFLOW: {pilot.workflow}\n\n"
+                    f"HUMAN APPROVAL GATE: {pilot.human_approval_required}"
+                ),
+                "tools": [
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": fn_name,
+                            "description": f"Operational execution tool for {pilot.decision}",
+                            "parameters": {
+                                "type": "object",
+                                "properties": {
+                                    "reference_id": {
+                                        "type": "string",
+                                        "description": "Operational shipment or declaration reference ID",
+                                    },
+                                    "batch_count": {
+                                        "type": "integer",
+                                        "description": "Number of dispatch units in batch",
+                                    },
+                                },
+                                "required": ["reference_id", "batch_count"],
+                                "additionalProperties": False,
+                            },
+                            "strict": True,
+                        },
+                    }
+                ],
+            },
         }
 
     def validate_deployment_plan_schema(self, plan: Dict[str, Any]) -> Dict[str, Any]:
@@ -124,6 +180,7 @@ class OpenAIAdapter(PlatformAdapter):
 
         result["valid"] = len(errors) == 0
         result["errors"] = errors
-        result["schema_doc"] = "OpenAI Enterprise Assistants Deployment Plan Specification"
+        result["schema_doc"] = "OpenAI Enterprise Assistants Deployment Plan Specification (Tools v2 strict: true)"
+        result["vendor_schema_url"] = "https://platform.openai.com/docs/api-reference/assistants"
         return result
 

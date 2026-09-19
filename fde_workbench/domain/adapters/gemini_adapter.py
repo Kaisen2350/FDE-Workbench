@@ -204,6 +204,7 @@ if __name__ == "__main__":
 
     def generate_pilot_deployment_plan(self, pilot: Any) -> Dict[str, Any]:
         """Generate Vertex AI deployment architecture and operational execution steps."""
+        fn_name = "reconcile_customs_clearance_pack" if "customs" in pilot.pilot_id else "optimize_fluvial_convoy_draft"
         return {
             "platform": self.platform_name,
             "platform_display_name": "Google Cloud / Gemini Enterprise",
@@ -226,6 +227,45 @@ if __name__ == "__main__":
             ],
             "human_in_loop_mechanism": f"Vertex AI Human Review / Cloud Tasks approval workflow. Agent generates candidate payload; state stays PENDING_HUMAN_APPROVAL until {pilot.decision_owner} authorized key signs.",
             "verification_command": "python -c \"from google import genai; client = genai.Client(); print(client.models.get(model='gemini-2.5-flash'))\"",
+            "platform_manifest": {
+                "platform": "Google Cloud Vertex AI / Gemini Enterprise",
+                "spec_version": "v1beta",
+                "deployment_substrate": {
+                    "target_engine": "Vertex AI Agent Engine (Cloud Run / GKE Private Endpoint)",
+                    "foundation_model": "gemini-2.5-pro",
+                    "region": "southamerica-east1",
+                    "bilingual_support": ["Spanish (Paraguay / Rioplatense)", "English (International Comex)"],
+                },
+                "agent_resource": {
+                    "display_name": pilot.title,
+                    "description": f"FDE agent for {pilot.customer} - {pilot.workflow}",
+                    "instruction": {
+                        "system_instruction": {
+                            "parts": [
+                                {"text": f"OBJECTIVE: {pilot.decision}\n\nOPERATIONAL WORKFLOW: {pilot.workflow}\n\nHUMAN APPROVAL: {pilot.human_approval_required}"}
+                            ]
+                        }
+                    },
+                    "tools": [
+                        {
+                            "function_declarations": [
+                                {
+                                    "name": fn_name,
+                                    "description": f"Operational execution tool for {pilot.decision}",
+                                    "parameters": {
+                                        "type": "object",
+                                        "properties": {
+                                            "reference_id": {"type": "string", "description": "Operational tracking or declaration ID"},
+                                            "shipment_units": {"type": "integer", "description": "Number of shipment units in batch"},
+                                        },
+                                        "required": ["reference_id"],
+                                    },
+                                }
+                            ]
+                        }
+                    ],
+                },
+            },
         }
 
     def validate_deployment_plan_schema(self, plan: Dict[str, Any]) -> Dict[str, Any]:
@@ -243,5 +283,6 @@ if __name__ == "__main__":
 
         result["valid"] = len(errors) == 0
         result["errors"] = errors
-        result["schema_doc"] = "Google Cloud Vertex AI Agent Deployment Plan Specification"
+        result["schema_doc"] = "Google Cloud Vertex AI Agent Deployment Plan Specification (Tool.FunctionDeclaration v1beta)"
+        result["vendor_schema_url"] = "https://cloud.google.com/vertex-ai/docs/reference/rest/v1beta1/Tool#FunctionDeclaration"
         return result

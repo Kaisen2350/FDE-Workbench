@@ -86,6 +86,7 @@ class MicrosoftAdapter(PlatformAdapter):
 
     def generate_pilot_deployment_plan(self, pilot: Any) -> Dict[str, Any]:
         """Generate Azure AI Foundry / Semantic Kernel deployment architecture."""
+        plugin_name = "CustomsClearancePlugin" if "customs" in pilot.pilot_id else "FluvialDraftPlugin"
         return {
             "platform": self.platform_name,
             "platform_display_name": "Microsoft Azure AI Foundry",
@@ -108,6 +109,40 @@ class MicrosoftAdapter(PlatformAdapter):
             ],
             "human_in_loop_mechanism": f"Semantic Kernel Function Invocation Filter intercepting tool calls; blocks execution and posts Adaptive Card to Teams until {pilot.decision_owner} approval callback is received.",
             "verification_command": "az cognitiveservices account show --name aidesa-ai-foundry --resource-group rg-aidesa-fde-pilot",
+            "platform_manifest": {
+                "platform": "Microsoft Azure AI Foundry / Semantic Kernel",
+                "agent_definition": {
+                    "id": pilot.pilot_id,
+                    "displayName": pilot.title,
+                    "description": f"FDE agent for {pilot.customer} - {pilot.workflow}",
+                    "promptTemplate": (
+                        f"<system>\n"
+                        f"Objective: {pilot.decision}\n"
+                        f"Operational Context: {pilot.workflow}\n"
+                        f"Human Gate: {pilot.human_approval_required}\n"
+                        f"</system>"
+                    ),
+                    "plugins": [
+                        {
+                            "plugin_name": plugin_name,
+                            "description": f"Operational execution plugin for {pilot.decision}",
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "reference_id": {"type": "string", "description": "Tracking identifier"},
+                                },
+                                "required": ["reference_id"],
+                            },
+                            "execution_policy": "RequiresConsent",
+                        }
+                    ],
+                    "governance": {
+                        "responsibleAiPolicy": "StrictParaguayExportGRC",
+                        "humanInTheLoopGates": [pilot.human_approval_required],
+                        "targetKpiList": [f"error_rate_target: {pilot.target_kpi.get('error_rate', 1.0)}%"],
+                    },
+                },
+            },
         }
 
     def validate_deployment_plan_schema(self, plan: Dict[str, Any]) -> Dict[str, Any]:
@@ -125,6 +160,7 @@ class MicrosoftAdapter(PlatformAdapter):
 
         result["valid"] = len(errors) == 0
         result["errors"] = errors
-        result["schema_doc"] = "Microsoft Azure AI Foundry Agent Deployment Plan Specification"
+        result["schema_doc"] = "Microsoft Azure AI Foundry Agent Deployment Plan Specification (Semantic Kernel Plugin Manifest)"
+        result["vendor_schema_url"] = "https://learn.microsoft.com/en-us/semantic-kernel/concepts/plugins/"
         return result
 
