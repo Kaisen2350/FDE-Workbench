@@ -61,6 +61,14 @@ class RelationTypeEnum(str, Enum):
 
 # Curated "Critical Path" single-narrative spine:
 # Order -> Shipment -> CustomsDeclaration -> OperationalEvent -> Decision -> Outcome
+CRITICAL_PATH_ENTITY_TYPES: List[str] = [
+    EntityTypeEnum.ORDER.value,
+    EntityTypeEnum.SHIPMENT.value,
+    EntityTypeEnum.CUSTOMS_DECLARATION.value,
+    EntityTypeEnum.OPERATIONAL_EVENT.value,
+    EntityTypeEnum.DECISION.value,
+]
+
 CRITICAL_PATH_NARRATIVE: List[Dict[str, Any]] = [
     {
         "step": 1,

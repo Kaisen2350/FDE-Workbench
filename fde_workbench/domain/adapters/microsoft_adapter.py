@@ -109,3 +109,22 @@ class MicrosoftAdapter(PlatformAdapter):
             "human_in_loop_mechanism": f"Semantic Kernel Function Invocation Filter intercepting tool calls; blocks execution and posts Adaptive Card to Teams until {pilot.decision_owner} approval callback is received.",
             "verification_command": "az cognitiveservices account show --name aidesa-ai-foundry --resource-group rg-aidesa-fde-pilot",
         }
+
+    def validate_deployment_plan_schema(self, plan: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate deployment plan against Azure AI Foundry / Semantic Kernel requirements."""
+        result = super().validate_deployment_plan_schema(plan)
+        errors = list(result.get("errors", []))
+
+        creds = " ".join(plan.get("credentials_and_env", []))
+        if "AZURE" not in creds:
+            errors.append("Azure AI Foundry deployment plan must specify AZURE credentials/endpoint")
+
+        runtime = str(plan.get("runtime_framework", "")).lower()
+        if "semantic kernel" not in runtime and "azure" not in runtime:
+            errors.append("Azure deployment plan runtime_framework must reference Semantic Kernel or Azure Container Apps")
+
+        result["valid"] = len(errors) == 0
+        result["errors"] = errors
+        result["schema_doc"] = "Microsoft Azure AI Foundry Agent Deployment Plan Specification"
+        return result
+

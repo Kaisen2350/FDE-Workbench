@@ -103,6 +103,64 @@ class TestAdapters(unittest.TestCase):
         bad_val = adapter.validate_manifest_schema(bad_manifest)
         self.assertFalse(bad_val["valid"])
 
+    def test_all_adapters_deployment_plan_schema_validation(self):
+        """Verify that validate_deployment_plan_schema validates plans for all 4 platforms."""
+        from fde_workbench.domain.pilots import PilotSpecification, PilotEconomicModel
+        mock_pilot = PilotSpecification(
+            pilot_id="test-pilot-01",
+            opportunity_id="opp-test",
+            agent_spec_id="test-agent",
+            title="Test Customs Clearance Pilot",
+            customer="Agro-Industrial del Este S.A. (AIDESA)",
+            workflow="Customs clearance",
+            decision="Authorize dispatch",
+            decision_owner="Head of Customs",
+            baseline_kpi={"error_rate": 5.0},
+            target_kpi={"error_rate": 1.0},
+            measurement_method="Audit logs",
+            data_sources=["SAP B1"],
+            required_integrations=["SAP B1 API"],
+            trigger="Truck ready",
+            inputs=["Invoice"],
+            context="Cross border export",
+            recommended_action="Pre-validate clearance",
+            human_approval_required="Operator must sign off",
+            authorized_actions=["Generate pack"],
+            supported_platforms=["gemini_enterprise", "microsoft_azure_ai_foundry", "openai_assistants", "databricks_mosaic_ai"],
+            selected_platform="gemini_enterprise",
+            pilot_duration="30 days",
+            pilot_scope="100 trucks",
+            failure_modes=["OCR failure"],
+            rollback_condition="Pause on 2 failures",
+            safety_constraints=["Read-only"],
+            acceptance_criteria=["Zero error"],
+            economic_model=PilotEconomicModel(
+                annual_decision_volume=1000,
+                manual_effort_minutes_per_decision=15.0,
+                current_error_or_exception_rate=0.05,
+                cost_per_exception_usd=500.0,
+                target_manual_effort_minutes=3.0,
+                target_exception_rate=0.01,
+            ),
+            implementation_effort="2 weeks",
+            deployment_dependencies=["API key"],
+            expansion_path="Scale to other ports and customs posts",
+        )
+
+        for p_name in ["gemini", "microsoft", "openai", "databricks"]:
+            adapter = ADAPTERS[p_name]
+            plan = adapter.generate_pilot_deployment_plan(mock_pilot)
+            val = adapter.validate_deployment_plan_schema(plan)
+            self.assertTrue(val["valid"], f"Plan validation failed for {p_name}: {val.get('errors')}")
+            self.assertEqual(len(val["errors"]), 0)
+
+        # Test broken plan
+        broken_plan = {"platform": "invalid_platform"}
+        bad_val = ADAPTERS["gemini"].validate_deployment_plan_schema(broken_plan)
+        self.assertFalse(bad_val["valid"])
+        self.assertGreaterEqual(len(bad_val["errors"]), 3)
+
 
 if __name__ == "__main__":
+
     unittest.main()

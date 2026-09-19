@@ -186,6 +186,7 @@
         <select class="select-filter" id="selectEntityType">
           <option value="">All Entity Types (24)</option>
         </select>
+        <button class="btn" id="btnFilterCriticalPathEntities">★ Critical Path Only</button>
         <input type="text" class="input-search" id="searchEntityInput" placeholder="Search by name, ID, or tag...">
         <span class="badge badge-local" id="entityCountBadge">Loading...</span>
       </div>
@@ -274,6 +275,9 @@
           <div class="pane-eyebrow">Managerial Governance</div>
           <h2 class="pane-title">Decision Pipeline & Observation-to-Outcome Tracing</h2>
           <p class="pane-desc">Enforcing the FDE tradecraft progression: OBSERVATION ➔ CONTEXT ➔ DECISION ➔ AUTHORIZED ACTION ➔ OUTCOME.</p>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-primary" id="btnCheckEscalations">Check Escalation Timeouts</button>
         </div>
       </div>
       <div id="decisionsContainer">

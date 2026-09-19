@@ -157,6 +157,52 @@ class TestAPI(unittest.TestCase):
         self.assertIn("python_scaffold", data)
         self.assertIn("google.genai", data["python_scaffold"])
 
+    def test_get_critical_path_endpoint(self):
+        res = self.client.get("/api/ontology/critical-path")
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertIn("narrative", data)
+        self.assertIn("critical_entity_types", data)
+        self.assertIn("spine", data)
+        self.assertIn("entities", data)
+        self.assertGreater(len(data["entities"]), 0)
+
+    def test_filter_entities_critical_path(self):
+        res_all = self.client.get("/api/entities")
+        total_all = res_all.json()["count"]
+
+        res_crit = self.client.get("/api/entities?critical_path=true")
+        self.assertEqual(res_crit.status_code, 200)
+        data_crit = res_crit.json()
+        self.assertTrue(data_crit["critical_path_filtered"])
+        self.assertLess(data_crit["count"], total_all)
+        # Verify all returned entities belong to critical path types
+        crit_types = {"order", "shipment", "customs_declaration", "operational_event", "decision"}
+        for ent in data_crit["entities"]:
+            self.assertIn(ent["entity_type"], crit_types)
+
+    def test_escalate_decision_endpoint(self):
+        decisions_res = self.client.get("/api/decisions")
+        dec_id = decisions_res.json()["decisions"][0]["decision_id"]
+
+        res = self.client.post(f"/api/decisions/{dec_id}/escalate", json={
+            "escalated_to": "role-managing-director",
+            "reason": "Test executive escalation",
+        })
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertEqual(data["status"], "ESCALATED")
+        self.assertEqual(data["decision"]["status"], "ESCALATED")
+        self.assertEqual(data["decision"]["escalation_target_role"], "role-managing-director")
+
+    def test_check_decision_escalations_endpoint(self):
+        res = self.client.post("/api/decisions/check-escalations")
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertIn("escalated_count", data)
+        self.assertIsInstance(data["escalated_decisions"], list)
+
 
 if __name__ == "__main__":
     unittest.main()
+

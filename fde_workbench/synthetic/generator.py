@@ -1357,6 +1357,20 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         annual_software_subscription_usd=18000.0,
         working_capital_acceleration_days=3.5,
         annual_working_capital_financial_value_usd=22000.0,
+        assumptions_ledger={
+            "annual_decision_volume": "1,800 outbound export trucks/year derived from AIDESA annual volume of 480k MT divided by ~27 MT per truckload.",
+            "manual_effort_minutes_per_decision": "14.0 minutes average time spent by foreign trade clerks reconciling SAP B1 invoices, báscula slips, and SENAVE certificates.",
+            "hourly_labor_cost_usd": "$25.00 fully-burdened hourly cost (salary, social charges, overhead) for Paraguayan foreign trade documentation analysts.",
+            "current_error_or_exception_rate": "6.5% baseline error rate based on historical customs rejection and Canal Rojo audit logs.",
+            "cost_per_exception_usd": "$850.00 average cost per exception including border truck demurrage ($250/day x 2 days), customs rectification fees, and administrative rework.",
+            "target_manual_effort_minutes": "3.0 minutes human verification and click-to-transmit time in assisted dashboard.",
+            "target_exception_rate": "1.5% residual exception rate accounting for rare physical scale discrepancies or tariff classification edge cases.",
+            "pilot_decision_volume": "100 consecutive outbound shipments through Ciudad del Este border post during 30-day evaluation.",
+            "pilot_implementation_cost_usd": "$15,000 fixed fee for 2 weeks FDE integration, prompt tuning, and SAP B1 connector deployment.",
+            "annual_software_subscription_usd": "$18,000 annual runtime subscription for Vertex AI inference, embeddings, and enterprise support.",
+            "working_capital_acceleration_days": "3.5 days reduction in border clearance dwell time accelerating letter-of-credit presentation.",
+            "annual_working_capital_financial_value_usd": "$22,000 carrying cost savings on $4.5M rolling export receivables at 6.0% cost of capital.",
+        },
     )
 
     pilot_customs = PilotSpecification(
@@ -1467,6 +1481,20 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         annual_software_subscription_usd=24000.0,
         working_capital_acceleration_days=2.0,
         annual_working_capital_financial_value_usd=15000.0,
+        assumptions_ledger={
+            "annual_decision_volume": "240 push-boat convoy barge departures/year from Villeta terminal along Hidrovía Paraguay-Paraná.",
+            "manual_effort_minutes_per_decision": "45.0 minutes manual calculation per convoy across barge hydrostatic tables, draft gauges, and shoal forecasts.",
+            "hourly_labor_cost_usd": "$40.00 blended rate for Senior Terminal Operations Director and Naval Logistics Captain.",
+            "current_error_or_exception_rate": "8.0% historical rate of convoy grounding risk or sub-optimal loading resulting in emergency alijo (lightering).",
+            "cost_per_exception_usd": "$18,500 direct cost per lightering incident (chartering auxiliary crane barge, lost days, demurrage penalties).",
+            "target_manual_effort_minutes": "10.0 minutes review and sign-off on AI-optimized multi-barge draft distribution plan.",
+            "target_exception_rate": "1.0% residual risk under conservative hydrological safety margin constraints.",
+            "pilot_decision_volume": "24 push-boat convoy dispatches during 60-day low-water window.",
+            "pilot_implementation_cost_usd": "$22,000 fixed FDE deployment covering telemetry pipeline integration and sonar depth calibration.",
+            "annual_software_subscription_usd": "$24,000 annual subscription for hydrographic simulation and multi-sensor predictive draft model.",
+            "working_capital_acceleration_days": "2.0 days faster river transit cycle time resulting from elimination of grounding delays.",
+            "annual_working_capital_financial_value_usd": "$15,000 financial savings on tied-up fluvial freight inventory.",
+        },
     )
 
     pilot_fluvial = PilotSpecification(

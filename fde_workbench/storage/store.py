@@ -314,11 +314,17 @@ class WorkbenchStore:
         self,
         entity_type: Optional[EntityTypeEnum] = None,
         search: Optional[str] = None,
+        critical_path: bool = False,
         limit: int = 200,
         offset: int = 0,
     ) -> List[BaseEntity]:
         query = "SELECT * FROM entities WHERE 1=1"
         params = []
+        if critical_path:
+            from fde_workbench.domain.ontology import CRITICAL_PATH_ENTITY_TYPES
+            placeholders = ",".join(["?"] * len(CRITICAL_PATH_ENTITY_TYPES))
+            query += f" AND entity_type IN ({placeholders})"
+            params.extend(CRITICAL_PATH_ENTITY_TYPES)
         if entity_type:
             query += " AND entity_type = ?"
             params.append(entity_type.value)
@@ -593,6 +599,102 @@ class WorkbenchStore:
         cursor = self._conn.cursor()
         cursor.execute(query, params)
         return [DecisionRecord.model_validate(json.loads(row["payload_json"])) for row in cursor.fetchall()]
+
+    def escalate_decision(
+        self,
+        decision_id: str,
+        escalated_to: str,
+        reason: str,
+        timestamp: Optional[datetime] = None,
+    ) -> Optional[DecisionRecord]:
+        """Manually or programmatically escalate a decision with tamper-evident audit logging."""
+        dec = self.get_decision(decision_id)
+        if not dec:
+            return None
+
+        dec.escalate(target_role=escalated_to, reason=reason, timestamp=timestamp)
+        payload_str = dec.model_dump_json()
+
+        with self._conn:
+            cursor = self._conn.cursor()
+            cursor.execute("""
+                UPDATE decisions
+                SET status = ?, payload_json = ?
+                WHERE decision_id = ?;
+            """, (dec.status.value, payload_str, dec.decision_id))
+
+        self.log_audit("ESCALATE_DECISION", dec.decision_id, {
+            "previous_owner": dec.decision_owner,
+            "escalated_to": escalated_to,
+            "reason": reason,
+            "status": dec.status.value,
+        })
+        return dec
+
+    def check_all_escalations(self, current_time: Optional[datetime] = None) -> List[DecisionRecord]:
+        """Checks all pending decisions and escalates any exceeding timeout threshold."""
+        cursor = self._conn.cursor()
+        cursor.execute("SELECT payload_json FROM decisions WHERE status = 'DECISION_PENDING';")
+        rows = cursor.fetchall()
+        escalated: List[DecisionRecord] = []
+
+        now = current_time or datetime.utcnow()
+        for row in rows:
+            dec = DecisionRecord.model_validate(json.loads(row["payload_json"]))
+            if dec.check_and_escalate(now):
+                payload_str = dec.model_dump_json()
+                with self._conn:
+                    c = self._conn.cursor()
+                    c.execute("""
+                        UPDATE decisions
+                        SET status = ?, payload_json = ?
+                        WHERE decision_id = ?;
+                    """, (dec.status.value, payload_str, dec.decision_id))
+                self.log_audit("ESCALATE_DECISION", dec.decision_id, {
+                    "previous_owner": dec.decision_owner,
+                    "escalated_to": dec.escalation_target_role,
+                    "reason": dec.escalation_reason,
+                    "status": dec.status.value,
+                    "auto_timeout": True,
+                })
+                escalated.append(dec)
+        return escalated
+
+    def get_critical_path(self) -> Dict[str, Any]:
+        """Returns the curated critical path spine, narrative, and connected entities."""
+        from fde_workbench.domain.ontology import CRITICAL_PATH_NARRATIVE, CRITICAL_PATH_ENTITY_TYPES
+
+        critical_entities = [
+            e for e in self.list_entities()
+            if e.entity_type.value in CRITICAL_PATH_ENTITY_TYPES
+        ]
+        crit_ids = {e.id for e in critical_entities}
+
+        critical_rels = [
+            r for r in self.list_relationships(limit=500)
+            if r.source_id in crit_ids and r.target_id in crit_ids
+        ]
+
+        order = next((e for e in critical_entities if e.entity_type.value == "order"), None)
+        shipment = next((e for e in critical_entities if e.entity_type.value == "shipment"), None)
+        customs = next((e for e in critical_entities if e.entity_type.value == "customs_declaration"), None)
+        events = [evt for evt in self.list_events() if evt.severity.value in ("CRITICAL", "HIGH") or "draft" in evt.event_type.lower() or "customs" in evt.event_type.lower()]
+        decisions = self.list_decisions()
+
+        return {
+            "narrative": CRITICAL_PATH_NARRATIVE,
+            "critical_entity_types": CRITICAL_PATH_ENTITY_TYPES,
+            "entity_count": len(critical_entities),
+            "entities": critical_entities,
+            "relationships": critical_rels,
+            "spine": {
+                "order": order,
+                "shipment": shipment,
+                "customs_declaration": customs,
+                "operational_events": events[:2],
+                "decisions": decisions[:2],
+            },
+        }
 
     # --- AI OPPORTUNITIES ---
 

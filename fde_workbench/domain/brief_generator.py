@@ -51,6 +51,8 @@ class FDEBriefGenerator:
                 }
             ]
 
+        watermark = "Illustrative — based on synthetic AIDESA data, pending client-specific baseline validation"
+
         sections = {
             "1_operational_problem": {
                 "title": "1. Operational Problem",
@@ -89,10 +91,14 @@ class FDEBriefGenerator:
                     "addressable_annual_savings": econ_summary["addressable_annual_savings_usd"],
                     "pilot_batch_value": econ_summary["pilot_batch_value_usd"],
                     "implementation_cost": econ_summary["pilot_implementation_cost_usd"],
+                    "annual_software_license": econ_summary["annual_software_license_usd"],
+                    "total_first_year_investment": econ_summary["total_first_year_investment_usd"],
                     "net_first_year_roi": econ_summary["first_year_net_roi_usd"],
                     "roi_percentage": econ_summary["expected_roi_percentage"],
                     "payback_months": econ_summary["payback_period_months"]
-                }
+                },
+                "assumptions_ledger": econ.get_assumptions_table(),
+                "sensitivity_analysis": econ.compute_sensitivity()
             },
             "5_proposed_intervention": {
                 "title": "5. Proposed AI Intervention",
@@ -187,6 +193,7 @@ class FDEBriefGenerator:
             "generated_at": datetime.utcnow().isoformat(),
             "status": pilot.status,
             "provenance": pilot.provenance,
+            "watermark": watermark,
             "sections": sections,
         }
 
@@ -199,6 +206,10 @@ class FDEBriefGenerator:
 
         md = []
         md.append(f"# FDE Deployment Brief: {pilot.title}")
+        md.append("")
+        md.append("> [!WARNING]")
+        md.append(f"> **{data.get('watermark', 'Illustrative — based on synthetic AIDESA data, pending client-specific baseline validation')}**")
+        md.append("")
         md.append(f"**Target Enterprise**: {pilot.customer}  ")
         md.append(f"**Pilot Identifier**: `{pilot.pilot_id}` | **Status**: `{pilot.status}` | **Provenance**: `{pilot.provenance}`  ")
         md.append(f"**Document Date**: {datetime.utcnow().strftime('%B %d, %Y')} | **Prepared By**: Forward Deployed Engineering (FDE)  ")
@@ -245,16 +256,32 @@ class FDEBriefGenerator:
         md.append(f"## {ei['title']}")
         md.append(f"*{ei['question']}*  \n")
         md.append("```text")
-        md.append(f"Baseline Annual Cost:       ${econ['baseline_annual_cost']:>12,.2f} (Labor: ${econ['baseline_labor_cost']:,.2f} + Exceptions: ${econ['baseline_exception_cost']:,.2f})")
-        md.append(f"Target Annual Post-Pilot:   ${econ['target_annual_cost']:>12,.2f}")
-        md.append(f"-------------------------------------------------------------")
-        md.append(f"Addressable Annual Savings: ${econ['addressable_annual_savings']:>12,.2f} / year")
-        md.append(f"Pilot Batch Measured Value: ${econ['pilot_batch_value']:>12,.2f} (during pilot scope)")
-        md.append(f"Implementation Cost:        ${econ['implementation_cost']:>12,.2f}")
-        md.append(f"Net First-Year Value:       ${econ['net_first_year_roi']:>12,.2f}")
-        md.append(f"Expected Pilot ROI:          {econ['roi_percentage']:>12.1f}%")
-        md.append(f"Capital Payback Period:      {econ['payback_months']:>12.1f} months")
+        md.append(f"Baseline Annual Cost:          ${econ['baseline_annual_cost']:>12,.2f}  (Labor: ${econ['baseline_labor_cost']:,.2f} + Exceptions: ${econ['baseline_exception_cost']:,.2f})")
+        md.append(f"Target Annual Post-Pilot:      ${econ['target_annual_cost']:>12,.2f}")
+        md.append("--------------------------------------------------------------------------------")
+        md.append(f"Addressable Annual Savings:    ${econ['addressable_annual_savings']:>12,.2f} / year")
+        md.append(f"Implementation Cost:           ${econ['implementation_cost']:>12,.2f}  (One-time engineering & deployment)")
+        md.append(f"Annual Software License:       ${econ['annual_software_license']:>12,.2f}  (Subscription runtime)")
+        md.append(f"Total 1st-Year Investment:     ${econ['total_first_year_investment']:>12,.2f}  (Implementation + License)")
+        md.append("--------------------------------------------------------------------------------")
+        md.append(f"Net 1st-Year ROI ($):          ${econ['net_first_year_roi']:>12,.2f}  (Savings - Total Investment)")
+        md.append(f"ROI %:                          {econ['roi_percentage']:>12.1f}%  (Net 1st-Year ROI / Total Investment * 100)")
+        md.append(f"Capital Payback Period:         {econ['payback_months']:>12.1f} months")
+        md.append(f"Pilot Batch Measured Value:    ${econ['pilot_batch_value']:>12,.2f}  (During controlled pilot scope)")
         md.append("```")
+        md.append("")
+        md.append("### Assumptions Ledger")
+        md.append("| Parameter | Baseline Value | Unit | Operational Source / Rationale |")
+        md.append("|:---|:---:|:---|:---|")
+        for item in ei["assumptions_ledger"]:
+            md.append(f"| `{item['parameter']}` | **{item['value']}** | {item['unit']} | *{item['source_or_rationale']}* |")
+        md.append("")
+        md.append("### Sensitivity Analysis (±20% Sensitivity Range)")
+        md.append("| Scenario | Volume | Touch Time | Residual Errors | Annual Savings | Net 1st-Year ROI ($) | Net ROI (%) | Payback |")
+        md.append("|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|")
+        scenarios = ei["sensitivity_analysis"].get("scenarios", {})
+        for sc_key, sc in scenarios.items():
+            md.append(f"| **{sc['label']}** | {sc['annual_volume']:,} | {sc['target_manual_minutes']}m | {sc['target_exception_rate_pct']:.1f}% | ${sc['addressable_annual_savings_usd']:,.2f} | ${sc['net_first_year_roi_usd']:,.2f} | **{sc['roi_percentage']:.1f}%** | {sc['payback_period_months']:.1f} mo |")
         md.append("")
 
         # 5. Proposed Intervention

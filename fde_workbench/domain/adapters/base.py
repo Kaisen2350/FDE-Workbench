@@ -29,6 +29,53 @@ class PlatformAdapter(ABC):
         """Generate platform-specific deployment architecture and installation steps for a pilot."""
         pass
 
+    def validate_deployment_plan_schema(self, plan: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate a generated deployment plan against required enterprise deployment schema."""
+        errors: List[str] = []
+        required_fields = [
+            "platform",
+            "platform_display_name",
+            "runtime_framework",
+            "model_deployment",
+            "architecture_pattern",
+            "integration_steps",
+            "credentials_and_env",
+            "human_in_loop_mechanism",
+            "verification_command",
+        ]
+        for field in required_fields:
+            val = plan.get(field)
+            if val is None or (isinstance(val, (str, list)) and len(val) == 0):
+                errors.append(f"Missing or empty required deployment plan field: '{field}'")
+
+        if plan.get("platform") != self.platform_name:
+            errors.append(f"Deployment plan platform '{plan.get('platform')}' does not match adapter platform '{self.platform_name}'")
+
+        steps = plan.get("integration_steps", [])
+        if isinstance(steps, list):
+            if len(steps) < 3:
+                errors.append(f"Deployment plan must specify at least 3 integration steps (found {len(steps)})")
+        else:
+            errors.append("integration_steps must be a list of strings")
+
+        creds = plan.get("credentials_and_env", [])
+        if isinstance(creds, list):
+            if len(creds) < 1:
+                errors.append("credentials_and_env must specify at least 1 credential or environment variable")
+        else:
+            errors.append("credentials_and_env must be a list of strings")
+
+        hil = str(plan.get("human_in_loop_mechanism", "")).lower()
+        if not any(k in hil for k in ["human", "review", "approval", "consent", "gate", "sign"]):
+            errors.append("human_in_loop_mechanism must explicitly define human oversight/approval gates")
+
+        return {
+            "valid": len(errors) == 0,
+            "platform": self.platform_name,
+            "errors": errors,
+            "schema_doc": "Enterprise FDE Deployment Plan Specification v1.0",
+        }
+
     def validate_compatibility(self, spec: AgentSpecification) -> Dict[str, Any]:
         """Check whether the agent specification satisfies platform-specific requirements."""
         missing_fields: List[str] = []

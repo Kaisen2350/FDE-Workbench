@@ -227,3 +227,21 @@ if __name__ == "__main__":
             "human_in_loop_mechanism": f"Vertex AI Human Review / Cloud Tasks approval workflow. Agent generates candidate payload; state stays PENDING_HUMAN_APPROVAL until {pilot.decision_owner} authorized key signs.",
             "verification_command": "python -c \"from google import genai; client = genai.Client(); print(client.models.get(model='gemini-2.5-flash'))\"",
         }
+
+    def validate_deployment_plan_schema(self, plan: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate deployment plan against Vertex AI / Google GenAI SDK requirements."""
+        result = super().validate_deployment_plan_schema(plan)
+        errors = list(result.get("errors", []))
+
+        creds = " ".join(plan.get("credentials_and_env", []))
+        if "GOOGLE" not in creds and "GEMINI" not in creds:
+            errors.append("Vertex AI deployment plan must specify GOOGLE_APPLICATION_CREDENTIALS or GEMINI_API_KEY")
+
+        model = str(plan.get("model_deployment", "")).lower()
+        if "gemini" not in model:
+            errors.append("Vertex AI deployment plan model_deployment must reference Gemini model family")
+
+        result["valid"] = len(errors) == 0
+        result["errors"] = errors
+        result["schema_doc"] = "Google Cloud Vertex AI Agent Deployment Plan Specification"
+        return result

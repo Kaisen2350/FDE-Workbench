@@ -392,6 +392,8 @@ function populateEntityTypeSelect(types) {
 }
 
 // 2. ENTITIES
+let filterCriticalPathEntities = false;
+
 async function loadEntities() {
   const typeSelect = document.getElementById("selectEntityType");
   const searchInput = document.getElementById("searchEntityInput");
@@ -399,6 +401,7 @@ async function loadEntities() {
   const searchVal = searchInput ? searchInput.value : "";
 
   let url = `/api/entities?limit=300`;
+  if (filterCriticalPathEntities) url += `&critical_path=true`;
   if (typeVal) url += `&type=${encodeURIComponent(typeVal)}`;
   if (searchVal) url += `&search=${encodeURIComponent(searchVal)}`;
 
@@ -409,7 +412,8 @@ async function loadEntities() {
 
     const countBadge = document.getElementById("entityCountBadge");
     if (countBadge) {
-      countBadge.textContent = `${data.count} / ${data.total_overall} Entities`;
+      const mode = filterCriticalPathEntities ? " (Critical Path)" : "";
+      countBadge.textContent = `${data.count} / ${data.total_overall} Entities${mode}`;
     }
   } catch (err) {
     console.error("Failed to load entities:", err);
@@ -443,6 +447,20 @@ if (entitySearchInput) {
   entitySearchInput.addEventListener("input", () => {
     clearTimeout(debounceTimeout);
     debounceTimeout = setTimeout(loadEntities, 250);
+  });
+}
+const btnFilterCrit = document.getElementById("btnFilterCriticalPathEntities");
+if (btnFilterCrit) {
+  btnFilterCrit.addEventListener("click", () => {
+    filterCriticalPathEntities = !filterCriticalPathEntities;
+    if (filterCriticalPathEntities) {
+      btnFilterCrit.classList.add("btn-primary");
+      btnFilterCrit.textContent = "★ Critical Path (Active)";
+    } else {
+      btnFilterCrit.classList.remove("btn-primary");
+      btnFilterCrit.textContent = "★ Critical Path Only";
+    }
+    loadEntities();
   });
 }
 
@@ -593,7 +611,12 @@ function renderDecisions(decisions) {
             ${d.status}
           </span>
         </div>
-        <span style="font-family:var(--font-mono); font-size:11px; color:var(--ink-muted);">${new Date(d.timestamp).toLocaleString()}</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-family:var(--font-mono); font-size:11px; color:var(--ink-muted);">${new Date(d.timestamp).toLocaleString()}</span>
+          ${!isEscalated ? `
+            <button class="btn btn-secondary" style="padding:2px 8px; font-size:11px;" onclick="promptEscalateDecision('${d.decision_id}', '${d.decision_owner}')">🚨 Escalate</button>
+          ` : ''}
+        </div>
       </div>
 
       ${isEscalated ? `
@@ -678,6 +701,26 @@ function renderDecisions(decisions) {
     </div>
   `).join("");
 }
+
+async function promptEscalateDecision(decisionId, currentOwner) {
+  const targetRole = prompt(`Escalate decision ${decisionId} to role:`, "role-executive");
+  if (!targetRole) return;
+  const reason = prompt("Enter escalation rationale / operational reason:", `Escalated from ${currentOwner} due to high business risk and unresolved latency.`);
+  if (!reason) return;
+  try {
+    const res = await fetch(`/api/decisions/${decisionId}/escalate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ escalated_to: targetRole, reason: reason }),
+    });
+    if (!res.ok) throw new Error("Failed to escalate decision");
+    alert(`Decision ${decisionId} successfully escalated to ${targetRole} and logged to tamper-evident audit trail.`);
+    await loadDecisions();
+  } catch (err) {
+    alert("Error: " + err.message);
+  }
+}
+
 
 // 6. WORKFLOWS
 async function loadWorkflows() {
@@ -1076,6 +1119,10 @@ async function viewPilotBrief(pilotId) {
     idEl.textContent = `${data.pilot_id} · ${data.customer} · 12-Section Executive Brief`;
 
     bodyEl.innerHTML = `
+      <div style="background:#FFF3CD; border:1px solid #FFEEBA; color:#856404; padding:10px 14px; border-radius:4px; margin-bottom:14px; font-weight:600; font-size:12px; display:flex; align-items:center; gap:8px;">
+        <span>⚠️</span>
+        <span>Illustrative — based on synthetic AIDESA data, pending client-specific baseline validation</span>
+      </div>
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; background:var(--river-soft); padding:10px 14px; border-radius:4px; flex-wrap:wrap; gap:8px;">
         <div style="font-size:12px; color:var(--river-deep);">
           <strong>Executive Ready:</strong> Full 12-section operational brief grounded in Paraguayan export telemetry.
@@ -1163,17 +1210,27 @@ async function viewPilotEconomics(pilotId) {
     const data = await res.json();
     const s = data.summary;
     const inp = data.inputs;
+    const assumptions = data.assumptions_ledger || [];
+    const sensitivity = data.sensitivity_analysis || {};
+    const scenarios = sensitivity.scenarios || {};
 
     titleEl.textContent = `Economic Bridge: ${data.title}`;
     idEl.textContent = `${data.pilot_id} · ${data.customer}`;
 
     bodyEl.innerHTML = `
+      <!-- Synthetic Data Watermark Banner -->
+      <div style="background:#FFF3CD; border:1px solid #FFEEBA; color:#856404; padding:10px 14px; border-radius:4px; margin-bottom:14px; font-weight:600; font-size:12px; display:flex; align-items:center; gap:8px;">
+        <span>⚠️</span>
+        <span>${escapeHtml(data.watermark || 'Illustrative — based on synthetic AIDESA data, pending client-specific baseline validation')}</span>
+      </div>
+
       <!-- Executive ROI Callout -->
       <div style="background:var(--river-soft); border:1px solid var(--river); border-radius:4px; padding:14px; margin-bottom:16px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
           <div>
-            <div class="pane-eyebrow" style="color:var(--river-deep);">Net First-Year Enterprise ROI</div>
+            <div class="pane-eyebrow" style="color:var(--river-deep);">Net First-Year Enterprise ROI ($)</div>
             <div style="font-family:var(--font-mono); font-size:24px; font-weight:700; color:var(--river-deep);">$${Number(s.first_year_net_roi_usd).toLocaleString()} <span style="font-size:16px;">(${s.expected_roi_percentage}%)</span></div>
+            <div style="font-size:11px; color:var(--ink-soft); margin-top:2px;">Total 1st-Year Outlay: $${Number(data.total_first_year_investment_usd || (inp.pilot_implementation_cost_usd + inp.annual_software_subscription_usd)).toLocaleString()}</div>
           </div>
           <div style="text-align:right;">
             <div class="pane-eyebrow" style="color:var(--river-deep);">Payback Period</div>
@@ -1182,19 +1239,57 @@ async function viewPilotEconomics(pilotId) {
         </div>
       </div>
 
-      <!-- Empirical Parameters Table -->
-      <div class="pane-eyebrow" style="margin-bottom:6px;">Empirical Baseline & Intervention Inputs</div>
-      <table class="fde-table" style="font-size:12px; margin-bottom:16px;">
+      <!-- Assumptions Ledger Table -->
+      <div class="pane-eyebrow" style="margin-bottom:6px;">Assumptions Ledger (Parameter Traceability & Source Rationale)</div>
+      <table class="fde-table" style="font-size:12px; margin-bottom:20px;">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th style="text-align:right;">Baseline Value</th>
+            <th>Unit</th>
+            <th>Operational Source / Rationale</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td>Annual Decision Volume</td><td style="font-family:var(--font-mono); font-weight:600;">${Number(inp.annual_decision_volume).toLocaleString()} decisions / shipments</td></tr>
-          <tr><td>Manual Cycle Time (Baseline)</td><td style="font-family:var(--font-mono);">${inp.manual_effort_minutes_per_decision} mins @ $${inp.hourly_labor_cost_usd}/hr</td></tr>
-          <tr><td>Current Exception Rate</td><td style="font-family:var(--font-mono); color:var(--alert);">${(inp.current_error_or_exception_rate * 100).toFixed(1)}% ($${inp.cost_per_exception_usd} / exception)</td></tr>
-          <tr><td>Target Cycle Time Post-Pilot</td><td style="font-family:var(--font-mono); font-weight:600; color:var(--green);">${inp.target_manual_effort_minutes} mins</td></tr>
-          <tr><td>Target Exception Rate Post-Pilot</td><td style="font-family:var(--font-mono); font-weight:600; color:var(--green);">${(inp.target_exception_rate * 100).toFixed(1)}%</td></tr>
-          <tr><td>Pilot Scope Batch Volume</td><td style="font-family:var(--font-mono);">${inp.pilot_decision_volume} decisions</td></tr>
-          <tr><td>Implementation Cost</td><td style="font-family:var(--font-mono);">$${Number(inp.pilot_implementation_cost_usd).toLocaleString()}</td></tr>
-          <tr><td>Annual Software License</td><td style="font-family:var(--font-mono);">$${Number(inp.annual_software_subscription_usd).toLocaleString()}</td></tr>
-          <tr><td>Working Capital Acceleration</td><td style="font-family:var(--font-mono);">${inp.working_capital_acceleration_days} days accelerated ($${Number(inp.annual_working_capital_financial_value_usd).toLocaleString()}/yr carrying value)</td></tr>
+          ${assumptions.map(item => `
+            <tr>
+              <td><code style="font-weight:600;">${escapeHtml(item.parameter)}</code></td>
+              <td style="text-align:right; font-family:var(--font-mono); font-weight:600;">${typeof item.value === 'number' ? item.value.toLocaleString() : escapeHtml(String(item.value))}</td>
+              <td style="color:var(--ink-muted); font-size:11px;">${escapeHtml(item.unit)}</td>
+              <td style="font-size:11.5px; color:var(--ink-soft);">${escapeHtml(item.source_or_rationale)}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+
+      <!-- Sensitivity Analysis Range Table -->
+      <div class="pane-eyebrow" style="margin-bottom:6px;">Sensitivity Analysis Matrix (±20% Sensitivity Range)</div>
+      <table class="fde-table" style="font-size:12px; margin-bottom:20px;">
+        <thead>
+          <tr>
+            <th>Scenario</th>
+            <th style="text-align:right;">Volume</th>
+            <th style="text-align:right;">Touch Time</th>
+            <th style="text-align:right;">Error Rate</th>
+            <th style="text-align:right;">Annual Savings</th>
+            <th style="text-align:right;">Net 1st-Yr ROI</th>
+            <th style="text-align:right;">ROI %</th>
+            <th style="text-align:right;">Payback</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${Object.values(scenarios).map(sc => `
+            <tr style="${sc.label && sc.label.includes('Mid') ? 'background:#F0F7F4; font-weight:600;' : ''}">
+              <td><strong>${escapeHtml(sc.label)}</strong></td>
+              <td style="text-align:right; font-family:var(--font-mono);">${Number(sc.annual_volume).toLocaleString()}</td>
+              <td style="text-align:right; font-family:var(--font-mono);">${sc.target_manual_minutes}m</td>
+              <td style="text-align:right; font-family:var(--font-mono);">${sc.target_exception_rate_pct}%</td>
+              <td style="text-align:right; font-family:var(--font-mono); color:var(--green);">$${Number(sc.addressable_annual_savings_usd).toLocaleString()}</td>
+              <td style="text-align:right; font-family:var(--font-mono);">$${Number(sc.net_first_year_roi_usd).toLocaleString()}</td>
+              <td style="text-align:right; font-family:var(--font-mono); font-weight:700; color:var(--river-deep);">${sc.roi_percentage}%</td>
+              <td style="text-align:right; font-family:var(--font-mono);">${sc.payback_period_months} mo</td>
+            </tr>
+          `).join("")}
         </tbody>
       </table>
 
@@ -1246,11 +1341,23 @@ async function viewPilotDeploymentPlan(pilotId) {
     if (!res.ok) throw new Error("Failed to load deployment plan");
     const data = await res.json();
     const plan = data.deployment_plan;
+    const val = data.validation || {};
 
     titleEl.textContent = `${plan.platform_display_name} Deployment Architecture`;
     idEl.textContent = `${data.pilot_id} · Substrate: ${data.platform}`;
 
     bodyEl.innerHTML = `
+      ${val.valid ? `
+        <div style="background:#EBF7EE; border:1px solid #C3E6CB; color:#155724; padding:8px 12px; border-radius:4px; margin-bottom:14px; font-size:12px; display:flex; justify-content:space-between; align-items:center;">
+          <span><strong>✓ Platform Plan Schema Validated:</strong> 100% compliant with enterprise invariants.</span>
+          <span style="font-family:var(--font-mono); font-size:11px;">${escapeHtml(val.schema_doc || '')}</span>
+        </div>
+      ` : `
+        <div style="background:#FCE8E6; border:1px solid #F5C6CB; color:#721C24; padding:8px 12px; border-radius:4px; margin-bottom:14px; font-size:12px;">
+          <strong>⚠️ Schema Validation Warnings:</strong> ${(val.errors || []).join(", ")}
+        </div>
+      `}
+
       <div style="background:var(--paper-card); border:1px solid var(--rule-light); border-radius:4px; padding:14px; margin-bottom:14px;">
         <div style="font-size:12.5px; line-height:1.8;">
           <strong>Runtime Framework:</strong> <code>${escapeHtml(plan.runtime_framework)}</code><br>
@@ -1275,6 +1382,7 @@ async function viewPilotDeploymentPlan(pilotId) {
       <div class="pane-eyebrow" style="margin-bottom:6px;">Verification Command</div>
       <pre class="code-json" style="font-size:11.5px;">${escapeHtml(plan.verification_command)}</pre>
     `;
+
   } catch (err) {
     bodyEl.innerHTML = `<div style="color:var(--alert);">Failed to load deployment plan: ${escapeHtml(err.message)}</div>`;
   }
@@ -1460,6 +1568,20 @@ function bindGlobalActions() {
         URL.revokeObjectURL(url);
       } catch (err) {
         alert("Export failed: " + err);
+      }
+    });
+  }
+
+  const btnCheckEsc = document.getElementById("btnCheckEscalations");
+  if (btnCheckEsc) {
+    btnCheckEsc.addEventListener("click", async () => {
+      try {
+        const res = await fetch("/api/decisions/check-escalations", { method: "POST" });
+        const data = await res.json();
+        alert(`Checked all decisions. ${data.escalated_count} decision(s) timed out and escalated.`);
+        await loadDecisions();
+      } catch (err) {
+        alert("Failed to check escalations: " + err);
       }
     });
   }

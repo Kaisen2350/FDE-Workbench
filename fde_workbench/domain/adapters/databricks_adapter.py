@@ -96,3 +96,22 @@ class DatabricksAdapter(PlatformAdapter):
             "human_in_loop_mechanism": f"Databricks Mosaic AI Review App + Lakehouse workflow gating. Mutations require row-level authorization approval from {pilot.decision_owner} in the operational Delta staging table.",
             "verification_command": "databricks clusters list --output JSON",
         }
+
+    def validate_deployment_plan_schema(self, plan: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate deployment plan against Databricks Mosaic AI requirements."""
+        result = super().validate_deployment_plan_schema(plan)
+        errors = list(result.get("errors", []))
+
+        creds = " ".join(plan.get("credentials_and_env", []))
+        if "DATABRICKS" not in creds:
+            errors.append("Databricks deployment plan must specify DATABRICKS_HOST or token")
+
+        runtime = str(plan.get("runtime_framework", "")).lower()
+        if "mosaic" not in runtime and "lakehouse" not in runtime:
+            errors.append("Databricks deployment plan runtime_framework must reference Mosaic AI or Lakehouse")
+
+        result["valid"] = len(errors) == 0
+        result["errors"] = errors
+        result["schema_doc"] = "Databricks Mosaic AI Deployment Plan Specification"
+        return result
+

@@ -108,3 +108,22 @@ class OpenAIAdapter(PlatformAdapter):
             "human_in_loop_mechanism": f"Assistant Run pauses in 'requires_action' state. Application waits for {pilot.decision_owner} approval in operator portal before submitting tool outputs back to the Run.",
             "verification_command": "curl https://api.openai.com/v1/models -H \"Authorization: Bearer $OPENAI_API_KEY\"",
         }
+
+    def validate_deployment_plan_schema(self, plan: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate deployment plan against OpenAI Assistants API requirements."""
+        result = super().validate_deployment_plan_schema(plan)
+        errors = list(result.get("errors", []))
+
+        creds = " ".join(plan.get("credentials_and_env", []))
+        if "OPENAI" not in creds:
+            errors.append("OpenAI deployment plan must specify OPENAI_API_KEY")
+
+        runtime = str(plan.get("runtime_framework", "")).lower()
+        if "assistants" not in runtime:
+            errors.append("OpenAI deployment plan runtime_framework must reference OpenAI Assistants API")
+
+        result["valid"] = len(errors) == 0
+        result["errors"] = errors
+        result["schema_doc"] = "OpenAI Enterprise Assistants Deployment Plan Specification"
+        return result
+

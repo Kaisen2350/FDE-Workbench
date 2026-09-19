@@ -46,6 +46,11 @@ class PilotEconomicModel(BaseModel):
     annual_software_subscription_usd: float = Field(default=18000.0, description="Annual platform / license estimate")
     working_capital_acceleration_days: float = Field(default=0.0, description="Days of CCC reduction")
     annual_working_capital_financial_value_usd: float = Field(default=0.0, description="Financial carrying value of accelerated cash")
+    assumptions_ledger: Dict[str, str] = Field(default_factory=dict, description="Source or operational rationale for each model parameter")
+
+    def total_investment_usd(self) -> float:
+        """Total first-year financial outlay: implementation cost + annual software subscription."""
+        return self.pilot_implementation_cost_usd + self.annual_software_subscription_usd
 
     def baseline_annual_labor_cost(self) -> float:
         return self.annual_decision_volume * (self.manual_effort_minutes_per_decision / 60.0) * self.hourly_labor_cost_usd
@@ -78,12 +83,17 @@ class PilotEconomicModel(BaseModel):
         return self.pilot_decision_volume * self.savings_per_decision_unit()
 
     def first_year_net_roi_usd(self) -> float:
-        return self.addressable_annual_savings() - self.pilot_implementation_cost_usd - self.annual_software_subscription_usd
+        return self.addressable_annual_savings() - self.total_investment_usd()
 
     def expected_roi_percentage(self) -> float:
-        if self.pilot_implementation_cost_usd <= 0:
+        """
+        Net First-Year ROI Percentage.
+        Formula: Net 1st-Year ROI ($) / Total First-Year Outlay (Implementation + Annual License) * 100
+        """
+        tot = self.total_investment_usd()
+        if tot <= 0:
             return 0.0
-        return (self.first_year_net_roi_usd() / self.pilot_implementation_cost_usd) * 100.0
+        return (self.first_year_net_roi_usd() / tot) * 100.0
 
     def payback_period_months(self) -> float:
         monthly_savings = self.addressable_annual_savings() / 12.0
@@ -91,7 +101,135 @@ class PilotEconomicModel(BaseModel):
             return 999.0
         return self.pilot_implementation_cost_usd / monthly_savings
 
+    def get_assumptions_table(self) -> List[Dict[str, Any]]:
+        """Returns structured ledger listing every parameter, value, and rationale."""
+        default_rationales = {
+            "annual_decision_volume": "Annualized operational decision/shipment frequency.",
+            "manual_effort_minutes_per_decision": "Observed baseline manual touch-time per decision.",
+            "hourly_labor_cost_usd": "Blended fully-burdened hourly cost of operations/customs personnel.",
+            "current_error_or_exception_rate": "Historical baseline error, delay, or rework incidence.",
+            "cost_per_exception_usd": "Consequential direct cost per exception (demurrage, fines, re-work).",
+            "target_manual_effort_minutes": "Target assisted operator confirmation time post-intervention.",
+            "target_exception_rate": "Residual exception rate threshold after automated pre-validation.",
+            "pilot_decision_volume": "Controlled test volume boundary within pilot timeline.",
+            "pilot_implementation_cost_usd": "Fixed FDE engineering, configuration, and integration investment.",
+            "annual_software_subscription_usd": "Estimated annual platform / software runtime subscription.",
+            "working_capital_acceleration_days": "Estimated Cash Conversion Cycle (CCC) acceleration in days.",
+            "annual_working_capital_financial_value_usd": "Carrying value of accelerated liquidity at enterprise WACC.",
+        }
+        params = [
+            ("annual_decision_volume", self.annual_decision_volume, "decisions/year"),
+            ("manual_effort_minutes_per_decision", self.manual_effort_minutes_per_decision, "minutes/decision"),
+            ("hourly_labor_cost_usd", self.hourly_labor_cost_usd, "USD/hour"),
+            ("current_error_or_exception_rate", f"{self.current_error_or_exception_rate * 100:.1f}%", "percentage"),
+            ("cost_per_exception_usd", self.cost_per_exception_usd, "USD/exception"),
+            ("target_manual_effort_minutes", self.target_manual_effort_minutes, "minutes/decision"),
+            ("target_exception_rate", f"{self.target_exception_rate * 100:.1f}%", "percentage"),
+            ("pilot_decision_volume", self.pilot_decision_volume, "decisions in pilot"),
+            ("pilot_implementation_cost_usd", self.pilot_implementation_cost_usd, "USD one-off"),
+            ("annual_software_subscription_usd", self.annual_software_subscription_usd, "USD/year"),
+            ("working_capital_acceleration_days", self.working_capital_acceleration_days, "days"),
+            ("annual_working_capital_financial_value_usd", self.annual_working_capital_financial_value_usd, "USD/year carrying value"),
+        ]
+        table = []
+        for key, val, unit in params:
+            rationale = self.assumptions_ledger.get(key, default_rationales.get(key, "Model parameter."))
+            table.append({
+                "parameter": key,
+                "value": val,
+                "unit": unit,
+                "source_or_rationale": rationale,
+            })
+        return table
+
+    def compute_sensitivity(self, variance: float = 0.20) -> Dict[str, Any]:
+        """
+        Computes Low (conservative), Mid (base case), and High (optimistic) scenarios.
+        Low: -variance on volume, +variance on residual exceptions and touch time, -variance on working capital.
+        Mid: base parameters.
+        High: +variance on volume, -variance on residual exceptions and touch time, +variance on working capital.
+        """
+        # Low case (conservative)
+        low_vol = max(1, int(self.annual_decision_volume * (1.0 - variance)))
+        low_target_mins = self.target_manual_effort_minutes * (1.0 + variance)
+        low_target_err = min(1.0, self.target_exception_rate * (1.0 + variance))
+        low_wc = self.annual_working_capital_financial_value_usd * (1.0 - variance)
+
+        low_base_labor = low_vol * (self.manual_effort_minutes_per_decision / 60.0) * self.hourly_labor_cost_usd
+        low_base_exc = low_vol * self.current_error_or_exception_rate * self.cost_per_exception_usd
+        low_base_total = low_base_labor + low_base_exc + low_wc
+        low_target_labor = low_vol * (low_target_mins / 60.0) * self.hourly_labor_cost_usd
+        low_target_exc = low_vol * low_target_err * self.cost_per_exception_usd
+        low_target_total = low_target_labor + low_target_exc
+        low_savings = max(0.0, low_base_total - low_target_total)
+        low_net_roi = low_savings - self.total_investment_usd()
+        low_roi_pct = (low_net_roi / self.total_investment_usd()) * 100.0 if self.total_investment_usd() > 0 else 0.0
+        low_monthly = low_savings / 12.0
+        low_payback = self.pilot_implementation_cost_usd / low_monthly if low_monthly > 0 else 999.0
+
+        # Mid case (base)
+        mid_savings = self.addressable_annual_savings()
+        mid_net_roi = self.first_year_net_roi_usd()
+        mid_roi_pct = self.expected_roi_percentage()
+        mid_payback = self.payback_period_months()
+
+        # High case (optimistic)
+        high_vol = int(self.annual_decision_volume * (1.0 + variance))
+        high_target_mins = max(0.5, self.target_manual_effort_minutes * (1.0 - variance))
+        high_target_err = max(0.001, self.target_exception_rate * (1.0 - variance))
+        high_wc = self.annual_working_capital_financial_value_usd * (1.0 + variance)
+
+        high_base_labor = high_vol * (self.manual_effort_minutes_per_decision / 60.0) * self.hourly_labor_cost_usd
+        high_base_exc = high_vol * self.current_error_or_exception_rate * self.cost_per_exception_usd
+        high_base_total = high_base_labor + high_base_exc + high_wc
+        high_target_labor = high_vol * (high_target_mins / 60.0) * self.hourly_labor_cost_usd
+        high_target_exc = high_vol * high_target_err * self.cost_per_exception_usd
+        high_target_total = high_target_labor + high_target_exc
+        high_savings = max(0.0, high_base_total - high_target_total)
+        high_net_roi = high_savings - self.total_investment_usd()
+        high_roi_pct = (high_net_roi / self.total_investment_usd()) * 100.0 if self.total_investment_usd() > 0 else 0.0
+        high_monthly = high_savings / 12.0
+        high_payback = self.pilot_implementation_cost_usd / high_monthly if high_monthly > 0 else 999.0
+
+        return {
+            "variance_pct": round(variance * 100.0, 1),
+            "scenarios": {
+                "low_conservative": {
+                    "label": f"Low (Conservative -{int(variance*100)}%)",
+                    "annual_volume": low_vol,
+                    "target_manual_minutes": round(low_target_mins, 1),
+                    "target_exception_rate_pct": round(low_target_err * 100, 2),
+                    "addressable_annual_savings_usd": round(low_savings, 2),
+                    "net_first_year_roi_usd": round(low_net_roi, 2),
+                    "roi_percentage": round(low_roi_pct, 1),
+                    "payback_period_months": round(low_payback, 1),
+                },
+                "mid_base_case": {
+                    "label": "Mid (Base Case)",
+                    "annual_volume": self.annual_decision_volume,
+                    "target_manual_minutes": round(self.target_manual_effort_minutes, 1),
+                    "target_exception_rate_pct": round(self.target_exception_rate * 100, 2),
+                    "addressable_annual_savings_usd": round(mid_savings, 2),
+                    "net_first_year_roi_usd": round(mid_net_roi, 2),
+                    "roi_percentage": round(mid_roi_pct, 1),
+                    "payback_period_months": round(mid_payback, 1),
+                },
+                "high_optimistic": {
+                    "label": f"High (Optimistic +{int(variance*100)}%)",
+                    "annual_volume": high_vol,
+                    "target_manual_minutes": round(high_target_mins, 1),
+                    "target_exception_rate_pct": round(high_target_err * 100, 2),
+                    "addressable_annual_savings_usd": round(high_savings, 2),
+                    "net_first_year_roi_usd": round(high_net_roi, 2),
+                    "roi_percentage": round(high_roi_pct, 1),
+                    "payback_period_months": round(high_payback, 1),
+                },
+            }
+        }
+
     def summary(self) -> Dict[str, Any]:
+        tot_inv = round(self.total_investment_usd(), 2)
+        annual_lic = round(self.annual_software_subscription_usd, 2)
         return {
             "baseline_annual_total_usd": round(self.baseline_annual_total_cost(), 2),
             "baseline_annual_labor_usd": round(self.baseline_annual_labor_cost(), 2),
@@ -101,11 +239,17 @@ class PilotEconomicModel(BaseModel):
             "savings_per_shipment_usd": round(self.savings_per_decision_unit(), 2),
             "pilot_batch_value_usd": round(self.pilot_measured_value(), 2),
             "pilot_implementation_cost_usd": round(self.pilot_implementation_cost_usd, 2),
-            "annual_subscription_usd": round(self.annual_software_subscription_usd, 2),
+            "annual_subscription_usd": annual_lic,
+            "annual_software_license_usd": annual_lic,
+            "total_investment_usd": tot_inv,
+            "total_first_year_investment_usd": tot_inv,
             "first_year_net_roi_usd": round(self.first_year_net_roi_usd(), 2),
             "expected_roi_percentage": round(self.expected_roi_percentage(), 1),
             "payback_period_months": round(self.payback_period_months(), 1),
+            "assumptions_count": len(self.assumptions_ledger),
+            "sensitivity_analysis": self.compute_sensitivity(),
         }
+
 
 
 class PilotSpecification(BaseModel):

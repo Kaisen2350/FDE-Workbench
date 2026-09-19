@@ -59,10 +59,17 @@ def get_ontology():
     }
 
 
+@app.get("/api/ontology/critical-path")
+def get_critical_path():
+    """Returns the curated critical path spine, narrative, and connected entities."""
+    return store.get_critical_path()
+
+
 @app.get("/api/entities")
 def list_entities(
     type: Optional[str] = Query(None, description="Entity type filter"),
     search: Optional[str] = Query(None, description="Search term across name, id, or tags"),
+    critical_path: bool = Query(False, description="Filter for curated critical-path entities"),
     limit: int = Query(200, ge=1, le=1000),
     offset: int = Query(0, ge=0),
 ):
@@ -75,12 +82,19 @@ def list_entities(
 
     total_in_type = store.count_entities(type_enum)
     total_overall = store.count_entities()
-    entities = store.list_entities(entity_type=type_enum, search=search, limit=limit, offset=offset)
+    entities = store.list_entities(
+        entity_type=type_enum,
+        search=search,
+        critical_path=critical_path,
+        limit=limit,
+        offset=offset
+    )
 
     return {
         "total_overall": total_overall,
         "total_filtered": total_in_type,
         "count": len(entities),
+        "critical_path_filtered": critical_path,
         "limit": limit,
         "offset": offset,
         "entities": [e.model_dump(mode="json") for e in entities],
@@ -149,6 +163,33 @@ def list_decisions(event_id: Optional[str] = Query(None)):
         "count": len(results),
         "decisions": results,
     }
+
+
+@app.post("/api/decisions/{decision_id}/escalate")
+def escalate_decision(decision_id: str, body: Dict[str, Any] = Body(...)):
+    """Escalates a decision with specified target role and reason, logging to tamper-evident audit trail."""
+    escalated_to = body.get("escalated_to", "role-executive")
+    reason = body.get("reason", "Manual operational escalation triggered from FDE workbench.")
+    dec = store.escalate_decision(decision_id=decision_id, escalated_to=escalated_to, reason=reason)
+    if not dec:
+        raise HTTPException(status_code=404, detail="Decision not found")
+    dump = dec.model_dump(mode="json")
+    dump["pipeline_stages"] = dec.get_pipeline_stages()
+    return {
+        "status": "ESCALATED",
+        "decision": dump,
+    }
+
+
+@app.post("/api/decisions/check-escalations")
+def check_decision_escalations():
+    """Checks all pending decisions and escalates any exceeding timeout threshold."""
+    escalated = store.check_all_escalations()
+    return {
+        "escalated_count": len(escalated),
+        "escalated_decisions": [d.model_dump(mode="json") for d in escalated],
+    }
+
 
 
 @app.get("/api/audit/verify")
@@ -322,12 +363,13 @@ def get_pilot_economic_bridge(pilot_id: str):
     pilot = store.get_pilot(pilot_id)
     if not pilot:
         raise HTTPException(status_code=404, detail="Pilot specification not found")
-    
+
     econ = pilot.economic_model
     return {
         "pilot_id": pilot_id,
         "title": pilot.title,
         "customer": pilot.customer,
+        "watermark": "Illustrative — based on synthetic AIDESA data, pending client-specific baseline validation",
         "inputs": {
             "annual_decision_volume": econ.annual_decision_volume,
             "manual_effort_minutes_per_decision": econ.manual_effort_minutes_per_decision,
@@ -342,6 +384,9 @@ def get_pilot_economic_bridge(pilot_id: str):
             "working_capital_acceleration_days": econ.working_capital_acceleration_days,
             "annual_working_capital_financial_value_usd": econ.annual_working_capital_financial_value_usd,
         },
+        "total_first_year_investment_usd": econ.total_investment_usd(),
+        "assumptions_ledger": econ.get_assumptions_table(),
+        "sensitivity_analysis": econ.compute_sensitivity(),
         "calculation_steps": [
             {
                 "step": 1,
@@ -393,14 +438,14 @@ def get_pilot_economic_bridge(pilot_id: str):
             },
             {
                 "step": 9,
-                "name": "Net First-Year Enterprise ROI",
-                "formula": "Addressable Savings - Implementation Cost - Annual Subscription",
+                "name": "Net First-Year Enterprise ROI ($)",
+                "formula": "Addressable Savings - Total Investment (Implementation + License)",
                 "result_usd": round(econ.first_year_net_roi_usd(), 2),
             },
             {
                 "step": 10,
-                "name": "First-Year ROI Percentage & Payback",
-                "formula": "(Net ROI / Implementation Cost) * 100",
+                "name": "First-Year Net ROI Percentage & Payback",
+                "formula": "Net 1st-Year ROI / Total 1st-Year Investment * 100",
                 "roi_percentage": round(econ.expected_roi_percentage(), 1),
                 "payback_period_months": round(econ.payback_period_months(), 1),
             },
@@ -414,18 +459,41 @@ def get_pilot_deployment_plan(pilot_id: str, platform: Optional[str] = Query(Non
     pilot = store.get_pilot(pilot_id)
     if not pilot:
         raise HTTPException(status_code=404, detail="Pilot specification not found")
-    
+
     target_platform = (platform or pilot.selected_platform).lower()
     adapter = ADAPTERS.get(target_platform)
     if not adapter:
         raise HTTPException(status_code=400, detail=f"Unsupported platform: {target_platform}. Supported: {list(ADAPTERS.keys())}")
-    
+
     plan = adapter.generate_pilot_deployment_plan(pilot)
+    validation = adapter.validate_deployment_plan_schema(plan)
     return {
         "pilot_id": pilot_id,
         "platform": target_platform,
+        "validation": validation,
         "deployment_plan": plan,
     }
+
+
+@app.get("/api/pilots/{pilot_id}/deployment-plan/validate")
+def validate_pilot_deployment_plan(pilot_id: str, platform: Optional[str] = Query(None)):
+    pilot = store.get_pilot(pilot_id)
+    if not pilot:
+        raise HTTPException(status_code=404, detail="Pilot specification not found")
+
+    target_platform = (platform or pilot.selected_platform).lower()
+    adapter = ADAPTERS.get(target_platform)
+    if not adapter:
+        raise HTTPException(status_code=400, detail=f"Unsupported platform: {target_platform}. Supported: {list(ADAPTERS.keys())}")
+
+    plan = adapter.generate_pilot_deployment_plan(pilot)
+    validation = adapter.validate_deployment_plan_schema(plan)
+    return {
+        "pilot_id": pilot_id,
+        "platform": target_platform,
+        "validation": validation,
+    }
+
 
 
 @app.post("/api/pilots/{pilot_id}/platform")
