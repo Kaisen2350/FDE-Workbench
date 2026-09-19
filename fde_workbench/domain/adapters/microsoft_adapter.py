@@ -82,6 +82,7 @@ class MicrosoftAdapter(PlatformAdapter):
             "valid": len(errors) == 0,
             "errors": errors,
             "schema_doc": "Microsoft Azure AI Foundry & Semantic Kernel Plugin Specification",
+            "vendor_schema_url": "https://learn.microsoft.com/en-us/semantic-kernel/concepts/plugins/",
         }
 
     def generate_pilot_deployment_plan(self, pilot: Any) -> Dict[str, Any]:

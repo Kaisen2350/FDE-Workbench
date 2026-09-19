@@ -68,6 +68,7 @@ class DatabricksAdapter(PlatformAdapter):
             "valid": len(errors) == 0,
             "errors": errors,
             "schema_doc": "Databricks Mosaic AI Agent Framework & Unity Catalog Tool Specification",
+            "vendor_schema_url": "https://docs.databricks.com/en/generative-ai/agent-framework/create-agent.html",
         }
 
     def generate_pilot_deployment_plan(self, pilot: Any) -> Dict[str, Any]:

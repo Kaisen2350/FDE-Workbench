@@ -200,7 +200,9 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         data = res.json()
         self.assertIn("escalated_count", data)
-        self.assertIsInstance(data["escalated_decisions"], list)
+        self.assertGreaterEqual(data["escalated_count"], 1)
+        self.assertEqual(data["trigger_model"], "on_demand_or_scheduled_sweep")
+        self.assertIn("dec-2026-005-escalated", [d["decision_id"] for d in data["escalated_decisions"]])
 
 
 if __name__ == "__main__":

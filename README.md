@@ -32,7 +32,7 @@ Open your browser at:
 - **Workbench UI**: [http://127.0.0.1:8000](http://127.0.0.1:8000)
 - **Interactive REST API Docs**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
-To run the automated test suite (55 unit tests):
+To run the automated test suite (68 unit tests):
 ```powershell
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
@@ -93,7 +93,7 @@ python -m unittest discover -s tests -p "test_*.py" -v
 6. **Material**: Raw unprocessed soybeans, bulk yellow corn, 50kg polybags, flexitanks.
 7. **Order**: Commercial export sales contracts with Incoterms (FOB Villeta, CIF Paranaguá, DPU Foz).
 8. **PurchaseOrder**: Inbound commodity and packaging procurement commitments.
-9. **Shipment**: 16-barge push convoys on the Hidrovía; double-trailer bitren trucks across CDE.
+9. **Shipment**: 16-barge push convoys on the Hidrovía; double-trailer bitren trucks across CDE (Note: Barge convoys are instances of `Shipment` with `transport_mode="RIVER"`).
 10. **Carrier**: Fluvial barge lines (Hidrovías del Sur) and terrestrial trucking fleets.
 11. **Warehouse**: Silo batteries (60k MT at Villeta) and bonded fiscal depots (Hernandarias).
 12. **Invoice**: Official export invoices (Factura de Exportación en USD, Timbrado DNIT).
@@ -140,10 +140,11 @@ $$\text{OBSERVATION} \longrightarrow \text{CONTEXT} \longrightarrow \text{DECISI
 4. **Authorized Action**: Mandatory human authorization capturing who approved what, when, and with what parameters.
 5. **Outcome**: Verified post-execution measurement checking actual latency, financial delta, and KPI impact.
 
-### Decision Timeout & Escalation Engine (Phase 1.5)
-- Automated timeout checks transition decisions to `ESCALATED` status if unaddressed past a configurable SLA (`escalation_timeout_hours`).
+### Decision Timeout & Escalation Engine (Phase 1.5 & Phase 3.6)
+- **On-Demand & Scheduled Escalation Sweeps**: Escalation sweeps run on-demand (operator UI click or external cron trigger to `POST /api/decisions/check-escalations`). The workbench deliberately avoids unmonitored background daemon threads in local mode.
+- Transitions decisions to `ESCALATED` status if unaddressed past a configurable SLA (`escalation_timeout_hours`).
 - Escalation metadata captures `escalation_target_role`, `escalated_at`, and `escalation_reason`.
-- Illustrated in synthetic scenario `evt-2026-005-escalation` $\rightarrow$ `dec-2026-005-escalated` where an unacknowledged customs hold at Ciudad del Este escalates from Customs Compliance to Executive leadership.
+- Illustrated in synthetic scenario `evt-2026-005-escalation` $\rightarrow$ `dec-2026-005-escalated` where an unacknowledged customs hold at Puerto Falcón / Clorinda (Argentina) escalates from Customs Compliance to Executive leadership.
 
 ---
 
@@ -230,7 +231,10 @@ $$\text{Baseline Annual Cost} = \text{Labor Cost} + \text{Exception Cost} + \tex
 $$\text{Target Annual Cost} = \text{Target Labor} + \text{Target Exception Cost}$$
 $$\text{Addressable Savings} = \text{Baseline Total} - \text{Target Total}$$
 $$\text{Pilot Batch Value} = \text{Volume in Pilot} \times \left(\frac{\text{Addressable Savings}}{\text{Annual Volume}}\right)$$
-$$\text{Net 1st-Year ROI} = \text{Addressable Savings} - \text{Implementation Cost} - \text{Annual Software License}$$
+$$\text{Total 1st-Year Investment} = \text{Implementation Cost} + \text{Annual Software License}$$
+$$\text{Net 1st-Year ROI (\$)} = \text{Addressable Savings} - \text{Total 1st-Year Investment}$$
+$$\text{Net 1st-Year ROI (\%)} = \left(\frac{\text{Net 1st-Year ROI (\$)}}{\text{Total 1st-Year Investment}}\right) \times 100$$
+$$\text{Payback Period (months)} = \left(\frac{\text{Implementation Cost}}{\text{Addressable Savings} / 12}\right)$$
 
 ### 3. 1-Click Client-Ready 12-Section FDE Deployment Brief Generator
 Produces an executive briefing document (`FDEBriefGenerator`) in Markdown and structured JSON, adhering to the 12-section standard:

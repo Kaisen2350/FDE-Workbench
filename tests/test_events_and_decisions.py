@@ -103,6 +103,73 @@ class TestEventsAndDecisions(unittest.TestCase):
         self.assertIn("threshold: 4.0h", dec.escalation_reason)
         self.assertIn("role-customs-compliance", dec.escalation_reason)
 
+    def test_seeded_pre_aged_decision_escalation_end_to_end(self):
+        """
+        Verify end-to-end that AIDESA's pre-aged decision in DECISION_PENDING state
+        transitions to ESCALATED upon running check_all_escalations(), and generates
+        a valid cryptographically hash-chained audit log entry.
+        """
+        import tempfile
+        import os
+        from fde_workbench.storage.store import WorkbenchStore
+        from fde_workbench.synthetic.generator import seed_synthetic_company
+
+        with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tf:
+            db_path = tf.name
+
+        try:
+            test_store = WorkbenchStore(db_path=db_path)
+            seed_synthetic_company(test_store)
+
+            # 1. Verify pre-aged decision was seeded in DECISION_PENDING state
+            dec = test_store.get_decision("dec-2026-005-escalated")
+            self.assertIsNotNone(dec)
+            self.assertEqual(dec.status, DecisionStatus.DECISION_PENDING)
+            self.assertEqual(dec.escalation_timeout_hours, 4.0)
+            self.assertEqual(dec.escalation_target_role, "role-executive")
+
+            # Verify initial audit trail length and validity
+            initial_val = test_store.verify_audit_chain()
+            self.assertTrue(initial_val["valid"])
+            initial_count = initial_val["total_entries"]
+
+            # 2. Trigger on-demand escalation sweep
+            now = datetime.utcnow()
+            escalated_decisions = test_store.check_all_escalations(current_time=now)
+            self.assertEqual(len(escalated_decisions), 1)
+            self.assertEqual(escalated_decisions[0].decision_id, "dec-2026-005-escalated")
+            self.assertEqual(escalated_decisions[0].status, DecisionStatus.ESCALATED)
+
+            # 3. Reload from SQLite and assert persisted state transition
+            reloaded = test_store.get_decision("dec-2026-005-escalated")
+            self.assertIsNotNone(reloaded)
+            self.assertEqual(reloaded.status, DecisionStatus.ESCALATED)
+            self.assertEqual(reloaded.escalation_target_role, "role-executive")
+            self.assertIn("(threshold: 4.0h)", reloaded.escalation_reason)
+
+            # 4. Verify new tamper-evident audit log entry was appended
+            new_val = test_store.verify_audit_chain()
+            self.assertTrue(new_val["valid"])
+            self.assertEqual(new_val["total_entries"], initial_count + 1)
+            self.assertNotEqual(new_val["head_hash"], initial_val["head_hash"])
+
+            # Verify latest audit log entry details (get_audit_trail returns DESC order)
+            latest_audit = test_store.get_audit_trail(limit=5)[0]
+            self.assertEqual(latest_audit["action"], "ESCALATE_DECISION")
+            self.assertEqual(latest_audit["entity_id"], "dec-2026-005-escalated")
+            self.assertTrue(latest_audit["details"].get("auto_timeout"))
+            self.assertEqual(latest_audit["details"].get("escalated_to"), "role-executive")
+        finally:
+            try:
+                test_store._conn.close()
+            except Exception:
+                pass
+            if os.path.exists(db_path):
+                try:
+                    os.remove(db_path)
+                except Exception:
+                    pass
+
 
 if __name__ == "__main__":
     unittest.main()

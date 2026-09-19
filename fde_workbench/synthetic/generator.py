@@ -956,8 +956,9 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         recommendation="Option A must be authorized immediately by Executive Management to prevent refrigerated beef spoilage.",
         authorization_required=True,
     )
-    # Trigger escalation logic: elapsed time 6.5h > 4.0h timeout!
-    dec_escalated.check_and_escalate(now)
+    # Pre-aged decision scenario: created 6.5 hours ago with 4.0h threshold.
+    # Seeded in DECISION_PENDING state without pre-escalating, so check_all_escalations()
+    # demonstrates the live state transition and cryptographic audit log link end-to-end!
     store.add_decision(dec_escalated)
 
     # ==========================================

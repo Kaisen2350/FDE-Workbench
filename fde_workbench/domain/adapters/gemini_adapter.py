@@ -200,6 +200,7 @@ if __name__ == "__main__":
             "valid": len(errors) == 0,
             "errors": errors,
             "schema_doc": "Google Cloud Vertex AI OpenAPI Tool Specification v1beta",
+            "vendor_schema_url": "https://cloud.google.com/vertex-ai/docs/reference/rest/v1beta1/Tool#FunctionDeclaration",
         }
 
     def generate_pilot_deployment_plan(self, pilot: Any) -> Dict[str, Any]:

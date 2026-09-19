@@ -102,7 +102,7 @@ class OpenAIAdapter(PlatformAdapter):
             "valid": len(errors) == 0,
             "errors": errors,
             "schema_doc": "OpenAI Assistants API v2 Function Calling Specification (strict: true)",
-            "vendor_schema_url": "https://platform.openai.com/docs/api-reference/assistants",
+            "vendor_schema_url": "https://platform.openai.com/docs/guides/function-calling",
         }
 
     def generate_pilot_deployment_plan(self, pilot: Any) -> Dict[str, Any]:
@@ -181,6 +181,6 @@ class OpenAIAdapter(PlatformAdapter):
         result["valid"] = len(errors) == 0
         result["errors"] = errors
         result["schema_doc"] = "OpenAI Enterprise Assistants Deployment Plan Specification (Tools v2 strict: true)"
-        result["vendor_schema_url"] = "https://platform.openai.com/docs/api-reference/assistants"
+        result["vendor_schema_url"] = "https://platform.openai.com/docs/guides/function-calling"
         return result
 
