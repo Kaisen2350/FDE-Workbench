@@ -16,6 +16,7 @@ from fde_workbench.domain.events import OperationalEventRecord, EventSeverity, E
 from fde_workbench.domain.decisions import DecisionRecord
 from fde_workbench.domain.ai_opportunities import AIOpportunity
 from fde_workbench.domain.agent_specs import AgentSpecification
+from fde_workbench.domain.pilots import PilotSpecification, PilotStatus
 
 GENESIS_HASH = "0" * 64
 
@@ -133,6 +134,20 @@ class WorkbenchStore:
             """)
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_evidence_source_type ON evidence(source_type);")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_evidence_provenance ON evidence(provenance);")
+
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS pilots (
+                    pilot_id TEXT PRIMARY KEY,
+                    opportunity_id TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    payload_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+            """)
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_pilots_opp ON pilots(opportunity_id);")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_pilots_status ON pilots(status);")
 
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS audit_log (
@@ -742,6 +757,67 @@ class WorkbenchStore:
         cursor.execute("SELECT payload_json FROM entities WHERE entity_type = ? ORDER BY name ASC;", (EntityTypeEnum.KPI.value,))
         return [KPI.model_validate(json.loads(row["payload_json"])) for row in cursor.fetchall()]
 
+    # --- PILOT SPECIFICATIONS ---
+
+    def add_pilot(self, pilot: PilotSpecification) -> PilotSpecification:
+        payload = json.dumps(pilot.model_dump(mode="json"))
+        with self._conn:
+            cursor = self._conn.cursor()
+            cursor.execute("""
+                INSERT OR REPLACE INTO pilots (pilot_id, opportunity_id, title, status, payload_json, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?);
+            """, (pilot.pilot_id, pilot.opportunity_id, pilot.title, pilot.status.value, payload, pilot.created_at, pilot.updated_at))
+        self.log_audit(
+            "ADD_PILOT",
+            pilot.pilot_id,
+            {"title": pilot.title, "opportunity_id": pilot.opportunity_id, "status": pilot.status.value, "platform": pilot.selected_platform}
+        )
+        return pilot
+
+    def get_pilot(self, pilot_id: str) -> Optional[PilotSpecification]:
+        cursor = self._conn.cursor()
+        cursor.execute("SELECT payload_json FROM pilots WHERE pilot_id = ?;", (pilot_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        return PilotSpecification.model_validate(json.loads(row["payload_json"]))
+
+    def list_pilots(self, opportunity_id: Optional[str] = None, status: Optional[str] = None) -> List[PilotSpecification]:
+        cursor = self._conn.cursor()
+        query = "SELECT payload_json FROM pilots WHERE 1=1"
+        params = []
+        if opportunity_id:
+            query += " AND opportunity_id = ?"
+            params.append(opportunity_id)
+        if status:
+            query += " AND status = ?"
+            params.append(status)
+        query += " ORDER BY pilot_id ASC;"
+        cursor.execute(query, tuple(params))
+        return [PilotSpecification.model_validate(json.loads(row["payload_json"])) for row in cursor.fetchall()]
+
+    def count_pilots(self) -> int:
+        cursor = self._conn.cursor()
+        cursor.execute("SELECT COUNT(*) as cnt FROM pilots;")
+        return cursor.fetchone()["cnt"]
+
+    def update_pilot_status(self, pilot_id: str, new_status: str) -> Optional[PilotSpecification]:
+        pilot = self.get_pilot(pilot_id)
+        if not pilot:
+            return None
+        pilot.status = PilotStatus(new_status)
+        pilot.updated_at = datetime.utcnow().isoformat()
+        return self.add_pilot(pilot)
+
+    def delete_pilot(self, pilot_id: str) -> bool:
+        with self._conn:
+            cursor = self._conn.cursor()
+            cursor.execute("DELETE FROM pilots WHERE pilot_id = ?;", (pilot_id,))
+            deleted = cursor.rowcount > 0
+        if deleted:
+            self.log_audit("DELETE_PILOT", pilot_id, {"pilot_id": pilot_id})
+        return deleted
+
     # --- RESET / CLEAR ---
 
     def clear(self):
@@ -754,9 +830,19 @@ class WorkbenchStore:
             cursor.execute("DELETE FROM opportunities;")
             cursor.execute("DELETE FROM agent_specs;")
             cursor.execute("DELETE FROM evidence;")
+            cursor.execute("DELETE FROM pilots;")
             cursor.execute("DELETE FROM audit_log;")
 
     # Compatibility properties for snapshot export
+    @property
+    def _pilots(self) -> Dict[str, PilotSpecification]:
+        cursor = self._conn.cursor()
+        cursor.execute("SELECT payload_json FROM pilots;")
+        return {
+            json.loads(r["payload_json"])["pilot_id"]: PilotSpecification.model_validate(json.loads(r["payload_json"]))
+            for r in cursor.fetchall()
+        }
+
     @property
     def _evidence(self) -> Dict[str, EvidenceRecord]:
         cursor = self._conn.cursor()

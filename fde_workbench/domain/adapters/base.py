@@ -24,6 +24,11 @@ class PlatformAdapter(ABC):
         """Validate an exported manifest against the platform's public schema specifications."""
         pass
 
+    @abstractmethod
+    def generate_pilot_deployment_plan(self, pilot: Any) -> Dict[str, Any]:
+        """Generate platform-specific deployment architecture and installation steps for a pilot."""
+        pass
+
     def validate_compatibility(self, spec: AgentSpecification) -> Dict[str, Any]:
         """Check whether the agent specification satisfies platform-specific requirements."""
         missing_fields: List[str] = []

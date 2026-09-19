@@ -46,6 +46,7 @@ from fde_workbench.domain.ai_opportunities import (
     StrategicValue,
 )
 from fde_workbench.domain.agent_specs import AgentSpecification, ToolDefinition
+from fde_workbench.domain.pilots import PilotSpecification, PilotEconomicModel, PilotStatus
 
 
 def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
@@ -1340,6 +1341,229 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
     store.add_kpi(kpi_otif)
     store.add_kpi(kpi_moisture)
 
+    # ==========================================
+    # 14. CANONICAL FDE PILOT SPECIFICATIONS
+    # ==========================================
+    econ_customs = PilotEconomicModel(
+        annual_decision_volume=1800,
+        manual_effort_minutes_per_decision=14.0,
+        hourly_labor_cost_usd=25.0,
+        current_error_or_exception_rate=0.065,
+        cost_per_exception_usd=850.0,
+        target_manual_effort_minutes=3.0,
+        target_exception_rate=0.015,
+        pilot_decision_volume=100,
+        pilot_implementation_cost_usd=15000.0,
+        annual_software_subscription_usd=18000.0,
+        working_capital_acceleration_days=3.5,
+        annual_working_capital_financial_value_usd=22000.0,
+    )
+
+    pilot_customs = PilotSpecification(
+        pilot_id="pilot-2026-customs-recon",
+        opportunity_id="opp-2026-001",
+        agent_spec_id="agent-customs-compliance",
+        title="Automated Export Customs Clearance & Tariff Reconciliation Pilot",
+        customer="Agro-Industrial del Este S.A. (AIDESA)",
+        workflow="Export documentation review, SOFIA clearance pack compilation, and Mercosur NCM tariff classification",
+        decision="Authorize dispatch and generate customs submission pack for dry grain / meal outbound trucks",
+        decision_owner="Head of Customs Compliance & Foreign Trade (Jefe de Comercio Exterior)",
+        baseline_kpi={
+            "manual_prep_time_minutes": 14.0,
+            "customs_error_rate_pct": 6.5,
+            "border_dwell_hours": 16.8,
+            "annual_delay_penalties_usd": 99450.0,
+        },
+        target_kpi={
+            "manual_prep_time_minutes": 3.0,
+            "customs_error_rate_pct": 1.5,
+            "border_dwell_hours": 6.0,
+            "annual_delay_penalties_usd": 22950.0,
+        },
+        measurement_method="Audit logs comparing timestamp of packing list availability vs SOFIA clearance receipt; weekly customs rectification tracker.",
+        data_sources=[
+            "SAP Business One ERP (OINV, DLN1, OITM)",
+            "DNA SOFIA Customs XML API",
+            "Villeta & CDE Terminal Truck Scale Weight Slips (Báscula)",
+            "SENAVE Phytosanitary Inspection Reports",
+        ],
+        required_integrations=[
+            "SAP Business One Service Layer (Read-Only)",
+            "DNA SOFIA Staging Sandbox (SOAP/XML Read-Only)",
+            "Postgres / Shared SMB Scale Ticket Folder",
+        ],
+        trigger="Truck weigh-out event at facility terminal scale (scale_ticket_closed)",
+        inputs=[
+            "Commercial Invoice (Factura de Exportación)",
+            "SENAVE Phytosanitary Certificate",
+            "Bill of Lading / CRT (Carta de Porte por Carretera)",
+            "Packing List with calibrated moisture & net weights",
+        ],
+        context=(
+            "Mercosur trade corridor through Ciudad del Este / Foz do Iguaçu. Discrepancies between declared weight "
+            "on CRT and scale ticket trigger physical red-channel customs inspection (Canal Rojo) causing 36-72 hour "
+            "border demurrage."
+        ),
+        recommended_action=(
+            "Pre-validate 4-way document cross-check, flag NCM classification mismatches, and prepare pre-filled "
+            "SOFIA export dispatch declaration."
+        ),
+        human_approval_required="Jefe de Comercio Exterior must click 'Approve for SOFIA Transmission' in dashboard. Agent NEVER submits directly to DNA production.",
+        authorized_actions=[
+            "Generate reconciled customs pack PDF",
+            "Post draft document bundle to SAP B1 staging table",
+            "Emit alert to customs broker on discrepancy > 0.5%",
+        ],
+        supported_platforms=[
+            "gemini_enterprise",
+            "microsoft_azure_ai_foundry",
+            "openai_assistants",
+            "databricks_mosaic_ai",
+        ],
+        selected_platform="gemini_enterprise",
+        pilot_duration="30 days",
+        pilot_scope="100 consecutive outbound soy meal and oil export trucks passing through Ciudad del Este border",
+        failure_modes=[
+            "OCR / Document extraction confidence < 92% on stamped scale slips",
+            "SOFIA schema divergence or unannounced DNA customs server downtime",
+            "Complex multi-modal transit shipments with transit bond changes",
+        ],
+        rollback_condition=(
+            "If 2 consecutive shipments incur customs documentation discrepancies or manual intervention time exceeds baseline "
+            "(15 mins), pilot pauses to manual operator review immediately."
+        ),
+        safety_constraints=[
+            "No write access to production DNA SOFIA customs system",
+            "Read-only access to SAP Business One financial journal entries",
+            "All data stored and processed within encrypted regional boundary with no LLM model training on customer commercial data",
+        ],
+        acceptance_criteria=[
+            ">= 95% of test shipments processed in < 3 minutes",
+            "Zero Canal Rojo (red-channel) inspections caused by clerical documentation discrepancy",
+            "100% human sign-off recorded with tamper-evident audit hash",
+        ],
+        economic_model=econ_customs,
+        implementation_effort="2 weeks configuration + 1 week shadow testing",
+        deployment_dependencies=[
+            "SAP B1 Service Layer API credentials",
+            "SOFIA testing environment digital certificate",
+            "Sample historical dataset of 200 completed export files",
+        ],
+        status=PilotStatus.PROPOSED,
+        expansion_path="Automated Fluvial Barge Convoy Transit Manifests (Villeta to Nueva Palmira)",
+        provenance=ProvenanceType.DERIVED,
+    )
+
+    econ_fluvial = PilotEconomicModel(
+        annual_decision_volume=240,
+        manual_effort_minutes_per_decision=45.0,
+        hourly_labor_cost_usd=40.0,
+        current_error_or_exception_rate=0.08,
+        cost_per_exception_usd=18500.0,
+        target_manual_effort_minutes=10.0,
+        target_exception_rate=0.01,
+        pilot_decision_volume=24,
+        pilot_implementation_cost_usd=22000.0,
+        annual_software_subscription_usd=24000.0,
+        working_capital_acceleration_days=2.0,
+        annual_working_capital_financial_value_usd=15000.0,
+    )
+
+    pilot_fluvial = PilotSpecification(
+        pilot_id="pilot-2026-fluvial-draft",
+        opportunity_id="opp-2026-002",
+        agent_spec_id="agent-fluvial-hydrology",
+        title="Hidrovía Dynamic Convoy Draft & Loading Allocation Pilot",
+        customer="Agro-Industrial del Este S.A. (AIDESA)",
+        workflow="Daily barge loading plan, convoy draft optimization, and critical river pass immersion calculation",
+        decision="Authorize metric tons loaded per barge and approve push-boat convoy formation at Villeta terminal",
+        decision_owner="Fluvial Fleet Captain & Terminal Operations Director",
+        baseline_kpi={
+            "convoy_draft_utilization_pct": 81.4,
+            "alijo_lightering_incidents_annual": 4.0,
+            "avg_immersion_safety_margin_inches": 24.0,
+            "annual_lost_freight_and_alijo_usd": 164000.0,
+        },
+        target_kpi={
+            "convoy_draft_utilization_pct": 92.5,
+            "alijo_lightering_incidents_annual": 0.0,
+            "avg_immersion_safety_margin_inches": 13.5,
+            "annual_lost_freight_and_alijo_usd": 32000.0,
+        },
+        measurement_method="Comparison of actual hydrographic sonar survey readings vs predicted draft at Paso Queso; post-voyage barge outturn manifests.",
+        data_sources=[
+            "Prefectura General Naval Hydrometric Gauge Network",
+            "Asunción & Villeta Daily Gauge Reports",
+            "Terminal Villeta Silo Weighbridge & Conveyor Belt Telemetry",
+            "Hidrovías del Sur Push-Boat Convoy GPS & Sonar Feeds",
+        ],
+        required_integrations=[
+            "Naval Prefecture Hydrographic Bulletin RSS/PDF scraper",
+            "TMS Fluvial Dispatch module",
+            "Villeta Terminal Silo PLC / SCADA interface (Read-Only)",
+        ],
+        trigger="Daily 06:00 AM hydrometric water level publication and convoy arrival notification",
+        inputs=[
+            "Daily river stage readings at Asunción, Villeta, Alberdi, Pilar, Corrientes",
+            "Grain batch moisture and specific gravity assays",
+            "Barge hydrostatic immersion tables (feet/inch per 100 MT)",
+        ],
+        context=(
+            "Low water levels on the Paraguay-Paraná river (Paso Queso, Paso Carpinchero) severely restrict allowable barge draft. "
+            "Underloading leaves money on the table (dead freight), while overloading risks grounding, canal blockage, "
+            "and catastrophic lightering (alijo) costs."
+        ),
+        recommended_action=(
+            "Compute optimal cargo distribution across 12-barge convoy to maximize payload while maintaining strict 12-inch "
+            "under-keel clearance at bottleneck passes."
+        ),
+        human_approval_required="Fleet Captain and Terminal Operations Director joint digital sign-off before conveyor belt loading commences.",
+        authorized_actions=[
+            "Publish Convoy Loading Plan to Terminal Villeta SCADA",
+            "Issue Navigational Advisory to Tugboat Master",
+            "Alert Commercial Desk on available incremental spot freight capacity",
+        ],
+        supported_platforms=[
+            "gemini_enterprise",
+            "microsoft_azure_ai_foundry",
+            "openai_assistants",
+            "databricks_mosaic_ai",
+        ],
+        selected_platform="gemini_enterprise",
+        pilot_duration="45 days",
+        pilot_scope="6 consecutive outbound push-convoys (approx. 72 total barge transits) during low-water season",
+        failure_modes=[
+            "Sudden unpredicted river level drop (> 15 cm in 12 hours) due to Itaipú dam flow modulation",
+            "Inaccurate barge tare weights causing immersion discrepancy",
+        ],
+        rollback_condition=(
+            "If any barge draft exceeds target maximum minus 6 inches safety buffer, or captain flags navigation safety concern, "
+            "immediately revert to conservative static tables."
+        ),
+        safety_constraints=[
+            "Strict 12-inch under-keel clearance (UKC) invariant — model cannot override safety threshold",
+            "Loading speed capped at terminal conveyor maximum",
+        ],
+        acceptance_criteria=[
+            "Zero barge groundings or emergency lighterings (alijo)",
+            ">= 8% increase in cargo payload per convoy without safety violations",
+            "100% compliance with Naval Prefecture draft advisories",
+        ],
+        economic_model=econ_fluvial,
+        implementation_effort="3 weeks integration + 2 weeks shadow verification",
+        deployment_dependencies=[
+            "Barge hydrostatic calibration curves",
+            "Prefectura Naval gauge telemetry API/feed",
+            "Terminal Villeta loading master coordination",
+        ],
+        status=PilotStatus.PROPOSED,
+        expansion_path="Dynamic Fleet Routing & Fuel Consumption Optimization across Lower Paraná",
+        provenance=ProvenanceType.DERIVED,
+    )
+
+    store.add_pilot(pilot_customs)
+    store.add_pilot(pilot_fluvial)
+
     return {
         "status": "SUCCESS",
         "company": aidesa.name,
@@ -1355,4 +1579,5 @@ def seed_synthetic_company(store: WorkbenchStore) -> Dict[str, Any]:
         "agent_spec_count": len(store.list_agent_specs()),
         "kpi_count": len(store.list_kpis()),
         "evidence_count": store.count_evidence(),
+        "pilot_count": store.count_pilots(),
     }

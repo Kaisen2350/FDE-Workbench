@@ -83,3 +83,29 @@ class MicrosoftAdapter(PlatformAdapter):
             "errors": errors,
             "schema_doc": "Microsoft Azure AI Foundry & Semantic Kernel Plugin Specification",
         }
+
+    def generate_pilot_deployment_plan(self, pilot: Any) -> Dict[str, Any]:
+        """Generate Azure AI Foundry / Semantic Kernel deployment architecture."""
+        return {
+            "platform": self.platform_name,
+            "platform_display_name": "Microsoft Azure AI Foundry",
+            "runtime_framework": "Microsoft Semantic Kernel (C# / Python) on Azure Container Apps",
+            "model_deployment": "Azure OpenAI Service: gpt-4o (Reasoning) + gpt-4o-mini (Extraction)",
+            "architecture_pattern": "Azure Container App microservice with Azure Service Bus and Cosmos DB audit state",
+            "integration_steps": [
+                f"1. Provision Azure AI Foundry hub and project in 'rg-aidesa-fde-pilot' (Brazil South region)",
+                f"2. Deploy Semantic Kernel agent with native plugins for {pilot.customer} SAP B1 Service Layer read operations",
+                f"3. Configure Azure AI Search index with hybrid vector/semantic search over Customs and CRT regulations",
+                f"4. Implement Semantic Kernel Filter enforcing 'RequiresConsent' policy on all state-mutating actions",
+                f"5. Route pending reconciliations to Microsoft Teams Adaptive Card for {pilot.decision_owner} 1-click approval",
+            ],
+            "credentials_and_env": [
+                "AZURE_OPENAI_ENDPOINT=https://aidesa-ai-foundry.openai.azure.com/",
+                "AZURE_OPENAI_API_KEY=secrets://azure/keyvault/openai-key",
+                "AZURE_SUBSCRIPTION_ID=sub-aidesa-pilot-001",
+                "AZURE_RESOURCE_GROUP=rg-aidesa-fde-pilot",
+                "AZURE_REGION=brazilsouth (São Paulo)",
+            ],
+            "human_in_loop_mechanism": f"Semantic Kernel Function Invocation Filter intercepting tool calls; blocks execution and posts Adaptive Card to Teams until {pilot.decision_owner} approval callback is received.",
+            "verification_command": "az cognitiveservices account show --name aidesa-ai-foundry --resource-group rg-aidesa-fde-pilot",
+        }

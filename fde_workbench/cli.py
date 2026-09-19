@@ -11,6 +11,10 @@ from fde_workbench.storage.snapshot import save_snapshot_to_file, load_snapshot_
 
 
 def main():
+    if sys.platform == "win32":
+        import io
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+
     parser = argparse.ArgumentParser(
         prog="fde-workbench",
         description="Paraguay Export Economy FDE Workbench (Phase 1)",
@@ -41,6 +45,27 @@ def main():
 
     # Command: verify-audit
     audit_parser = subparsers.add_parser("verify-audit", help="Verify cryptographic SHA-256 audit log hash-chain")
+
+    # Command: pilot
+    pilot_parser = subparsers.add_parser("pilot", help="FDE Pilot Engine operations")
+    pilot_sub = pilot_parser.add_subparsers(dest="pilot_action", help="Pilot action")
+
+    # pilot list
+    pilot_list = pilot_sub.add_parser("list", help="List registered pilots")
+
+    # pilot brief
+    pilot_brief = pilot_sub.add_parser("brief", help="Generate 12-section FDE deployment brief")
+    pilot_brief.add_argument("pilot_id", type=str, help="Pilot ID (e.g. pilot-2026-customs-recon)")
+    pilot_brief.add_argument("--export", type=str, default="", help="Optional markdown file destination")
+
+    # pilot economics
+    pilot_econ = pilot_sub.add_parser("economics", help="Calculate economic bridge for a pilot")
+    pilot_econ.add_argument("pilot_id", type=str, help="Pilot ID (e.g. pilot-2026-customs-recon)")
+
+    # pilot deploy-plan
+    pilot_plan = pilot_sub.add_parser("deploy-plan", help="Generate multi-platform deployment plan")
+    pilot_plan.add_argument("pilot_id", type=str, help="Pilot ID (e.g. pilot-2026-customs-recon)")
+    pilot_plan.add_argument("--platform", type=str, default="gemini_enterprise", help="Target platform")
 
     args = parser.parse_args()
 
@@ -111,6 +136,78 @@ def main():
             print(f"  Corrupted Sequence:     {result.get('corrupted_sequence')}")
             print(f"  Reason:                 {result.get('reason')}")
             sys.exit(1)
+
+    elif args.command == "pilot":
+        from fde_workbench.domain.brief_generator import FDEBriefGenerator
+        from fde_workbench.domain.adapters import ADAPTERS
+        store = WorkbenchStore()
+
+        if args.pilot_action == "list":
+            pilots = store.list_pilots()
+            print(f"\nRegistered FDE Pilots ({len(pilots)}):")
+            print("-" * 80)
+            for p in pilots:
+                summary = p.economic_model.summary()
+                print(f"[{p.pilot_id}] {p.title}")
+                print(f"  Customer:     {p.customer}")
+                print(f"  Status:       {p.status.value} | Platform: {p.selected_platform}")
+                print(f"  Scope:        {p.pilot_scope}")
+                print(f"  Net ROI:      ${summary['first_year_net_roi_usd']:,.2f} ({summary['expected_roi_percentage']}%) | Payback: {summary['payback_period_months']} mo")
+                print("-" * 80)
+
+        elif args.pilot_action == "brief":
+            pilot = store.get_pilot(args.pilot_id)
+            if not pilot:
+                print(f"Error: Pilot not found: {args.pilot_id}")
+                sys.exit(1)
+            md = FDEBriefGenerator.generate_markdown(pilot)
+            if args.export:
+                with open(args.export, "w", encoding="utf-8") as f:
+                    f.write(md)
+                print(f"FDE Deployment Brief exported to: {args.export}")
+            else:
+                print(md)
+
+        elif args.pilot_action == "economics":
+            pilot = store.get_pilot(args.pilot_id)
+            if not pilot:
+                print(f"Error: Pilot not found: {args.pilot_id}")
+                sys.exit(1)
+            econ = pilot.economic_model
+            s = econ.summary()
+            print(f"\nOperational Economic Bridge: {pilot.title} [{pilot.pilot_id}]")
+            print("=" * 75)
+            print(f"  Annual Volume:             {econ.annual_decision_volume:,} shipments/decisions")
+            print(f"  Baseline Labor:            {econ.manual_effort_minutes_per_decision} min/decision @ ${econ.hourly_labor_cost_usd}/hr -> ${s['baseline_annual_labor_usd']:,.2f}/yr")
+            print(f"  Baseline Exceptions:       {econ.current_error_or_exception_rate*100:.1f}% rate @ ${econ.cost_per_exception_usd:,.2f}/exception -> ${s['baseline_annual_exception_usd']:,.2f}/yr")
+            print(f"  Working Capital Carrying:  ${econ.annual_working_capital_financial_value_usd:,.2f}/yr ({econ.working_capital_acceleration_days} days acceleration)")
+            print(f"  Baseline Total Cost:       ${s['baseline_annual_total_usd']:,.2f}/yr")
+            print("-" * 75)
+            print(f"  Target Post-Intervention:  ${s['target_annual_total_usd']:,.2f}/yr ({econ.target_manual_effort_minutes} min, {econ.target_exception_rate*100:.1f}% exceptions)")
+            print(f"  Addressable Annual Saving: ${s['addressable_annual_savings_usd']:,.2f}/yr (${s['savings_per_shipment_usd']:,.2f} / unit)")
+            print(f"  Pilot Batch Value:         ${s['pilot_batch_value_usd']:,.2f} ({econ.pilot_decision_volume} test units)")
+            print("-" * 75)
+            print(f"  Implementation Cost:       ${s['pilot_implementation_cost_usd']:,.2f}")
+            print(f"  Annual Subscription:       ${s['annual_subscription_usd']:,.2f}")
+            print(f"  Net First-Year ROI:        ${s['first_year_net_roi_usd']:,.2f} ({s['expected_roi_percentage']}%)")
+            print(f"  Payback Period:            {s['payback_period_months']} months")
+            print("=" * 75 + "\n")
+
+        elif args.pilot_action == "deploy-plan":
+            pilot = store.get_pilot(args.pilot_id)
+            if not pilot:
+                print(f"Error: Pilot not found: {args.pilot_id}")
+                sys.exit(1)
+            platform = args.platform.lower()
+            adapter = ADAPTERS.get(platform)
+            if not adapter:
+                print(f"Error: Unknown platform: {platform}. Supported: {list(ADAPTERS.keys())}")
+                sys.exit(1)
+            plan = adapter.generate_pilot_deployment_plan(pilot)
+            import json
+            print(json.dumps(plan, indent=2))
+        else:
+            pilot_parser.print_help()
 
 
 if __name__ == "__main__":

@@ -84,3 +84,27 @@ class OpenAIAdapter(PlatformAdapter):
             "errors": errors,
             "schema_doc": "OpenAI Assistants API Function Tool Specification",
         }
+
+    def generate_pilot_deployment_plan(self, pilot: Any) -> Dict[str, Any]:
+        """Generate OpenAI Enterprise deployment architecture and execution steps."""
+        return {
+            "platform": self.platform_name,
+            "platform_display_name": "OpenAI Enterprise",
+            "runtime_framework": "OpenAI Assistants API v2 with Strict Structured Outputs",
+            "model_deployment": "gpt-4o-2024-08-06 (Structured Outputs) with strict: true",
+            "architecture_pattern": "FastAPI Webhook gateway orchestrating OpenAI Assistants runs with PostgreSQL session persistence",
+            "integration_steps": [
+                f"1. Create dedicated OpenAI Project '{pilot.customer}-FDE-Pilot' with enterprise data privacy (zero training)",
+                f"2. Upload customs tariff code vectors and SOP manuals to OpenAI Vector Store 'vs_customs_py'",
+                f"3. Register Assistant with strict tool definitions matching {pilot.title} schemas",
+                f"4. Implement run poller handling 'requires_action' tool calls with human verification gate",
+                f"5. Deliver reconciled payloads to {pilot.decision_owner} operational queue via internal webhook",
+            ],
+            "credentials_and_env": [
+                "OPENAI_API_KEY=sk-proj-secrets://vault/openai-aidesa",
+                "OPENAI_PROJECT_ID=proj_aidesa_fde_001",
+                "OPENAI_VECTOR_STORE_ID=vs_customs_mercosur_001",
+            ],
+            "human_in_loop_mechanism": f"Assistant Run pauses in 'requires_action' state. Application waits for {pilot.decision_owner} approval in operator portal before submitting tool outputs back to the Run.",
+            "verification_command": "curl https://api.openai.com/v1/models -H \"Authorization: Bearer $OPENAI_API_KEY\"",
+        }

@@ -201,3 +201,29 @@ if __name__ == "__main__":
             "errors": errors,
             "schema_doc": "Google Cloud Vertex AI OpenAPI Tool Specification v1beta",
         }
+
+    def generate_pilot_deployment_plan(self, pilot: Any) -> Dict[str, Any]:
+        """Generate Vertex AI deployment architecture and operational execution steps."""
+        return {
+            "platform": self.platform_name,
+            "platform_display_name": "Google Cloud / Gemini Enterprise",
+            "runtime_framework": "Google GenAI SDK (google-genai) on Vertex AI Agent Engine",
+            "model_deployment": "gemini-2.5-pro (Validation & Reasoning) + gemini-2.5-flash (Drafting)",
+            "architecture_pattern": "Event-driven Cloud Run service listening to ERP Webhooks with Firestore audit state",
+            "integration_steps": [
+                f"1. Provision Vertex AI Agent Engine resource in project 'gcp-aidesa-fde-pilot'",
+                f"2. Deploy containerized Python google-genai runtime on Cloud Run with Private Service Connect to {pilot.customer} SAP B1",
+                f"3. Mount Vertex AI Search data store grounded in official DNIT Mercosur tariffs and SENAVE phytosanitary rules",
+                f"4. Configure Pub/Sub subscription on 'export-dispatch-events' topic with dead-letter queue",
+                f"5. Connect Human Review Task dispatch to Cloud Run dashboard requiring {pilot.decision_owner} OAuth2 sign-off",
+            ],
+            "credentials_and_env": [
+                "GOOGLE_APPLICATION_CREDENTIALS=/secrets/vertex-agent-sa.json",
+                "GEMINI_API_KEY=secrets://gcp/gemini-api-key",
+                "GCP_PROJECT_ID=gcp-aidesa-fde-pilot",
+                "GCP_REGION=southamerica-east1 (São Paulo)",
+                "SAP_B1_SERVICE_LAYER_URL=https://sap.aidesa.internal:50000/b1s/v2",
+            ],
+            "human_in_loop_mechanism": f"Vertex AI Human Review / Cloud Tasks approval workflow. Agent generates candidate payload; state stays PENDING_HUMAN_APPROVAL until {pilot.decision_owner} authorized key signs.",
+            "verification_command": "python -c \"from google import genai; client = genai.Client(); print(client.models.get(model='gemini-2.5-flash'))\"",
+        }

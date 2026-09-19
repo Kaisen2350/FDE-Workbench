@@ -16,6 +16,8 @@ from fde_workbench.domain.relationships import ALLOWED_RELATIONSHIPS
 from fde_workbench.domain.events import EventSeverity, EventStatus
 from fde_workbench.domain.adapters import ADAPTERS
 from fde_workbench.domain.adapters.gemini_adapter import GeminiEnterpriseAdapter
+from fde_workbench.domain.pilots import PilotSpecification, PilotStatus
+from fde_workbench.domain.brief_generator import FDEBriefGenerator
 from fde_workbench.storage.store import WorkbenchStore
 from fde_workbench.storage.snapshot import export_store_to_dict, import_store_from_dict
 from fde_workbench.synthetic.generator import seed_synthetic_company
@@ -265,6 +267,211 @@ def get_gemini_python_scaffold(spec_id: str):
     }
 
 
+# --- PILOT ENGINE ENDPOINTS ---
+
+@app.get("/api/pilots")
+def list_pilots(
+    opportunity_id: Optional[str] = Query(None, description="Filter by AI opportunity ID"),
+    status: Optional[str] = Query(None, description="Filter by pilot status"),
+):
+    pilots = store.list_pilots(opportunity_id=opportunity_id, status=status)
+    return {
+        "count": len(pilots),
+        "pilots": [
+            {
+                **p.model_dump(mode="json"),
+                "economics_summary": p.economic_model.summary(),
+            }
+            for p in pilots
+        ],
+    }
+
+
+@app.get("/api/pilots/{pilot_id}")
+def get_pilot_detail(pilot_id: str):
+    pilot = store.get_pilot(pilot_id)
+    if not pilot:
+        raise HTTPException(status_code=404, detail="Pilot specification not found")
+    return {
+        "pilot": pilot.model_dump(mode="json"),
+        "economics_summary": pilot.economic_model.summary(),
+    }
+
+
+@app.get("/api/pilots/{pilot_id}/brief")
+def get_pilot_brief(pilot_id: str, format: Optional[str] = Query("markdown", description="Format: 'markdown' or 'json'")):
+    pilot = store.get_pilot(pilot_id)
+    if not pilot:
+        raise HTTPException(status_code=404, detail="Pilot specification not found")
+    
+    brief_data = FDEBriefGenerator.generate_brief_data(pilot)
+    brief_markdown = FDEBriefGenerator.generate_markdown(pilot)
+    
+    return {
+        "pilot_id": pilot_id,
+        "title": pilot.title,
+        "customer": pilot.customer,
+        "format": format,
+        "brief_markdown": brief_markdown,
+        "brief_data": brief_data,
+    }
+
+
+@app.get("/api/pilots/{pilot_id}/economic-bridge")
+def get_pilot_economic_bridge(pilot_id: str):
+    pilot = store.get_pilot(pilot_id)
+    if not pilot:
+        raise HTTPException(status_code=404, detail="Pilot specification not found")
+    
+    econ = pilot.economic_model
+    return {
+        "pilot_id": pilot_id,
+        "title": pilot.title,
+        "customer": pilot.customer,
+        "inputs": {
+            "annual_decision_volume": econ.annual_decision_volume,
+            "manual_effort_minutes_per_decision": econ.manual_effort_minutes_per_decision,
+            "hourly_labor_cost_usd": econ.hourly_labor_cost_usd,
+            "current_error_or_exception_rate": econ.current_error_or_exception_rate,
+            "cost_per_exception_usd": econ.cost_per_exception_usd,
+            "target_manual_effort_minutes": econ.target_manual_effort_minutes,
+            "target_exception_rate": econ.target_exception_rate,
+            "pilot_decision_volume": econ.pilot_decision_volume,
+            "pilot_implementation_cost_usd": econ.pilot_implementation_cost_usd,
+            "annual_software_subscription_usd": econ.annual_software_subscription_usd,
+            "working_capital_acceleration_days": econ.working_capital_acceleration_days,
+            "annual_working_capital_financial_value_usd": econ.annual_working_capital_financial_value_usd,
+        },
+        "calculation_steps": [
+            {
+                "step": 1,
+                "name": "Baseline Annual Labor Cost",
+                "formula": "Annual Volume * (Manual Minutes / 60) * Hourly Rate",
+                "result_usd": round(econ.baseline_annual_labor_cost(), 2),
+            },
+            {
+                "step": 2,
+                "name": "Baseline Annual Exception & Rework Cost",
+                "formula": "Annual Volume * Exception Rate * Cost Per Exception",
+                "result_usd": round(econ.baseline_annual_exception_cost(), 2),
+            },
+            {
+                "step": 3,
+                "name": "Working Capital Drag / Carrying Cost",
+                "formula": "Annual carrying cost of cash trapped in delay",
+                "result_usd": round(econ.annual_working_capital_financial_value_usd, 2),
+            },
+            {
+                "step": 4,
+                "name": "Baseline Total Annual Cost",
+                "formula": "Labor Cost + Exception Cost + Working Capital Drag",
+                "result_usd": round(econ.baseline_annual_total_cost(), 2),
+            },
+            {
+                "step": 5,
+                "name": "Target Annual Cost Post-Intervention",
+                "formula": "Target Labor Cost + Target Exception Cost",
+                "result_usd": round(econ.target_annual_total_cost(), 2),
+            },
+            {
+                "step": 6,
+                "name": "Addressable Annual Savings",
+                "formula": "Baseline Total - Target Total",
+                "result_usd": round(econ.addressable_annual_savings(), 2),
+            },
+            {
+                "step": 7,
+                "name": "Savings Per Unit / Shipment",
+                "formula": "Addressable Savings / Annual Volume",
+                "result_usd": round(econ.savings_per_decision_unit(), 2),
+            },
+            {
+                "step": 8,
+                "name": "Pilot Batch Measured Value",
+                "formula": "Pilot Volume * Savings Per Unit",
+                "result_usd": round(econ.pilot_measured_value(), 2),
+            },
+            {
+                "step": 9,
+                "name": "Net First-Year Enterprise ROI",
+                "formula": "Addressable Savings - Implementation Cost - Annual Subscription",
+                "result_usd": round(econ.first_year_net_roi_usd(), 2),
+            },
+            {
+                "step": 10,
+                "name": "First-Year ROI Percentage & Payback",
+                "formula": "(Net ROI / Implementation Cost) * 100",
+                "roi_percentage": round(econ.expected_roi_percentage(), 1),
+                "payback_period_months": round(econ.payback_period_months(), 1),
+            },
+        ],
+        "summary": econ.summary(),
+    }
+
+
+@app.get("/api/pilots/{pilot_id}/deployment-plan")
+def get_pilot_deployment_plan(pilot_id: str, platform: Optional[str] = Query(None)):
+    pilot = store.get_pilot(pilot_id)
+    if not pilot:
+        raise HTTPException(status_code=404, detail="Pilot specification not found")
+    
+    target_platform = (platform or pilot.selected_platform).lower()
+    adapter = ADAPTERS.get(target_platform)
+    if not adapter:
+        raise HTTPException(status_code=400, detail=f"Unsupported platform: {target_platform}. Supported: {list(ADAPTERS.keys())}")
+    
+    plan = adapter.generate_pilot_deployment_plan(pilot)
+    return {
+        "pilot_id": pilot_id,
+        "platform": target_platform,
+        "deployment_plan": plan,
+    }
+
+
+@app.post("/api/pilots/{pilot_id}/platform")
+def set_pilot_platform(pilot_id: str, payload: Dict[str, Any] = Body(...)):
+    platform = payload.get("platform")
+    if not platform:
+        raise HTTPException(status_code=400, detail="Missing 'platform' in request body")
+    
+    target_platform = platform.lower()
+    if target_platform not in ADAPTERS:
+        raise HTTPException(status_code=400, detail=f"Invalid platform: {target_platform}. Supported: {list(ADAPTERS.keys())}")
+    
+    pilot = store.get_pilot(pilot_id)
+    if not pilot:
+        raise HTTPException(status_code=404, detail="Pilot specification not found")
+    
+    pilot.selected_platform = target_platform
+    store.add_pilot(pilot)
+    return {
+        "status": "UPDATED",
+        "pilot_id": pilot_id,
+        "selected_platform": pilot.selected_platform,
+    }
+
+
+@app.post("/api/pilots/{pilot_id}/status")
+def set_pilot_status(pilot_id: str, payload: Dict[str, Any] = Body(...)):
+    new_status = payload.get("status")
+    if not new_status:
+        raise HTTPException(status_code=400, detail="Missing 'status' in request body")
+    
+    try:
+        updated = store.update_pilot_status(pilot_id, new_status.upper())
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Invalid status: {new_status}. Valid: {[s.value for s in PilotStatus]}")
+    
+    if not updated:
+        raise HTTPException(status_code=404, detail="Pilot specification not found")
+    
+    return {
+        "status": "UPDATED",
+        "pilot_id": pilot_id,
+        "new_status": updated.status.value,
+    }
+
+
 # --- SOURCE EVIDENCE ENDPOINTS ---
 
 @app.get("/api/evidence")
@@ -429,6 +636,7 @@ def get_company_overview():
             "decision_count": len(store._decisions),
             "opportunity_count": len(store._opportunities),
             "agent_spec_count": len(store._agent_specs),
+            "pilot_count": store.count_pilots(),
         },
     }
 

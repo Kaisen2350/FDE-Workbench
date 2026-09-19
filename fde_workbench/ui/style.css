@@ -676,3 +676,49 @@ pre.code-json {
   margin-bottom: 8px;
   font-size: 12.5px;
 }
+
+/* Phase 3: FDE Pilot Engine & Brief Viewer */
+.brief-markdown-rendered h1,
+.brief-markdown-rendered h2,
+.brief-markdown-rendered h3 {
+  font-family: var(--font-serif);
+  color: var(--river-deep);
+}
+
+.brief-markdown-rendered table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+  font-size: 12px;
+}
+
+.brief-markdown-rendered th {
+  background: var(--paper-subtle);
+  border: 1px solid var(--rule);
+  padding: 8px 10px;
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.brief-markdown-rendered td {
+  border: 1px solid var(--rule-light);
+  padding: 7px 10px;
+}
+
+.brief-markdown-rendered blockquote {
+  border-left: 4px solid var(--river);
+  background: var(--river-soft);
+  padding: 10px 14px;
+  margin: 12px 0;
+  border-radius: 0 4px 4px 0;
+}
+
+.brief-markdown-rendered code {
+  font-family: var(--font-mono);
+  background: var(--paper-subtle);
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-size: 11.5px;
+}
+

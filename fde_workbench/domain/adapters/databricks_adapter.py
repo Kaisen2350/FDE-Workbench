@@ -69,3 +69,30 @@ class DatabricksAdapter(PlatformAdapter):
             "errors": errors,
             "schema_doc": "Databricks Mosaic AI Agent Framework & Unity Catalog Tool Specification",
         }
+
+    def generate_pilot_deployment_plan(self, pilot: Any) -> Dict[str, Any]:
+        """Generate Databricks Mosaic AI deployment architecture on the Lakehouse."""
+        return {
+            "platform": self.platform_name,
+            "platform_display_name": "Databricks Mosaic AI",
+            "pilot_id": pilot.pilot_id,
+            "customer": pilot.customer,
+            "runtime_framework": "Databricks Mosaic AI Agent Framework + MLflow on Databricks Lakehouse",
+            "model_deployment": "Databricks Model Serving: DBRX / Meta-Llama-3-70B-Instruct or Azure OpenAI endpoint",
+            "architecture_pattern": "Lakehouse-native agent reading Delta Lake tables, executing Unity Catalog functions, logged to MLflow",
+            "integration_steps": [
+                f"1. Configure Unity Catalog catalog for {pilot.customer} (catalog 'aidesa_export', schema 'pilot_customs')",
+                f"2. Register Python tools as Unity Catalog SQL/Python user-defined functions with column-level permissions",
+                f"3. Build Databricks Vector Search index over Delta table containing customs regulations and historical audits",
+                f"4. Package agent using MLflow pyfunc with Databricks Review App enabled for {pilot.decision_owner} feedback",
+                f"5. Deploy agent to Databricks Model Serving endpoint with autoscaling and token-based rate limits",
+            ],
+            "credentials_and_env": [
+                "DATABRICKS_HOST=https://aidesa-workspace.cloud.databricks.com",
+                "DATABRICKS_TOKEN=dapi-secrets://vault/databricks-token",
+                "DATABRICKS_CATALOG=aidesa_export",
+                "DATABRICKS_SCHEMA=pilot_customs",
+            ],
+            "human_in_loop_mechanism": f"Databricks Mosaic AI Review App + Lakehouse workflow gating. Mutations require row-level authorization approval from {pilot.decision_owner} in the operational Delta staging table.",
+            "verification_command": "databricks clusters list --output JSON",
+        }

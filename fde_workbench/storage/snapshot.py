@@ -14,6 +14,7 @@ from fde_workbench.domain.decisions import DecisionRecord
 from fde_workbench.domain.ai_opportunities import AIOpportunity
 from fde_workbench.domain.agent_specs import AgentSpecification
 from fde_workbench.domain.evidence import EvidenceRecord
+from fde_workbench.domain.pilots import PilotSpecification
 
 
 def export_store_to_dict(store: WorkbenchStore) -> Dict[str, Any]:
@@ -29,6 +30,7 @@ def export_store_to_dict(store: WorkbenchStore) -> Dict[str, Any]:
             "opportunity_count": len(store._opportunities),
             "agent_spec_count": len(store._agent_specs),
             "evidence_count": len(store._evidence),
+            "pilot_count": len(store._pilots),
         },
         "entities": [e.model_dump(mode="json") for e in store._entities.values()],
         "relationships": [r.model_dump(mode="json") for r in store._relationships.values()],
@@ -37,6 +39,7 @@ def export_store_to_dict(store: WorkbenchStore) -> Dict[str, Any]:
         "opportunities": [o.model_dump(mode="json") for o in store._opportunities.values()],
         "agent_specs": [s.model_dump(mode="json") for s in store._agent_specs.values()],
         "evidence": [ev.model_dump(mode="json") for ev in store._evidence.values()],
+        "pilots": [p.model_dump(mode="json") for p in store._pilots.values()],
         "audit_trail": store.get_audit_trail(limit=500),
     }
 
@@ -86,6 +89,11 @@ def import_store_from_dict(store: WorkbenchStore, data: Dict[str, Any]):
     for evi_data in data.get("evidence", []):
         evi = EvidenceRecord.model_validate(evi_data)
         store.add_evidence(evi)
+
+    # Hydrate pilots
+    for pilot_data in data.get("pilots", []):
+        pilot = PilotSpecification.model_validate(pilot_data)
+        store.add_pilot(pilot)
 
 
 def save_snapshot_to_file(store: WorkbenchStore, file_path: str):

@@ -1,6 +1,6 @@
-# Paraguay Export Economy — Forward Deployed Engineer (FDE) Workbench (Phase 1, 1.5 & Phase 2)
+# Paraguay Export Economy — Forward Deployed Engineer (FDE) Workbench (Phase 1, 1.5, 2 & 3)
 
-> **Mission**: An engineering, research, and operational control plane for a Forward Deployed Engineer (FDE) to model the physical reality of Paraguayan export-oriented enterprises, capture source evidence with explicit provenance, identify mission-critical workflows and bottlenecks via structured discovery, evaluate opportunities across 4 operational dimensions, and compile platform-agnostic agent blueprints into production Gemini Enterprise Python SDK scaffolds.
+> **Mission**: An engineering, research, and operational control plane for a Forward Deployed Engineer (FDE) to model the physical reality of Paraguayan export-oriented enterprises, capture source evidence with explicit provenance, identify mission-critical workflows and bottlenecks via structured discovery, evaluate opportunities across 4 operational dimensions, and bridge findings into canonical **Pilot Specifications** with auditable **Economic Bridges**, 1-click **12-Section Client Deployment Briefs**, and **Multi-Platform Deployment Proof** across Google Gemini, Microsoft Azure, OpenAI, and Databricks Mosaic AI.
 
 ---
 
@@ -10,6 +10,9 @@
 - **NOT an autonomous agent**: No unsupervised execution or black-box agents.
 - **NOT a production customer system**: Does not connect to live customer databases, send emails, or execute unauthorized external actions.
 - **The FDE Reasoning & Control Plane**: Establishes a deterministic operational model grounded in empirical evidence and physical reality (fluvial draft restrictions, Mercosur cross-border customs DNA, Maquila regimes, and cash conversion cycles).
+- **Core Architecture Doctrine**:
+  $$\text{FDE Control Plane} \longrightarrow \text{Platform Adapter} \longrightarrow \text{Customer Environment}$$
+  The core moat is Paraguay operational knowledge $\times$ discovery methodology $\times$ ontology $\times$ evidence $\times$ decision modeling $\times$ deployment capability. Gemini, Azure, OpenAI, and Databricks are execution substrates tailored to client environments ("Same operational model, different deployment adapter").
 
 ---
 
@@ -29,7 +32,7 @@ Open your browser at:
 - **Workbench UI**: [http://127.0.0.1:8000](http://127.0.0.1:8000)
 - **Interactive REST API Docs**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
-To run the automated test suite (45 unit tests):
+To run the automated test suite (55 unit tests):
 ```powershell
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
@@ -210,12 +213,52 @@ Rather than an arbitrary "AI score", opportunities are evaluated across 4 distin
 
 ---
 
-## Gemini Enterprise Deployment Substrate & Python SDK Scaffold (Phase 2)
+## Phase 3 — FDE Pilot Engine & Enterprise Deployment Blueprints
 
-While maintaining vendor-agnostic blueprints, the workbench treats **Google Cloud / Gemini Enterprise** as the primary deployment substrate:
-- **Vertex AI Agent Engine Manifest**: Native system instructions, function declarations, grounding datastore configs, and security policies.
-- **Runnable Python SDK Scaffold**: `generate_python_scaffold()` creates production-grade, executable code using the official `google-genai` SDK (`gemini-2.5-pro` / `gemini-2.5-flash`), with typed function tools and human-in-the-loop review guards.
-- Inspected dynamically in the UI side drawer or fetched via `GET /api/agent-specs/{id}/scaffold/gemini`.
+Phase 3 transforms the FDE Workbench into a client-facing delivery vehicle, bridging AI opportunities to concrete enterprise pilots.
+
+### 1. Canonical `PilotSpecification`
+Defines the exact parameters for an operational deployment on Monday morning:
+- **Operational Reality**: Workflow, decision loop, trigger, document inputs, Paraguayan trade corridor context.
+- **Accountability**: Explicit human `decision_owner` (e.g. Jefe de Comercio Exterior).
+- **Human Authority Gates**: Inviolable human sign-off requirement, permitted drafting actions, and instant rollback conditions.
+- **Measurable Acceptance Criteria**: Explicit performance targets (cycle time, exception rates, dwell hours) required for production sign-off.
+
+### 2. Formal Mathematical `PilotEconomicModel`
+Links physical operational friction directly to enterprise financial value through an auditable 10-step bridge:
+$$\text{Baseline Annual Cost} = \text{Labor Cost} + \text{Exception Cost} + \text{Working Capital Drag}$$
+$$\text{Target Annual Cost} = \text{Target Labor} + \text{Target Exception Cost}$$
+$$\text{Addressable Savings} = \text{Baseline Total} - \text{Target Total}$$
+$$\text{Pilot Batch Value} = \text{Volume in Pilot} \times \left(\frac{\text{Addressable Savings}}{\text{Annual Volume}}\right)$$
+$$\text{Net 1st-Year ROI} = \text{Addressable Savings} - \text{Implementation Cost} - \text{Annual Software License}$$
+
+### 3. 1-Click Client-Ready 12-Section FDE Deployment Brief Generator
+Produces an executive briefing document (`FDEBriefGenerator`) in Markdown and structured JSON, adhering to the 12-section standard:
+1. Operational Problem
+2. Empirical Evidence
+3. Decision Loop
+4. Economic Impact & ROI Equation
+5. Proposed AI Intervention
+6. Human Authority & Governance
+7. Required Data & Telemetry
+8. Architecture & Integration Pattern
+9. Pilot Scope & Duration
+10. Success & Acceptance Criteria
+11. Enterprise Platform Options
+12. Expansion Path & Flywheel Leverage
+
+### 4. Multi-Platform Deployment Proof
+Proves the architectural doctrine: **Same operational model, different deployment adapter**.
+- **Google Cloud / Gemini Enterprise**: Vertex AI Agent Engine (`gemini-2.5-flash` / `pro`) + OpenAPI function tools.
+- **Microsoft Azure AI Foundry**: Azure OpenAI Service (GPT-4o) + Semantic Kernel plugins with `RequiresConsent` filters.
+- **OpenAI Enterprise**: Assistants API v2 with strict JSON Schema function calling.
+- **Databricks Mosaic AI**: Mosaic AI Agent Framework + MLflow pyfunc on Databricks Lakehouse with Unity Catalog functions.
+
+### 5. Flagship Production Pilots Instantiated
+- **`pilot-2026-customs-recon`**: Automated Export Customs Clearance & Tariff Reconciliation Pilot.
+  - *491.7% Net 1st-Year ROI ($73,750 net value, 1.7 month payback)*
+- **`pilot-2026-fluvial-draft`**: Hidrovía Dynamic Convoy Draft & Loading Allocation Pilot.
+  - *1,297.3% Net 1st-Year ROI ($285,400 net value, 0.8 month payback)*
 
 ---
 
@@ -234,7 +277,7 @@ While maintaining vendor-agnostic blueprints, the workbench treats **Google Clou
 
 ---
 
-## 12-View Inspection Interface
+## 13-View Inspection Interface
 
 1. **FDE Discovery**: Intake dossier browser and one-click model transformation compiler.
 2. **Source Evidence**: Empirical telemetry & document registry with provenance and confidence badges.
@@ -246,8 +289,9 @@ While maintaining vendor-agnostic blueprints, the workbench treats **Google Clou
 8. **Workflows**: Lifecycle trace chains for fluvial and terrestrial export corridors.
 9. **AI Opportunities**: 4D prioritization breakdown bars and `★ CANDIDATE FOR FDE PILOT` designations.
 10. **Agent Specifications & Gemini**: Platform-agnostic blueprints with live compiler and Python SDK code generator.
-11. **KPIs**: Metrics telemetry (Cash Conversion Cycle, Customs Dwell Time, Fluvial Draft Capacity, OTIF).
-12. **Synthetic Company**: Enterprise dossier, 250-headcount distribution, IT landscape, and reset controls.
+11. **FDE Pilot Engine**: Production pilot blueprints with financial ROI gauges, 12-section brief drawer, economic bridge inspector, and live platform switcher.
+12. **KPIs**: Metrics telemetry (Cash Conversion Cycle, Customs Dwell Time, Fluvial Draft Capacity, OTIF).
+13. **Synthetic Company**: Enterprise dossier, 250-headcount distribution, IT landscape, and reset controls.
 
 ---
 
@@ -265,6 +309,18 @@ python -m fde_workbench seed --export aidesa_snapshot.json
 
 # Verify cryptographic SHA-256 audit log hash-chain
 python -m fde_workbench verify-audit
+
+# List registered FDE pilots
+python run_workbench.py pilot list
+
+# Generate client-ready 12-section FDE deployment brief
+python run_workbench.py pilot brief pilot-2026-customs-recon [--export brief.md]
+
+# Calculate auditable operational economic bridge
+python run_workbench.py pilot economics pilot-2026-customs-recon
+
+# Generate multi-platform deployment plan (Gemini, Azure, OpenAI, Databricks)
+python run_workbench.py pilot deploy-plan pilot-2026-customs-recon --platform microsoft_azure_ai_foundry
 
 # Export snapshot
 python -m fde_workbench export my_snapshot.json

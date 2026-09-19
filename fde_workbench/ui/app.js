@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadWorkflows();
   loadOpportunities();
   loadAgentSpecs();
+  loadPilots();
   loadKPIs();
   loadCompany();
   bindGlobalActions();
@@ -919,7 +920,367 @@ async function exportPlatformManifest(specId, platform) {
   }
 }
 
-// 9. KPIS
+// 11. FDE PILOT ENGINE & DEPLOYMENT BLUEPRINTS
+async function loadPilots() {
+  try {
+    const res = await fetch("/api/pilots");
+    if (!res.ok) throw new Error("Failed to load pilots");
+    const data = await res.json();
+    renderPilots(data.pilots);
+  } catch (err) {
+    console.error("Failed to load pilots:", err);
+  }
+}
+
+function renderPilots(pilots) {
+  const container = document.getElementById("pilotsContainer");
+  if (!container) return;
+  if (!pilots || !pilots.length) {
+    container.innerHTML = `<div class="card">No pilots currently registered.</div>`;
+    return;
+  }
+
+  const platformDisplayMap = {
+    "gemini_enterprise": "Google Cloud / Gemini Enterprise",
+    "gemini": "Google Cloud / Gemini Enterprise",
+    "microsoft_azure_ai_foundry": "Microsoft Azure AI Foundry",
+    "microsoft": "Microsoft Azure AI Foundry",
+    "azure": "Microsoft Azure AI Foundry",
+    "openai_assistants": "OpenAI Enterprise Assistants",
+    "openai": "OpenAI Enterprise Assistants",
+    "databricks_mosaic_ai": "Databricks Mosaic AI",
+    "databricks": "Databricks Mosaic AI"
+  };
+
+  container.innerHTML = pilots.map(pilot => {
+    const econ = pilot.economics_summary || {};
+    const platformLabel = platformDisplayMap[pilot.selected_platform] || pilot.selected_platform;
+
+    return `
+      <div class="card card-accent-river" style="margin-bottom:24px; border-left:4px solid var(--river);">
+        <!-- Pilot Header Bar -->
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+          <div>
+            <span class="badge badge-local" style="font-weight:700;">${escapeHtml(pilot.pilot_id)}</span>
+            <span class="badge badge-status">${escapeHtml(pilot.status)}</span>
+            <span class="badge" style="background:var(--gold-soft); color:var(--gold); border:1px solid var(--gold); font-weight:600;">Opp: ${escapeHtml(pilot.opportunity_id)}</span>
+            ${getProvenanceBadge(pilot.provenance)}
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span style="font-family:var(--font-mono); font-size:11px; color:var(--ink-muted);">Platform Substrate:</span>
+            <select class="select-filter" style="font-size:12px; font-weight:600; padding:4px 8px;" onchange="switchPilotPlatform('${pilot.pilot_id}', this.value)">
+              <option value="gemini_enterprise" ${pilot.selected_platform.includes('gemini') ? 'selected' : ''}>Google Cloud / Gemini Enterprise</option>
+              <option value="microsoft_azure_ai_foundry" ${pilot.selected_platform.includes('microsoft') || pilot.selected_platform.includes('azure') ? 'selected' : ''}>Microsoft Azure AI Foundry</option>
+              <option value="openai_assistants" ${pilot.selected_platform.includes('openai') ? 'selected' : ''}>OpenAI Enterprise Assistants</option>
+              <option value="databricks_mosaic_ai" ${pilot.selected_platform.includes('databricks') ? 'selected' : ''}>Databricks Mosaic AI</option>
+            </select>
+            <button class="btn btn-primary" style="padding:4px 10px; font-size:11.5px;" onclick="viewPilotDeploymentPlan('${pilot.pilot_id}')">⚡ Platform Plan</button>
+          </div>
+        </div>
+
+        <!-- Title & Subtitle -->
+        <h3 style="font-family:var(--font-serif); font-size:22px; margin:6px 0 4px; color:var(--river-deep);">${escapeHtml(pilot.title)}</h3>
+        <div style="font-size:13px; color:var(--ink-muted); margin-bottom:12px;">
+          <strong>Target Enterprise:</strong> <span style="color:var(--ink);">${escapeHtml(pilot.customer)}</span> · 
+          <strong>Workflow:</strong> <span style="color:var(--ink-soft);">${escapeHtml(pilot.workflow)}</span> · 
+          <strong>Decision Owner:</strong> <span style="color:var(--river-deep); font-weight:600;">${escapeHtml(pilot.decision_owner)}</span>
+        </div>
+
+        <!-- Financial Bridge & ROI Meter -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px; margin-bottom:16px; background:#FAF9F5; padding:14px; border:1px solid var(--rule-light); border-radius:4px;">
+          <div>
+            <div class="pane-eyebrow">Baseline Annual Cost</div>
+            <div style="font-family:var(--font-mono); font-size:17px; font-weight:700; color:var(--alert);">$${Number(econ.baseline_annual_total_usd || 0).toLocaleString()}</div>
+            <div style="font-size:10.5px; color:var(--ink-muted); margin-top:2px;">Labor: $${Number(econ.baseline_annual_labor_usd || 0).toLocaleString()} · Exceptions: $${Number(econ.baseline_annual_exception_usd || 0).toLocaleString()}</div>
+          </div>
+          <div>
+            <div class="pane-eyebrow">Target Post-Intervention</div>
+            <div style="font-family:var(--font-mono); font-size:17px; font-weight:700; color:var(--ink-soft);">$${Number(econ.target_annual_total_usd || 0).toLocaleString()}</div>
+            <div style="font-size:10.5px; color:var(--ink-muted); margin-top:2px;">Target labor & reduced exceptions</div>
+          </div>
+          <div>
+            <div class="pane-eyebrow">Addressable Annual Savings</div>
+            <div style="font-family:var(--font-mono); font-size:17px; font-weight:700; color:var(--green);">$${Number(econ.addressable_annual_savings_usd || 0).toLocaleString()}</div>
+            <div style="font-size:10.5px; color:var(--ink-muted); margin-top:2px;">$${Number(econ.savings_per_shipment_usd || 0).toFixed(2)} / decision unit</div>
+          </div>
+          <div>
+            <div class="pane-eyebrow">Net 1st-Year ROI & Payback</div>
+            <div style="font-family:var(--font-mono); font-size:17px; font-weight:700; color:var(--river-deep);">${Number(econ.expected_roi_percentage || 0).toFixed(1)}%</div>
+            <div style="font-size:10.5px; color:var(--green); font-weight:600; margin-top:2px;">Payback: ${econ.payback_period_months} months</div>
+          </div>
+        </div>
+
+        <!-- Scope & Human Governance Grid -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px; font-size:12.5px;">
+          <div style="background:#FFFFFF; padding:12px; border:1px solid var(--rule-light); border-radius:3px;">
+            <div class="pane-eyebrow">Operational Decision Point</div>
+            <div style="margin-top:4px; font-weight:600; color:var(--ink);">${escapeHtml(pilot.decision)}</div>
+            <div style="margin-top:6px; color:var(--ink-soft);"><strong>Trigger:</strong> ${escapeHtml(pilot.trigger)}</div>
+            <div style="margin-top:6px; color:var(--ink-soft);"><strong>Scope:</strong> ${escapeHtml(pilot.pilot_scope)} (${escapeHtml(pilot.pilot_duration)})</div>
+          </div>
+          <div style="background:#FFFFFF; padding:12px; border:1px solid var(--rule-light); border-radius:3px;">
+            <div class="pane-eyebrow" style="color:var(--alert);">Mandatory Human Approval Gate</div>
+            <div style="margin-top:4px; font-weight:600; color:var(--river-deep);">${escapeHtml(pilot.human_approval_required)}</div>
+            <div style="margin-top:6px; color:var(--ink-soft);"><strong>Rollback Condition:</strong> ${escapeHtml(pilot.rollback_condition)}</div>
+          </div>
+        </div>
+
+        <!-- Footer Actions Bar -->
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--rule-light); padding-top:12px; flex-wrap:wrap; gap:8px;">
+          <div style="font-size:12px; color:var(--ink-muted);">
+            Active Execution Substrate: <strong style="color:var(--ink);">${escapeHtml(platformLabel)}</strong>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-secondary" onclick="viewPilotEconomics('${pilot.pilot_id}')">📊 Inspect Economic Bridge</button>
+            <button class="btn btn-primary" onclick="viewPilotBrief('${pilot.pilot_id}')">📑 View 12-Section Client Brief</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+async function switchPilotPlatform(pilotId, platform) {
+  try {
+    const res = await fetch(`/api/pilots/${pilotId}/platform`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ platform }),
+    });
+    if (!res.ok) throw new Error("Failed to switch platform");
+    await loadPilots();
+  } catch (err) {
+    alert("Error updating platform: " + err.message);
+  }
+}
+
+async function viewPilotBrief(pilotId) {
+  const backdrop = document.getElementById("drawerBackdrop");
+  const titleEl = document.getElementById("drawerEntityName");
+  const idEl = document.getElementById("drawerEntityId");
+  const typeEl = document.getElementById("drawerEntityType");
+  const bodyEl = document.getElementById("drawerBody");
+
+  backdrop.style.display = "flex";
+  typeEl.textContent = "CLIENT-READY FDE DEPLOYMENT BRIEF";
+  titleEl.textContent = "Compiling 12-Section Brief...";
+  idEl.textContent = pilotId;
+  bodyEl.innerHTML = "<div class='card'>Generating comprehensive executive brief from domain ontology & economic model...</div>";
+
+  try {
+    const res = await fetch(`/api/pilots/${pilotId}/brief?format=markdown`);
+    if (!res.ok) throw new Error("Failed to generate brief");
+    const data = await res.json();
+
+    titleEl.textContent = data.title;
+    idEl.textContent = `${data.pilot_id} · ${data.customer} · 12-Section Executive Brief`;
+
+    bodyEl.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; background:var(--river-soft); padding:10px 14px; border-radius:4px; flex-wrap:wrap; gap:8px;">
+        <div style="font-size:12px; color:var(--river-deep);">
+          <strong>Executive Ready:</strong> Full 12-section operational brief grounded in Paraguayan export telemetry.
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-secondary" style="padding:4px 10px; font-size:11px;" onclick="copyBriefMarkdown()">📋 Copy Markdown</button>
+          <button class="btn btn-primary" style="padding:4px 10px; font-size:11px;" onclick="downloadBriefMarkdown('${data.pilot_id}')">⬇️ Download .md</button>
+        </div>
+      </div>
+      <div id="briefMarkdownContent" style="display:none;">${escapeHtml(data.brief_markdown)}</div>
+      <div class="brief-markdown-rendered" style="background:#FFFFFF; padding:20px; border:1px solid var(--rule-light); border-radius:4px; font-size:13px; line-height:1.7; max-height:580px; overflow-y:auto;">
+        ${renderMarkdownToHtml(data.brief_markdown)}
+      </div>
+    `;
+  } catch (err) {
+    bodyEl.innerHTML = `<div style="color:var(--alert);">Failed to load brief: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function copyBriefMarkdown() {
+  const content = document.getElementById("briefMarkdownContent")?.textContent || "";
+  navigator.clipboard.writeText(content);
+  alert("12-Section Deployment Brief copied to clipboard!");
+}
+
+function downloadBriefMarkdown(pilotId) {
+  const content = document.getElementById("briefMarkdownContent")?.textContent || "";
+  const blob = new Blob([content], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${pilotId}-deployment-brief.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function renderMarkdownToHtml(md) {
+  if (!md) return "";
+  let html = escapeHtml(md);
+
+  // Headers
+  html = html.replace(/^# (.*$)/gim, '<h1 style="font-family:var(--font-serif); font-size:22px; color:var(--river-deep); margin:16px 0 8px; border-bottom:2px solid var(--river); padding-bottom:6px;">$1</h1>');
+  html = html.replace(/^## (.*$)/gim, '<h2 style="font-family:var(--font-serif); font-size:17px; color:var(--river-deep); margin:18px 0 6px; border-bottom:1px solid var(--rule-light); padding-bottom:4px;">$1</h2>');
+  html = html.replace(/^### (.*$)/gim, '<h3 style="font-family:var(--font-serif); font-size:14.5px; color:var(--ink); margin:12px 0 4px;">$1</h3>');
+
+  // Blockquotes
+  html = html.replace(/^> (.*$)/gim, '<blockquote style="border-left:4px solid var(--gold); background:var(--gold-soft); padding:8px 12px; margin:10px 0; font-size:12.5px;">$1</blockquote>');
+
+  // Code blocks
+  html = html.replace(/```([a-z]*)\n([\s\S]*?)```/gim, '<pre class="code-json" style="max-height:220px; font-size:11.5px; margin:10px 0;">$2</pre>');
+  html = html.replace(/`([^`]+)`/g, '<code style="font-family:var(--font-mono); background:#ECE8DD; padding:1px 4px; border-radius:2px; font-size:12px;">$1</code>');
+
+  // Bold / Italic
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+  // Lists
+  html = html.replace(/^- (.*$)/gim, '<li style="margin-left:18px;">$1</li>');
+
+  // Horizontal rules
+  html = html.replace(/^---$/gim, '<hr style="border:none; border-top:1px solid var(--rule-light); margin:14px 0;">');
+
+  // Newlines
+  html = html.replace(/\n\n/g, '<br><br>');
+
+  return html;
+}
+
+async function viewPilotEconomics(pilotId) {
+  const backdrop = document.getElementById("drawerBackdrop");
+  const titleEl = document.getElementById("drawerEntityName");
+  const idEl = document.getElementById("drawerEntityId");
+  const typeEl = document.getElementById("drawerEntityType");
+  const bodyEl = document.getElementById("drawerBody");
+
+  backdrop.style.display = "flex";
+  typeEl.textContent = "OPERATIONAL ECONOMIC BRIDGE";
+  titleEl.textContent = "Calculating Economic Bridge...";
+  idEl.textContent = pilotId;
+  bodyEl.innerHTML = "<div class='card'>Loading step-by-step mathematical calculation...</div>";
+
+  try {
+    const res = await fetch(`/api/pilots/${pilotId}/economic-bridge`);
+    if (!res.ok) throw new Error("Failed to calculate economic bridge");
+    const data = await res.json();
+    const s = data.summary;
+    const inp = data.inputs;
+
+    titleEl.textContent = `Economic Bridge: ${data.title}`;
+    idEl.textContent = `${data.pilot_id} · ${data.customer}`;
+
+    bodyEl.innerHTML = `
+      <!-- Executive ROI Callout -->
+      <div style="background:var(--river-soft); border:1px solid var(--river); border-radius:4px; padding:14px; margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div>
+            <div class="pane-eyebrow" style="color:var(--river-deep);">Net First-Year Enterprise ROI</div>
+            <div style="font-family:var(--font-mono); font-size:24px; font-weight:700; color:var(--river-deep);">$${Number(s.first_year_net_roi_usd).toLocaleString()} <span style="font-size:16px;">(${s.expected_roi_percentage}%)</span></div>
+          </div>
+          <div style="text-align:right;">
+            <div class="pane-eyebrow" style="color:var(--river-deep);">Payback Period</div>
+            <div style="font-family:var(--font-mono); font-size:20px; font-weight:700; color:var(--green);">${s.payback_period_months} Months</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empirical Parameters Table -->
+      <div class="pane-eyebrow" style="margin-bottom:6px;">Empirical Baseline & Intervention Inputs</div>
+      <table class="fde-table" style="font-size:12px; margin-bottom:16px;">
+        <tbody>
+          <tr><td>Annual Decision Volume</td><td style="font-family:var(--font-mono); font-weight:600;">${Number(inp.annual_decision_volume).toLocaleString()} decisions / shipments</td></tr>
+          <tr><td>Manual Cycle Time (Baseline)</td><td style="font-family:var(--font-mono);">${inp.manual_effort_minutes_per_decision} mins @ $${inp.hourly_labor_cost_usd}/hr</td></tr>
+          <tr><td>Current Exception Rate</td><td style="font-family:var(--font-mono); color:var(--alert);">${(inp.current_error_or_exception_rate * 100).toFixed(1)}% ($${inp.cost_per_exception_usd} / exception)</td></tr>
+          <tr><td>Target Cycle Time Post-Pilot</td><td style="font-family:var(--font-mono); font-weight:600; color:var(--green);">${inp.target_manual_effort_minutes} mins</td></tr>
+          <tr><td>Target Exception Rate Post-Pilot</td><td style="font-family:var(--font-mono); font-weight:600; color:var(--green);">${(inp.target_exception_rate * 100).toFixed(1)}%</td></tr>
+          <tr><td>Pilot Scope Batch Volume</td><td style="font-family:var(--font-mono);">${inp.pilot_decision_volume} decisions</td></tr>
+          <tr><td>Implementation Cost</td><td style="font-family:var(--font-mono);">$${Number(inp.pilot_implementation_cost_usd).toLocaleString()}</td></tr>
+          <tr><td>Annual Software License</td><td style="font-family:var(--font-mono);">$${Number(inp.annual_software_subscription_usd).toLocaleString()}</td></tr>
+          <tr><td>Working Capital Acceleration</td><td style="font-family:var(--font-mono);">${inp.working_capital_acceleration_days} days accelerated ($${Number(inp.annual_working_capital_financial_value_usd).toLocaleString()}/yr carrying value)</td></tr>
+        </tbody>
+      </table>
+
+      <!-- 10 Calculation Steps -->
+      <div class="pane-eyebrow" style="margin-bottom:6px;">Auditable 10-Step Mathematical Bridge</div>
+      <table class="fde-table" style="font-size:12px;">
+        <thead>
+          <tr>
+            <th>Step</th>
+            <th>Metric Name</th>
+            <th>Formula</th>
+            <th style="text-align:right;">Calculated Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.calculation_steps.map(step => `
+            <tr>
+              <td style="font-family:var(--font-mono); font-weight:700;">#${step.step}</td>
+              <td style="font-weight:600;">${escapeHtml(step.name)}</td>
+              <td style="font-size:11px; color:var(--ink-muted); font-family:var(--font-mono);">${escapeHtml(step.formula)}</td>
+              <td style="text-align:right; font-family:var(--font-mono); font-weight:700; color:${step.step === 6 || step.step === 9 ? 'var(--green)' : 'var(--ink)'};">
+                ${step.result_usd !== undefined ? '$' + Number(step.result_usd).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) : (step.roi_percentage + '%')}
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+  } catch (err) {
+    bodyEl.innerHTML = `<div style="color:var(--alert);">Failed to calculate economics: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+async function viewPilotDeploymentPlan(pilotId) {
+  const backdrop = document.getElementById("drawerBackdrop");
+  const titleEl = document.getElementById("drawerEntityName");
+  const idEl = document.getElementById("drawerEntityId");
+  const typeEl = document.getElementById("drawerEntityType");
+  const bodyEl = document.getElementById("drawerBody");
+
+  backdrop.style.display = "flex";
+  typeEl.textContent = "MULTI-PLATFORM DEPLOYMENT PROOF";
+  titleEl.textContent = "Loading Deployment Plan...";
+  idEl.textContent = pilotId;
+  bodyEl.innerHTML = "<div class='card'>Compiling platform-specific deployment architecture...</div>";
+
+  try {
+    const res = await fetch(`/api/pilots/${pilotId}/deployment-plan`);
+    if (!res.ok) throw new Error("Failed to load deployment plan");
+    const data = await res.json();
+    const plan = data.deployment_plan;
+
+    titleEl.textContent = `${plan.platform_display_name} Deployment Architecture`;
+    idEl.textContent = `${data.pilot_id} · Substrate: ${data.platform}`;
+
+    bodyEl.innerHTML = `
+      <div style="background:var(--paper-card); border:1px solid var(--rule-light); border-radius:4px; padding:14px; margin-bottom:14px;">
+        <div style="font-size:12.5px; line-height:1.8;">
+          <strong>Runtime Framework:</strong> <code>${escapeHtml(plan.runtime_framework)}</code><br>
+          <strong>Model Deployment:</strong> <code>${escapeHtml(plan.model_deployment)}</code><br>
+          <strong>Architecture Pattern:</strong> <span>${escapeHtml(plan.architecture_pattern)}</span>
+        </div>
+      </div>
+
+      <div class="pane-eyebrow" style="margin-bottom:6px;">Concrete Integration Steps</div>
+      <ol style="font-size:12.5px; padding-left:20px; line-height:1.7; margin-bottom:16px;">
+        ${plan.integration_steps.map(s => `<li>${escapeHtml(s)}</li>`).join("")}
+      </ol>
+
+      <div class="pane-eyebrow" style="margin-bottom:6px; color:var(--alert);">Human-in-the-Loop Governance Gate</div>
+      <div class="evidence-quote" style="font-size:12.5px; margin-bottom:16px; border-left-color:var(--alert);">
+        ${escapeHtml(plan.human_in_loop_mechanism)}
+      </div>
+
+      <div class="pane-eyebrow" style="margin-bottom:6px;">Required Credentials & Environment Variables</div>
+      <pre class="code-json" style="font-size:11.5px; margin-bottom:14px;">${plan.credentials_and_env.join("\n")}</pre>
+
+      <div class="pane-eyebrow" style="margin-bottom:6px;">Verification Command</div>
+      <pre class="code-json" style="font-size:11.5px;">${escapeHtml(plan.verification_command)}</pre>
+    `;
+  } catch (err) {
+    bodyEl.innerHTML = `<div style="color:var(--alert);">Failed to load deployment plan: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+// 12. KPIS
 async function loadKPIs() {
   try {
     const res = await fetch("/api/kpis");
