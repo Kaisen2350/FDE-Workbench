@@ -1,20 +1,22 @@
 # Felix Peña
-### Forward Deployed Engineer — Applied AI · Enterprise Integration · Operational Systems
+### Forward Deployed Engineer | Applied AI · Enterprise Integration · Operational Systems
 
-> I build the connective tissue between AI systems and real-world enterprise infrastructure.
+> I build the connective tissue between AI systems and operational reality.
 
 [FDE Workbench](https://github.com/[your-username]/fde-workbench) · [Case Studies](https://github.com/[your-username]/fde-workbench/tree/main/case-studies) · [Field Tradecraft](https://github.com/[your-username]/fde-workbench/tree/main/docs/tradecraft) · [Contact](#contact)
 
 ---
 
-## What I Build
+## Proof Architecture
 
 * **01 — Discover**: Turn ambiguous operator problems into typed requirements and assumption-stripped calibration protocols.
 * **02 — Model**: Represent physical and operational reality explicitly (river draft, axle weight, customs DNA, explicit provenance).
-* **03 — Integrate**: Connect AI systems to APIs, legacy data silos (messy TMS exports, Spanish dates/commas), and enterprise ERPs.
+* **03 — Integrate**: Ingest messy legacy systems (dirty TMS exports, Spanish dates/commas) into strongly typed domain entities.
 * **04 — Control**: *"Agent-reported completion is non-authoritative."* Enforce deterministic state gates, human authority boundaries, and SHA-256 audit trails.
-* **05 — Evaluate**: Measure task success, schema validity, safety (0 unauthorized actions), p95 latency, and token cost before field cutover.
-* **06 — Deploy**: Bridge technical performance directly to EBITDA savings, working capital acceleration, and payback months.
+* **05 — Evaluate**: Benchmark across 50 realistic operational edge cases, measuring task success, schema validity, and enforcing 0 unauthorized actions.
+* **06 — Observe**: Fine-grained span telemetry tracking p50/p95 latency and token costs, cleanly separated from compliance audit chains.
+* **07 — Economize**: Bridge technical cycle-time reductions directly to EBITDA savings, working capital acceleration, and payback months.
+* **08 — Deploy**: Decouple domain control planes from enterprise cloud execution substrates (Vertex AI, Azure AI, OpenAI, Databricks).
 
 ---
 
@@ -37,12 +39,13 @@
 
 ```mermaid
 flowchart LR
-    A["<b>1. Reality</b><br/>Physics & Corridors"] --> B["<b>2. Model</b><br/>24-Entity Taxonomy"]
-    B --> C["<b>3. Discover</b><br/>Operator Calibration"]
-    C --> D["<b>4. Control</b><br/>Deterministic Gates"]
-    D --> E["<b>5. Evaluate</b><br/>Accuracy & Latency"]
-    E --> F["<b>6. Economics</b><br/>10-Step ROI Bridge"]
-    F --> G["<b>7. Deploy</b><br/>Platform Adapters"]
+    A["<b>1. Discover</b><br/>Calibration"] --> B["<b>2. Model</b><br/>Ontology"]
+    B --> C["<b>3. Integrate</b><br/>Legacy Silos"]
+    C --> D["<b>4. Control</b><br/>State Gates"]
+    D --> E["<b>5. Evaluate</b><br/>Benchmarks"]
+    E --> F["<b>6. Observe</b><br/>Telemetry"]
+    F --> G["<b>7. Economize</b><br/>EBITDA Bridge"]
+    G --> H["<b>8. Deploy</b><br/>Adapters"]
 ```
 
 ---

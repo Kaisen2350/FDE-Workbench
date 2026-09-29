@@ -16,12 +16,13 @@
 
 ```mermaid
 flowchart LR
-    A["<b>1. Reality</b><br/>Physics & Telemetry"] --> B["<b>2. Model</b><br/>24-Entity Taxonomy"]
-    B --> C["<b>3. Discover</b><br/>Operator Calibration"]
-    C --> D["<b>4. Control</b><br/>Deterministic State Gates"]
-    D --> E["<b>5. Evaluate</b><br/>Accuracy & Latency"]
-    E --> F["<b>6. Economics</b><br/>10-Step ROI Bridge"]
-    F --> G["<b>7. Deploy</b><br/>Multi-Platform Substrates"]
+    A["<b>1. Discover</b><br/>Calibration"] --> B["<b>2. Model</b><br/>Ontology"]
+    B --> C["<b>3. Integrate</b><br/>Legacy Silos"]
+    C --> D["<b>4. Control</b><br/>State Gates"]
+    D --> E["<b>5. Evaluate</b><br/>Benchmarks"]
+    E --> F["<b>6. Observe</b><br/>Telemetry"]
+    F --> G["<b>7. Economize</b><br/>EBITDA Bridge"]
+    G --> H["<b>8. Deploy</b><br/>Adapters"]
 ```
 
 ### The Operational Triad: Evidence ➔ Decision ➔ Action
