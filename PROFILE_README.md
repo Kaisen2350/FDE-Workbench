@@ -21,7 +21,7 @@
 ## Selected Work
 
 * [**FDE Workbench (Flagship Monorepo)**](https://github.com/[your-username]/fde-workbench)  
-  Executable control plane for deploying AI into messy operational environments. Built in Python 3.11 / Pydantic v2 / FastAPI with **77 automated tests**, **6 deterministic verification gates**, and zero external network coupling.
+  Executable control plane for deploying AI into messy operational environments. Built in Python 3.11 / Pydantic v2 / FastAPI with **78 automated tests**, **6 deterministic verification gates**, and zero external network coupling.
 * [**Synthetic Deployment Case 1: Customs Reconciliation**](https://github.com/[your-username]/fde-workbench/tree/main/case-studies/customs-reconciliation)  
   BR-277 border corridor: 4-way document cross-check and SOFIA dispatch reconciliation. **223.5% Net 1st-Year ROI**, **1.7-month payback**.
 * [**Synthetic Deployment Case 2: Fluvial Convoy Draft Optimizer**](https://github.com/[your-username]/fde-workbench/tree/main/case-studies/fluvial-convoy)  
@@ -50,7 +50,7 @@ flowchart LR
 ## 60-Second Quickstart
 
 ```bash
-# Clone & run deterministic test suite (77 tests, all green)
+# Clone & run deterministic test suite (78 tests, all green)
 git clone https://github.com/[your-username]/fde-workbench.git
 cd fde-workbench
 pip install -r requirements.txt

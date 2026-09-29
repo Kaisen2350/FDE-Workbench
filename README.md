@@ -2,7 +2,7 @@
 ### Production patterns for deploying AI into messy operational environments
 
 [![CI Gates](https://img.shields.io/badge/CI_Gates-Deterministic_Pass-brightgreen.svg)](.github/workflows/test.yml)
-[![Tests](https://img.shields.io/badge/Tests-77_Passing-blue.svg)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-78_Passing-blue.svg)](tests/)
 [![Audit Chain](https://img.shields.io/badge/Audit_Chain-SHA--256_Tamper--Free-purple.svg)](#tamper-evident-audit-hash-chain-phase-15)
 [![Safety Invariant](https://img.shields.io/badge/Unauthorized_Actions-0_Enforced-red.svg)](fde_workbench/evals/)
 [![Observability](https://img.shields.io/badge/Observability-p95_%3C_10ms-teal.svg)](fde_workbench/telemetry/)
