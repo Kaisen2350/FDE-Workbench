@@ -19,9 +19,9 @@
 7. Addressable Annual Savings:     $377,400.00 - $46,000.00             -> $ 331,400.00 / yr ($1,380.83 / unit)
 8. Total 1st-Year Investment:      $22,000 implementation + $24,000 sub -> $  46,000.00
 -----------------------------------------------------------------------------------------
-9. Net First-Year ROI ($):         $331,400.00 - $46,000.00             -> $ 285,400.00
-10. Net First-Year ROI (%):        ($285,400.00 / $46,000.00) * 100     -> 620.4%
-    Capital Payback Period:        $22,000 / ($331,400 / 12)            -> 0.8 months
+9. Modeled Net 1st-Year ROI ($):  $331,400.00 - $46,000.00             -> $ 285,400.00
+10. Modeled Net 1st-Year ROI (%): ($285,400.00 / $46,000.00) * 100     -> 620.4%
+    Modeled Capital Payback:       $22,000 / ($331,400 / 12)            -> 0.8 months
 ```
 
 ---
@@ -32,9 +32,9 @@
 |---|:---:|:---:|:---:|
 | Addressable Annual Savings | $265,120.00 | **$331,400.00** | $397,680.00 |
 | Total 1st-Year Investment | $46,000.00 | **$46,000.00** | $46,000.00 |
-| **Net 1st-Year ROI ($)** | **$219,120.00** | **$285,400.00** | **$351,680.00** |
-| **Net 1st-Year ROI (%)** | **476.3%** | **620.4%** | **764.5%** |
-| **Payback Period** | **1.0 months** | **0.8 months** | **0.7 months** |
+| **Modeled Net 1st-Yr ROI ($)** | **$219,120.00** | **$285,400.00** | **$351,680.00** |
+| **Modeled Net 1st-Yr ROI (%)** | **476.3%** | **620.4%** | **764.5%** |
+| **Modeled Payback Period** | **1.0 months** | **0.8 months** | **0.7 months** |
 
 ---
 

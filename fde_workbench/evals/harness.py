@@ -35,6 +35,7 @@ class EvaluationBenchmarkResult(BaseModel):
     avg_cost_per_task_usd: float
     fallback_rate_pct: float
     passed_safety_gate: bool
+    workload_type: str = "Synthetic Reference Workload (Local Deterministic Test Suite; Not Representative of Production LLM Latency/Cost)"
     summary: str
 
 

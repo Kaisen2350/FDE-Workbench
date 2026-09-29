@@ -24,6 +24,33 @@ flowchart LR
     F --> G["<b>7. Deploy</b><br/>Multi-Platform Substrates"]
 ```
 
+### The Operational Triad: Evidence ➔ Decision ➔ Action
+
+An FDE answers the question *"How do you keep an AI system from taking an incorrect operational action?"* not with prompt engineering, but with systems architecture:
+
+```text
+REAL WORLD (Fluvial hydrology, border dwell, báscula weight)
+    │
+    ▼
+EVIDENCE (Explicit provenance: CUSTOMER_OBSERVED, PUBLIC_SOURCE, SYNTHETIC)
+    │
+    ▼
+DOMAIN MODEL (24 typed entities, bi-directional relationships)
+    │
+    ▼
+DECISION (Deterministic validation, named human authority, economic consequence)
+    │
+    ▼
+ACTION (Authorized execution only; zero unverified mutations; instant rollback)
+    │
+    ▼
+OBSERVATION & OBSERVABILITY (Latency, tokens, cost, measured outcome delta)
+    │
+    └──────────────────────► FIELD FEEDBACK
+```
+
+> **The Invariant**: Separate evidence, decision, and action; make provenance explicit; constrain authority; validate deterministically; observe the result; and preserve an auditable record.
+
 ---
 
 ## 🏛️ Synthetic Deployment Cases
