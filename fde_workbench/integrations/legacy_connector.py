@@ -67,7 +67,19 @@ class LegacyTMSConnector:
         except ValueError:
             return val.strip()
 
-    def process_csv_stream(self, csv_content: str):
+    def process_csv_stream(
+        self,
+        csv_content: str,
+        provenance: ProvenanceType = ProvenanceType.SYNTHETIC,
+    ):
+        """Processes and normalizes raw TMS CSV stream.
+
+        Args:
+            csv_content: Raw CSV text stream.
+            provenance: Data origin classification. Defaults to ProvenanceType.SYNTHETIC
+                for reference fixtures modeled after legacy enterprise systems. In live
+                deployments, set to ProvenanceType.CUSTOMER_OBSERVED upon direct terminal read.
+        """
         reader = csv.DictReader(io.StringIO(csv_content), delimiter=';')
         
         shipments: List[Shipment] = []
@@ -116,7 +128,7 @@ class LegacyTMSConnector:
                     name=raw_carrier,
                     transport_mode="TERRESTRIAL",
                     fleet_size=15,
-                    provenance=ProvenanceType.CUSTOMER_OBSERVED,
+                    provenance=provenance,
                     attributes={"active_fleets": ["bitren", "granelero"]},
                 )
 
@@ -133,7 +145,7 @@ class LegacyTMSConnector:
                 vessel_or_truck_id=f"Truck {plate}",
                 corridor="Corredor Bioceánico / BR-277",
                 status="IN_TRANSIT",
-                provenance=ProvenanceType.CUSTOMER_OBSERVED,
+                provenance=provenance,
                 attributes={
                     "legacy_dispatch_no": dispatch_id,
                     "dispatch_date": iso_date,
@@ -150,7 +162,7 @@ class LegacyTMSConnector:
                 id=f"evi-tms-{dispatch_id.lower()}",
                 source="Trans-Chaco TMS (2004 Legacy CSV Export)",
                 source_type=EvidenceSourceType.ERP_RECORD,
-                provenance=ProvenanceType.CUSTOMER_OBSERVED,
+                provenance=provenance,
                 confidence=0.92,
                 extracted_claim=f"Dispatch {dispatch_id} weighed {net_kg:.2f} kg net of {raw_product or 'unspecified product'} to {raw_destination}.",
                 raw_payload_snippet=f"{dispatch_id};{raw_date};{raw_carrier};{raw_driver_plate};{gross_kg}kg",

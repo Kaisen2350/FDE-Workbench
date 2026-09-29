@@ -28,15 +28,26 @@ class TestIntegrations(unittest.TestCase):
         self.assertEqual(report.evidence_records_created, 4)
         self.assertGreaterEqual(report.anomalies_detected, 2)  # Missing plate, high moisture
 
-        # Check explicit provenance
+        # Check explicit provenance: default is SYNTHETIC for reference fixture
         for s in shipments:
-            self.assertEqual(s.provenance, ProvenanceType.CUSTOMER_OBSERVED)
+            self.assertEqual(s.provenance, ProvenanceType.SYNTHETIC)
             self.assertIn("net_weight_kg", s.attributes)
             self.assertGreater(s.attributes["net_weight_kg"], 0)
 
         for e in evidence:
-            self.assertEqual(e.provenance, ProvenanceType.CUSTOMER_OBSERVED)
+            self.assertEqual(e.provenance, ProvenanceType.SYNTHETIC)
             self.assertEqual(len(e.references_entity_ids), 2)
+
+    def test_live_production_provenance_override(self):
+        """In live on-site deployments, connector stamps ProvenanceType.CUSTOMER_OBSERVED."""
+        connector = LegacyTMSConnector()
+        shipments, carriers, evidence, report = connector.process_csv_stream(
+            MESSY_TMS_SAMPLE_CSV, provenance=ProvenanceType.CUSTOMER_OBSERVED
+        )
+        for s in shipments:
+            self.assertEqual(s.provenance, ProvenanceType.CUSTOMER_OBSERVED)
+        for e in evidence:
+            self.assertEqual(e.provenance, ProvenanceType.CUSTOMER_OBSERVED)
 
 
 if __name__ == "__main__":

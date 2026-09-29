@@ -16,19 +16,21 @@ If your system treats all facts as equal, you have a design flaw:
 * A báscula weighbridge scale log recording `scale_ticket_closed` at 14:22 and customs gate exit at 17:10 is an empirical observation.
 * An official hydrometric water level bulletin published by the Prefectura Naval is a verified public source.
 
-In the FDE Workbench, **data provenance is a first-class enum on every entity, evidence record, and decision**:
+In the FDE Workbench, **data provenance is an active engineering primitive**, not just an audit tag:
 
 ```python
 class ProvenanceType(str, Enum):
-    SYNTHETIC = "SYNTHETIC"                 # Deterministic baseline data modeling physical reality
-    CUSTOMER_OBSERVED = "CUSTOMER_OBSERVED" # Direct on-site telemetry (scale tickets, logs)
-    PUBLIC_SOURCE = "PUBLIC_SOURCE"         # Official bulletins (customs tariffs, hydrometric gauges)
-    CUSTOMER_PROVIDED = "CUSTOMER_PROVIDED" # Self-reported claims from customer interviews
+    SYNTHETIC = "SYNTHETIC"                 # Synthetic fixture modeled after legacy enterprise patterns
+    CUSTOMER_PROVIDED = "CUSTOMER_PROVIDED" # Customer-supplied unverified claim or questionnaire
+    CUSTOMER_OBSERVED = "CUSTOMER_OBSERVED" # Actually observed on-site in customer environment
+    PUBLIC_SOURCE = "PUBLIC_SOURCE"         # Verified official bulletins (customs, hydrometric gauges)
     DERIVED = "DERIVED"                     # Programmatically computed state transitions
 ```
 
-**The FDE Rule of Evidence**:
-The control plane refuses to authorize irreversible financial actions or submit official customs filings based solely on `CUSTOMER_PROVIDED` assertions without corroboration from `CUSTOMER_OBSERVED` or `PUBLIC_SOURCE` data.
+**Provenance governs what the system is allowed to believe and subsequently do:**
+1. A recommendation derived from `SYNTHETIC` fixtures is strictly labeled as a reference workload or modeled hypothesis.
+2. The control plane refuses to trigger irreversible external mutations or official customs filings based solely on `CUSTOMER_PROVIDED` assertions without corroboration from `CUSTOMER_OBSERVED` or `PUBLIC_SOURCE` evidence.
+3. Every state transition links backward to a verified `EvidenceRecord`, preserving the chain of belief.
 
 Synthetic data isn't a weakness if provenance is explicit. And customer claims aren't truth until telemetry confirms them.
 

@@ -22,7 +22,7 @@ I built a dedicated connector (`LegacyTMSConnector`) in the workbench to show ho
 2. Extracts truck license plates and driver identities via regex.
 3. Automatically flags physical quality anomalies (e.g. moisture > 14.0% = aflatoxin risk).
 4. Emits typed `Shipment` and `Carrier` domain entities into the ontology.
-5. Ties the raw payload snippet to an `EvidenceRecord` with explicit `CUSTOMER_OBSERVED` provenance.
+5. Ties the raw payload snippet to an `EvidenceRecord` with explicit provenance (stamped `ProvenanceType.SYNTHETIC` for this reference fixture; transitioning to `CUSTOMER_OBSERVED` upon live on-site deployment).
 
 Before your AI can reason about a workflow, you must build the plumbing that turns legacy garbage into structured ground truth.
 
