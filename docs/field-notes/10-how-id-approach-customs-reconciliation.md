@@ -1,7 +1,7 @@
 # FDE Field Note #10: How I'd Approach Customs Reconciliation as an FDE
 
 > **Target Channel**: LinkedIn / Substack / X  
-> **Repository Anchor**: [`case-studies/customs-reconciliation/`](https://github.com/[your-username]/fde-workbench/blob/main/case-studies/customs-reconciliation/)  
+> **Repository Anchor**: [`case-studies/customs-reconciliation/`](https://github.com/kaisen2350/fde-workbench/blob/main/case-studies/customs-reconciliation/)  
 > **Key Principle**: *In cross-border export logistics, solving exceptions at the border is already a failure. A Forward Deployed Engineer moves deterministic verification upstream to the grain terminal before the truck ever leaves the gate.*
 
 ---
@@ -58,4 +58,4 @@ In our synthetic deployment study modeled across a 100 truck/day corridor:
 
 **Full case study & architecture brief**:
 Explore the discovery brief, system architecture, and economic models:  
-👉 [https://github.com/[your-username]/fde-workbench/tree/main/case-studies/customs-reconciliation](https://github.com/[your-username]/fde-workbench/tree/main/case-studies/customs-reconciliation)
+👉 [https://github.com/kaisen2350/fde-workbench/tree/main/case-studies/customs-reconciliation](https://github.com/kaisen2350/fde-workbench/tree/main/case-studies/customs-reconciliation)

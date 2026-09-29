@@ -1,7 +1,7 @@
 # FDE Field Note #07: Auditability and Observability Are Different Systems
 
 > **Target Channel**: LinkedIn / Substack / X  
-> **Repository Anchor**: [`fde_workbench/telemetry/tracer.py`](https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/telemetry/tracer.py)  
+> **Repository Anchor**: [`fde_workbench/telemetry/tracer.py`](https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/telemetry/tracer.py)  
 > **Key Principle**: *Auditability asks: "What happened, and can I prove it to a regulator?" Observability asks: "Why did it happen, where was the latency, and what did it cost?" Conflating the two creates systems that fail both auditors and on-call engineers.*
 
 ---
@@ -52,4 +52,4 @@ Where it gets hard in real customer environments is **context propagation across
 
 **Code implementation**:
 See the trace collector, span tree hierarchy, and latency distribution engine:  
-👉 [https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/telemetry/tracer.py](https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/telemetry/tracer.py)
+👉 [https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/telemetry/tracer.py](https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/telemetry/tracer.py)

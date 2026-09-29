@@ -1,7 +1,7 @@
 # FDE Field Note #01: The Model Isn't the Deployment
 
 > **Target Channel**: LinkedIn / Substack / X  
-> **Repository Anchor**: [`fde_workbench/domain/ontology.py`](https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/domain/ontology.py)  
+> **Repository Anchor**: [`fde_workbench/domain/ontology.py`](https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/domain/ontology.py)  
 > **Key Principle**: *Enterprise AI fails not at prompt generation, but at the boundary with physical reality and state machines.*
 
 ---
@@ -28,4 +28,4 @@ The first deliverable of a Forward Deployed Engineer is not a prompt. It is a ty
 
 **Code implementation**:
 See the 24-entity domain taxonomy and critical path engine:  
-👉 [https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/domain/ontology.py](https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/domain/ontology.py)
+👉 [https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/domain/ontology.py](https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/domain/ontology.py)

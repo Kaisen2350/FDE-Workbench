@@ -1,7 +1,7 @@
 # FDE Field Note #09: Same Operational Model. Different Deployment Substrate
 
 > **Target Channel**: LinkedIn / Substack / X  
-> **Repository Anchor**: [`fde_workbench/domain/adapters/`](https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/domain/adapters/)  
+> **Repository Anchor**: [`fde_workbench/domain/adapters/`](https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/domain/adapters/)  
 > **Key Principle**: *Enterprise clients rarely adopt vendor-locked AI architectures. A production control plane must keep domain ontology and deterministic state engines completely decoupled from the cloud execution substrate.*
 
 ---
@@ -59,4 +59,4 @@ Decoupling the operational engine from the cloud layer delivers two enormous adv
 
 **Code implementation**:
 See the 4 enterprise platform adapters and interface definitions:  
-👉 [https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/domain/adapters/](https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/domain/adapters/)
+👉 [https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/domain/adapters/](https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/domain/adapters/)

@@ -1,7 +1,7 @@
 # FDE Field Note #05: “Agent-Reported Completion Is Non-Authoritative”
 
 > **Target Channel**: LinkedIn / Substack / X  
-> **Repository Anchor**: [`fde_workbench/domain/decisions.py`](https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/domain/decisions.py)  
+> **Repository Anchor**: [`fde_workbench/domain/decisions.py`](https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/domain/decisions.py)  
 > **Key Principle**: *An AI model stating "I have finished the task" is not evidence that the operation was executed.*
 
 ---
@@ -45,4 +45,4 @@ Agents propose. Control systems gate, verify, and log.
 
 **Code implementation**:
 See the 5-stage decision state machine and escalation engine:  
-👉 [https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/domain/decisions.py](https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/domain/decisions.py)
+👉 [https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/domain/decisions.py](https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/domain/decisions.py)

@@ -3,7 +3,7 @@
 
 > I build the connective tissue between AI systems and operational reality.
 
-[FDE Workbench](https://github.com/[your-username]/fde-workbench) · [Case Studies](https://github.com/[your-username]/fde-workbench/tree/main/case-studies) · [Field Tradecraft](https://github.com/[your-username]/fde-workbench/tree/main/docs/tradecraft) · [Contact](#contact)
+[FDE Workbench](https://github.com/kaisen2350/fde-workbench) · [Case Studies](https://github.com/kaisen2350/fde-workbench/tree/main/case-studies) · [Field Tradecraft](https://github.com/kaisen2350/fde-workbench/tree/main/docs/tradecraft) · [Contact](#contact)
 
 ---
 
@@ -22,15 +22,15 @@
 
 ## Selected Work
 
-* [**FDE Workbench (Flagship Monorepo)**](https://github.com/[your-username]/fde-workbench)  
+* [**FDE Workbench (Flagship Monorepo)**](https://github.com/kaisen2350/fde-workbench)  
   Executable control plane for deploying AI into messy operational environments. Built in Python 3.11 / Pydantic v2 / FastAPI with **78 automated tests**, **6 deterministic verification gates**, and zero external network coupling.
-* [**Synthetic Deployment Case 1: Customs Reconciliation**](https://github.com/[your-username]/fde-workbench/tree/main/case-studies/customs-reconciliation)  
+* [**Synthetic Deployment Case 1: Customs Reconciliation**](https://github.com/kaisen2350/fde-workbench/tree/main/case-studies/customs-reconciliation)  
   BR-277 border corridor: 4-way document cross-check and SOFIA dispatch reconciliation. **223.5% Net 1st-Year ROI**, **1.7-month payback**.
-* [**Synthetic Deployment Case 2: Fluvial Convoy Draft Optimizer**](https://github.com/[your-username]/fde-workbench/tree/main/case-studies/fluvial-convoy)  
+* [**Synthetic Deployment Case 2: Fluvial Convoy Draft Optimizer**](https://github.com/kaisen2350/fde-workbench/tree/main/case-studies/fluvial-convoy)  
   Paraguay River Hidrovía: Dynamic draft allocation under shallow pass restrictions (*Paso Queso*). **620.4% Net 1st-Year ROI**, **0.8-month payback**.
-* [**Legacy Enterprise TMS Connector**](https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/integrations/legacy_connector.py)  
+* [**Legacy Enterprise TMS Connector**](https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/integrations/legacy_connector.py)  
   Connective tissue normalizing messy Latin CSV exports (comma decimals, Spanish dates, noisy carrier plates) into typed domain entities.
-* [**AI Evaluation Harness & Observability Telemetry**](https://github.com/[your-username]/fde-workbench/tree/main/fde_workbench/evals)  
+* [**AI Evaluation Harness & Observability Telemetry**](https://github.com/kaisen2350/fde-workbench/tree/main/fde_workbench/evals)  
   Benchmark evaluation across 50 operational cases tracking task accuracy, p95 latency, token cost, and enforcing **0 unauthorized actions**.
 
 ---
@@ -54,7 +54,7 @@ flowchart LR
 
 ```bash
 # Clone & run deterministic test suite (78 tests, all green)
-git clone https://github.com/[your-username]/fde-workbench.git
+git clone https://github.com/kaisen2350/fde-workbench.git
 cd fde-workbench
 pip install -r requirements.txt
 python -m unittest discover -s tests -p "test_*.py" -v

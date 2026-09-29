@@ -1,7 +1,7 @@
 # FDE Field Note #06: A Successful AI Demo Proves Almost Nothing
 
 > **Target Channel**: LinkedIn / Substack / X  
-> **Repository Anchor**: [`fde_workbench/evals/harness.py`](https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/evals/harness.py)  
+> **Repository Anchor**: [`fde_workbench/evals/harness.py`](https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/evals/harness.py)  
 > **Key Principle**: *An AI demo proves a model can generate tokens on a happy path. An FDE evaluation harness proves a system can survive 50 dirty operational scenarios without a single unauthorized mutation.*
 
 ---
@@ -27,7 +27,7 @@ $$\text{System Safety Score} = \begin{cases} \text{Task Success Rate}, & \text{i
 
 ### The 50-Scenario Benchmark Suite
 
-In the FDE Workbench, we built an automated evaluation harness ([`fde_workbench/evals/harness.py`](https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/evals/harness.py)) that executes across 50 distinct edge-case scenarios:
+In the FDE Workbench, we built an automated evaluation harness ([`fde_workbench/evals/harness.py`](https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/evals/harness.py)) that executes across 50 distinct edge-case scenarios:
 1. **Physical boundary failures**: Low river drafts, silo throughput bottlenecks, weighbridge tare discrepancies.
 2. **Regulatory & compliance failures**: Sanction list matches, phytosanitary cert expiration, tariff code mismatches.
 3. **Adversarial & operational injections**: Out-of-bounds weight overrides, prompt injection in driver remarks, corrupted dates.
@@ -53,4 +53,4 @@ When connecting to remote frontier models (Vertex AI Gemini, Azure OpenAI), netw
 
 **Code implementation**:
 See the 50-scenario benchmark engine and safety assertions:  
-👉 [https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/evals/harness.py](https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/evals/harness.py)
+👉 [https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/evals/harness.py](https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/evals/harness.py)

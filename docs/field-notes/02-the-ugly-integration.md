@@ -1,7 +1,7 @@
 # FDE Field Note #02: I Deliberately Built the Integration I Didn't Want to Build
 
 > **Target Channel**: LinkedIn / Substack / X  
-> **Repository Anchor**: [`fde_workbench/integrations/legacy_connector.py`](https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/integrations/legacy_connector.py)  
+> **Repository Anchor**: [`fde_workbench/integrations/legacy_connector.py`](https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/integrations/legacy_connector.py)  
 > **Key Principle**: *The connective tissue between AI and 20-year-old enterprise data silos is 80% of forward-deployed engineering.*
 
 ---
@@ -30,4 +30,4 @@ Before your AI can reason about a workflow, you must build the plumbing that tur
 
 **Code implementation**:
 See the legacy connector and messy CSV normalization:  
-👉 [https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/integrations/legacy_connector.py](https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/integrations/legacy_connector.py)
+👉 [https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/integrations/legacy_connector.py](https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/integrations/legacy_connector.py)

@@ -1,7 +1,7 @@
 # FDE Field Note #08: “We Saved 40 Hours” Isn't an ROI Calculation
 
 > **Target Channel**: LinkedIn / Substack / X  
-> **Repository Anchor**: [`case-studies/customs-reconciliation/economics.md`](https://github.com/[your-username]/fde-workbench/blob/main/case-studies/customs-reconciliation/economics.md)  
+> **Repository Anchor**: [`case-studies/customs-reconciliation/economics.md`](https://github.com/kaisen2350/fde-workbench/blob/main/case-studies/customs-reconciliation/economics.md)  
 > **Key Principle**: *Telling an enterprise CFO that an AI deployment "saved 40 hours of manual review" gets a blank stare. If saved hours don't reduce overtime, prevent penalties, or accelerate cash collection, the net financial impact on the P&L is exactly \$0.*
 
 ---
@@ -22,7 +22,7 @@ To the CFO, that wasn't an operational optimization—it was a pure margin reduc
 
 A Forward Deployed Engineer must translate software latency improvements into line items that directly impact EBITDA and working capital. 
 
-In our Customs Reconciliation Case Study ([`case-studies/customs-reconciliation/economics.md`](https://github.com/[your-username]/fde-workbench/blob/main/case-studies/customs-reconciliation/economics.md)), we model economics through a rigorous 10-step bridge:
+In our Customs Reconciliation Case Study ([`case-studies/customs-reconciliation/economics.md`](https://github.com/kaisen2350/fde-workbench/blob/main/case-studies/customs-reconciliation/economics.md)), we model economics through a rigorous 10-step bridge:
 
 ```text
 [Operational Reality]
@@ -63,4 +63,4 @@ If an FDE claims "guaranteed savings" before a 90-day production bake period, ex
 
 **Economic specification**:
 See the full 10-step mathematical model and sensitivity tables:  
-👉 [https://github.com/[your-username]/fde-workbench/blob/main/case-studies/customs-reconciliation/economics.md](https://github.com/[your-username]/fde-workbench/blob/main/case-studies/customs-reconciliation/economics.md)
+👉 [https://github.com/kaisen2350/fde-workbench/blob/main/case-studies/customs-reconciliation/economics.md](https://github.com/kaisen2350/fde-workbench/blob/main/case-studies/customs-reconciliation/economics.md)

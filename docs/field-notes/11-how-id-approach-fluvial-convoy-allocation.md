@@ -1,7 +1,7 @@
 # FDE Field Note #11: How I'd Approach Fluvial Convoy Allocation
 
 > **Target Channel**: LinkedIn / Substack / X  
-> **Repository Anchor**: [`case-studies/fluvial-convoy/`](https://github.com/[your-username]/fde-workbench/blob/main/case-studies/fluvial-convoy/)  
+> **Repository Anchor**: [`case-studies/fluvial-convoy/`](https://github.com/kaisen2350/fde-workbench/blob/main/case-studies/fluvial-convoy/)  
 > **Key Principle**: *In river logistics, software does not optimize abstract queues. It optimizes inches of water draft under an iron hull. Every inch left unloaded is lost revenue; every inch overloaded is a shipwreck.*
 
 ---
@@ -57,4 +57,4 @@ In our synthetic fluvial convoy case study:
 
 **Full case study & architecture brief**:
 Explore the hydrometric models, risk analysis, and convoy economics:  
-👉 [https://github.com/[your-username]/fde-workbench/tree/main/case-studies/fluvial-convoy](https://github.com/[your-username]/fde-workbench/tree/main/case-studies/fluvial-convoy)
+👉 [https://github.com/kaisen2350/fde-workbench/tree/main/case-studies/fluvial-convoy](https://github.com/kaisen2350/fde-workbench/tree/main/case-studies/fluvial-convoy)

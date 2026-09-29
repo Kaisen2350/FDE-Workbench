@@ -1,7 +1,7 @@
 # FDE Field Note #12: What I Would Change Before Putting This in Front of a Live Customer
 
 > **Target Channel**: LinkedIn / Substack / X  
-> **Repository Anchor**: [`README.md`](https://github.com/[your-username]/fde-workbench/blob/main/README.md)  
+> **Repository Anchor**: [`README.md`](https://github.com/kaisen2350/fde-workbench/blob/main/README.md)  
 > **Key Principle**: *The clearest indicator of engineering seniority isn't claiming your prototype is "enterprise-ready." It is knowing precisely what will break when you move from a local control plane to enterprise infrastructure.*
 
 ---
@@ -47,4 +47,4 @@ The goal was to demonstrate how an engineer tackles the **last mile of AI**: tak
 ---
 
 **Explore the complete repository and documentation**:  
-👉 [https://github.com/[your-username]/fde-workbench](https://github.com/[your-username]/fde-workbench)
+👉 [https://github.com/kaisen2350/fde-workbench](https://github.com/kaisen2350/fde-workbench)

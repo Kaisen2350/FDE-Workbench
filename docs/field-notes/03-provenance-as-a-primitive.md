@@ -1,7 +1,7 @@
 # FDE Field Note #03: Why Provenance is an Engineering Primitive
 
 > **Target Channel**: LinkedIn / Substack / X  
-> **Repository Anchor**: [`fde_workbench/domain/provenance.py`](https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/domain/provenance.py)  
+> **Repository Anchor**: [`fde_workbench/domain/provenance.py`](https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/domain/provenance.py)  
 > **Key Principle**: *An enterprise system that treats stakeholder claims and empirical sensor data as equal will fail catastrophically.*
 
 ---
@@ -38,4 +38,4 @@ Synthetic data isn't a weakness if provenance is explicit. And customer claims a
 
 **Code implementation**:
 See how provenance is modeled across entities and evidence:  
-👉 [https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/domain/provenance.py](https://github.com/[your-username]/fde-workbench/blob/main/fde_workbench/domain/provenance.py)
+👉 [https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/domain/provenance.py](https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/domain/provenance.py)

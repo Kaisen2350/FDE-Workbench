@@ -1,7 +1,7 @@
 # FDE Field Note #04: The First Thing an FDE Builds Isn't Software
 
 > **Target Channel**: LinkedIn / Substack / X  
-> **Repository Anchor**: [`docs/tradecraft/02-operator-discovery.md`](https://github.com/[your-username]/fde-workbench/blob/main/docs/tradecraft/02-operator-discovery.md)  
+> **Repository Anchor**: [`docs/tradecraft/02-operator-discovery.md`](https://github.com/kaisen2350/fde-workbench/blob/main/docs/tradecraft/02-operator-discovery.md)  
 > **Key Principle**: *Customer interviews should produce typed schemas, not meeting minutes. And never show the operator your numbers first.*
 
 ---
@@ -39,4 +39,4 @@ The deliverable of discovery is an engineering backlog grounded in calibrated nu
 
 **Code implementation**:
 See the discovery intake engine and operator interview calibration scripts:  
-👉 [https://github.com/[your-username]/fde-workbench/blob/main/docs/tradecraft/02-operator-discovery.md](https://github.com/[your-username]/fde-workbench/blob/main/docs/tradecraft/02-operator-discovery.md)
+👉 [https://github.com/kaisen2350/fde-workbench/blob/main/docs/tradecraft/02-operator-discovery.md](https://github.com/kaisen2350/fde-workbench/blob/main/docs/tradecraft/02-operator-discovery.md)
