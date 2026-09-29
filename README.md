@@ -12,6 +12,32 @@
 
 ---
 
+## 🧭 Start Here (The 90-Second Walkthrough)
+
+1. **The Core Thesis**: [Field Note #01 — The Model Isn't the Deployment](docs/field-notes/01-the-model-isnt-the-deployment.md)
+2. **The Legacy Integration**: [`LegacyTMSConnector`](fde_workbench/integrations/legacy_connector.py) (normalizing dirty Latin dates & comma decimals)
+3. **The Gated State Engine**: [`decisions.py`](fde_workbench/domain/decisions.py) (*"Agent-reported completion is non-authoritative"*)
+4. **The Evaluation Suite**: [`harness.py`](fde_workbench/evals/harness.py) (50 scenarios, `unauthorized_actions == 0`)
+5. **Operational Telemetry**: [`tracer.py`](fde_workbench/telemetry/tracer.py) (p95 latency, tokens/sec, and cost spans)
+6. **Synthetic Corridor Case**: [Customs Reconciliation Case Study](case-studies/customs-reconciliation/)
+7. **Pre-Registered Protocol**: [Operator Validation Protocol](docs/tradecraft/04-operator-validation-protocol.md)
+
+---
+
+## 📊 Evidence Status Ladder
+
+| Evidence Tier | Status | Verification Anchor |
+|---|:---:|---|
+| **Tier 1: Synthetic Reference** | **✓ Active** | 50-scenario benchmark & corridor simulations ([`fde_workbench/evals/`](fde_workbench/evals/)) |
+| **Tier 2: Self-Tested Controls** | **✓ Active** | 78 deterministic unit tests & SHA-256 audit chain ([`tests/`](tests/)) |
+| **Tier 3: Customer-Provided Data** | — Pending | Awaiting historical anonymized operator dataset |
+| **Tier 4: Customer-Observed Reality** | — Pending | Pre-registered delta measurement from live operator desk |
+| **Tier 5: Production Impact** | — Pending | Realized operational savings & production cutover |
+
+> **Epistemic Invariant**: Practice environments should not be represented as customer experience or production evidence. The next evidence tier will come strictly from external operational validation.
+
+---
+
 ## The FDE Deployment Loop
 
 ```mermaid
