@@ -1,33 +1,53 @@
-# Paraguay Export Economy — Forward Deployed Engineer (FDE) Workbench
+# FDE Workbench
+### Production patterns for deploying AI into messy operational environments
 
 [![CI Gates](https://img.shields.io/badge/CI_Gates-Deterministic_Pass-brightgreen.svg)](.github/workflows/test.yml)
-[![Tests](https://img.shields.io/badge/Tests-72_Passing-blue.svg)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-77_Passing-blue.svg)](tests/)
 [![Audit Chain](https://img.shields.io/badge/Audit_Chain-SHA--256_Tamper--Free-purple.svg)](#tamper-evident-audit-hash-chain-phase-15)
-[![FDE Curriculum](https://img.shields.io/badge/FDE_Curriculum-5_Applied_Modules-orange.svg)](docs/curriculum/)
+[![Safety Invariant](https://img.shields.io/badge/Unauthorized_Actions-0_Enforced-red.svg)](fde_workbench/evals/)
+[![Observability](https://img.shields.io/badge/Observability-p95_%3C_10ms-teal.svg)](fde_workbench/telemetry/)
+[![Field Tradecraft](https://img.shields.io/badge/FDE_Tradecraft-Field_Notes-orange.svg)](docs/tradecraft/)
 
-> **Mission**: An engineering, research, and operational control plane for a Forward Deployed Engineer (FDE) to model the physical reality of Paraguayan export-oriented enterprises, capture source evidence with explicit provenance, identify mission-critical workflows and bottlenecks via structured discovery, evaluate opportunities across 4 operational dimensions, and bridge findings into canonical **Pilot Specifications** with auditable **Economic Bridges**, 1-click **12-Section Client Deployment Briefs**, and **Multi-Platform Deployment Proof** across Google Gemini, Microsoft Azure, OpenAI, and Databricks Mosaic AI.
+> **Mission**: An executable forward-deployed engineering workbench for turning ambiguous operational problems into typed systems, deterministic controls, measurable economics, and deployable AI infrastructure.
 
 ---
 
-## 📚 The 5-Module FDE Curriculum Codex
-
-The repository functions both as an operational workbench and as an applied curriculum for Forward Deployed Engineers:
+## The FDE Deployment Loop
 
 ```mermaid
 flowchart LR
-    M1["<b>Module 1</b><br/>Physical Reality &<br/>Domain Ontologies"] --> M2["<b>Module 2</b><br/>Discovery Intake &<br/>Operator Calibration"]
-    M2 --> M3["<b>Module 3</b><br/>Deterministic Control &<br/>State Machines"]
-    M3 --> M4["<b>Module 4</b><br/>The Economic Bridge &<br/>ROI Equations"]
-    M4 --> M5["<b>Module 5</b><br/>Multi-Platform<br/>Enterprise Substrates"]
+    A["<b>1. Reality</b><br/>Physics & Telemetry"] --> B["<b>2. Model</b><br/>24-Entity Taxonomy"]
+    B --> C["<b>3. Discover</b><br/>Operator Calibration"]
+    C --> D["<b>4. Control</b><br/>Deterministic State Gates"]
+    D --> E["<b>5. Evaluate</b><br/>Accuracy & Latency"]
+    E --> F["<b>6. Economics</b><br/>10-Step ROI Bridge"]
+    F --> G["<b>7. Deploy</b><br/>Multi-Platform Substrates"]
 ```
 
-| Module | Core Operational Focus | Key Deliverables & Code |
+---
+
+## 🏛️ Synthetic Deployment Cases
+
+Two end-to-end synthetic customer deployments demonstrate the workbench in action across real Latin American trade corridors:
+
+| Deployment Case | Operational Corridor | Economic Impact & Payback | Documentation & Architecture |
+|---|---|:---:|---|
+| [**Export Customs Reconciliation**](case-studies/customs-reconciliation/) | Ciudad del Este ➔ Foz do Iguaçu (BR-277) | **223.5% Net ROI**<br/>**1.7 mo payback** | [Overview](case-studies/customs-reconciliation/README.md) · [Discovery](case-studies/customs-reconciliation/discovery.md) · [Architecture](case-studies/customs-reconciliation/architecture.md) · [Economics](case-studies/customs-reconciliation/economics.md) · [Brief](case-studies/customs-reconciliation/deployment-brief.md) |
+| [**Hidrovía Fluvial Convoy Allocation**](case-studies/fluvial-convoy/) | Paraguay River km 1590 (Villeta ➔ Nueva Palmira) | **620.4% Net ROI**<br/>**0.8 mo payback** | [Overview](case-studies/fluvial-convoy/README.md) · [Discovery](case-studies/fluvial-convoy/discovery.md) · [Architecture](case-studies/fluvial-convoy/architecture.md) · [Economics](case-studies/fluvial-convoy/economics.md) · [Brief](case-studies/fluvial-convoy/deployment-brief.md) |
+
+---
+
+## 🛠️ Field Tradecraft Modules
+
+Supporting technical documentation detailing the engineering patterns implemented in the codebase:
+
+| Tradecraft Guide | Core Engineering Question | Key Field Artifacts |
 |---|---|---|
-| [**Module 1: Physical Reality & Domain Ontologies**](docs/curriculum/01-domain-ontologies.md) | Modeling real-world friction (river draft, axle weight, customs DNA) over paperwork | 24-Entity Taxonomy, Provenance Enums, Critical Path |
-| [**Module 2: Discovery Intake & Operator Calibration**](docs/curriculum/02-operator-discovery.md) | Extracting ground truth without confirmation bias using assumption-stripped briefs | `DiscoveryIntake` Schema, Operator Interview Kit, 4D Matrix |
-| [**Module 3: Deterministic Control & Governance**](docs/curriculum/03-deterministic-control.md) | "Agent-reported completion is non-authoritative." HITL authority and rollback gates | 5-Stage Decision Pipeline, SHA-256 Audit Chain, Escalations |
-| [**Module 4: The Economic Bridge & ROI Equations**](docs/curriculum/04-economic-bridges.md) | Translating cycle times and exceptions into 10-step auditable EBITDA equations | `PilotEconomicModel`, 12-Section Client Briefs, Payback Months |
-| [**Module 5: Multi-Platform Enterprise Substrates**](docs/curriculum/05-platform-adapters.md) | "Same operational model, different deployment adapter" across enterprise clouds | Gemini Enterprise, Azure AI Foundry, OpenAI, Databricks |
+| [**01. Physical Reality & Domain Ontologies**](docs/tradecraft/01-domain-ontologies.md) | *How do we model physical constraints (river draft, axle weight) over lagging paperwork?* | 24-Entity Taxonomy, Provenance Enums, Critical Path |
+| [**02. Discovery Intake & Operator Calibration**](docs/tradecraft/02-operator-discovery.md) | *How do we extract ground truth from operators without confirmation bias?* | `DiscoveryIntake` Schema, Assumption-Stripped Briefs, 4D Matrix |
+| [**03. Deterministic Control & Governance**](docs/tradecraft/03-deterministic-control.md) | *Why must agent-reported completion be non-authoritative?* | 5-Stage Decision Pipeline, SHA-256 Audit Chain, Escalations |
+| [**04. The Economic Bridge & ROI Equations**](docs/tradecraft/04-economic-bridges.md) | *How do we translate operational cycle time and exceptions into auditable EBITDA?* | 10-Step Economic Model, 12-Section Briefs, Payback Months |
+| [**05. Multi-Platform Enterprise Substrates**](docs/tradecraft/05-platform-adapters.md) | *How do we deploy to Azure, Gemini, OpenAI, or Databricks without rewriting logic?* | Google Vertex AI, Azure AI Foundry, OpenAI, Databricks Mosaic |
 
 ---
 
@@ -342,9 +362,13 @@ python -m fde_workbench discover --intake aidesa_discovery_intake.json
 python -m fde_workbench seed --export aidesa_snapshot.json
 
 # Verify cryptographic SHA-256 audit log hash-chain
-# NOTE: 'Tamper-free' guarantees integrity within the current active database session from initial genesis block.
-# Running 'seed' resets the database to genesis state rather than maintaining an immutable ledger across resets.
 python -m fde_workbench verify-audit
+
+# Execute AI evaluation benchmark & safety gates (50 cases)
+python run_workbench.py eval
+
+# Inspect live observability & telemetry metrics (p50, p95 latency, tokens, cost)
+python run_workbench.py telemetry
 
 # List registered FDE pilots
 python run_workbench.py pilot list

@@ -46,6 +46,12 @@ def main():
     # Command: verify-audit
     audit_parser = subparsers.add_parser("verify-audit", help="Verify cryptographic SHA-256 audit log hash-chain")
 
+    # Command: eval
+    eval_parser = subparsers.add_parser("eval", help="Run FDE AI benchmark evaluation suite")
+
+    # Command: telemetry
+    telemetry_parser = subparsers.add_parser("telemetry", help="Inspect live operational telemetry and latency percentiles")
+
     # Command: pilot
     pilot_parser = subparsers.add_parser("pilot", help="FDE Pilot Engine operations")
     pilot_sub = pilot_parser.add_subparsers(dest="pilot_action", help="Pilot action")
@@ -143,7 +149,43 @@ def main():
             print("Cryptographic Audit Chain: CORRUPTED!")
             print(f"  Corrupted Sequence:     {result.get('corrupted_sequence')}")
             print(f"  Reason:                 {result.get('reason')}")
-            sys.exit(1)
+    elif args.command == "eval":
+        from fde_workbench.evals.harness import run_eval_suite
+        print("\nExecuting FDE Evaluation Benchmark Suite (50 test instances)...")
+        res = run_eval_suite()
+        print("=" * 75)
+        print(f"  FDE AI EVALUATION BENCHMARK & SAFETY REPORT")
+        print("=" * 75)
+        print(f"  Total Test Cases:          {res.total_eval_cases}")
+        print(f"  Task Success Rate:         {res.task_success_rate_pct}%")
+        print(f"  Schema Validity:           {res.schema_validity_pct}%")
+        print(f"  Unauthorized Actions:      {res.unauthorized_actions} (Invariant: strictly 0)")
+        print(f"  p95 Latency:               {res.p95_latency_ms} ms")
+        print(f"  Avg Latency:               {res.avg_latency_ms} ms")
+        print(f"  Avg Cost per Task:         ${res.avg_cost_per_task_usd:.5f}")
+        print(f"  Fallback Rate:             {res.fallback_rate_pct}%")
+        print(f"  Safety Gate Status:        {'PASSED' if res.passed_safety_gate else 'FAILED'}")
+        print("=" * 75 + "\n")
+
+    elif args.command == "telemetry":
+        from fde_workbench.telemetry.tracer import tracer
+        from fde_workbench.evals.harness import run_eval_suite
+        if not tracer.traces:
+            run_eval_suite()
+        metrics = tracer.get_metrics_summary()
+        print("\n" + "=" * 75)
+        print("  FDE OPERATIONAL OBSERVABILITY & TELEMETRY SUMMARY")
+        print("=" * 75)
+        print(f"  Total Traced Executions:   {metrics['total_traces']}")
+        print(f"  p50 Latency:               {metrics['p50_latency_ms']} ms")
+        print(f"  p90 Latency:               {metrics['p90_latency_ms']} ms")
+        print(f"  p95 Latency:               {metrics['p95_latency_ms']} ms")
+        print(f"  p99 Latency:               {metrics['p99_latency_ms']} ms")
+        print(f"  Total Tokens In:           {metrics['total_tokens_in']}")
+        print(f"  Total Tokens Out:          {metrics['total_tokens_out']}")
+        print(f"  Total Cost (USD):          ${metrics['total_cost_usd']:.4f}")
+        print(f"  Error Rate:                {metrics['error_rate_pct']}%")
+        print("=" * 75 + "\n")
 
     elif args.command == "pilot":
         from fde_workbench.domain.brief_generator import FDEBriefGenerator

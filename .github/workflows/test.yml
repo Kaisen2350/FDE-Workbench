@@ -29,7 +29,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Gate 1 - Unit Test Suite (72 Tests)
+    - name: Gate 1 - Unit Test Suite (77 Tests)
       run: |
         python -m unittest discover -s tests -p "test_*.py" -v
 
@@ -45,3 +45,11 @@ jobs:
       run: |
         python run_workbench.py pilot economics pilot-2026-customs-recon
         python run_workbench.py pilot economics pilot-2026-fluvial-draft
+
+    - name: Gate 5 - AI Evaluation Benchmark & Safety Invariants
+      run: |
+        python run_workbench.py eval
+
+    - name: Gate 6 - Operational Observability & Telemetry Tracing
+      run: |
+        python run_workbench.py telemetry
