@@ -75,6 +75,6 @@ python run_workbench.py
 ---
 
 ## Contact
-- **Email**: [your.email@domain.com]
-- **LinkedIn**: [linkedin.com/in/your-profile](https://linkedin.com/in/)
+- **Email**: [kaisentrading@gmail.com](mailto:kaisentrading@gmail.com)
+- **LinkedIn**: [linkedin.com/in/felixpenamelgarejo](https://www.linkedin.com/in/felixpenamelgarejo/)
 - **Location**: Asunción, Paraguay / Available globally for embedded enterprise engagements
