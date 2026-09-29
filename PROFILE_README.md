@@ -1,7 +1,9 @@
 # Felix Peña
 ### Forward Deployed Engineer | Applied AI · Enterprise Integration · Operational Systems
 
-> I build the connective tissue between AI systems and operational reality.
+## *"I build the connective tissue between AI systems and operational reality."*
+
+> **I work at the boundary between AI systems, legacy enterprise infrastructure, and operational workflows — where correctness, authority, latency, and economics matter more than the demo.**
 
 [FDE Workbench](https://github.com/kaisen2350/fde-workbench) · [Case Studies](https://github.com/kaisen2350/fde-workbench/tree/main/case-studies) · [Field Tradecraft](https://github.com/kaisen2350/fde-workbench/tree/main/docs/tradecraft) · [Contact](#contact)
 
@@ -12,7 +14,7 @@
 | Evidence Tier | Status | Verification Anchor |
 |---|:---:|---|
 | **Tier 1: Synthetic Reference** | **✓ Active** | 50-scenario benchmark & corridor simulations |
-| **Tier 2: Self-Tested Controls** | **✓ Active** | 78 deterministic unit tests & SHA-256 audit chain |
+| **Tier 2: Repository-Validated Controls** | **✓ Active** | 78 deterministic unit tests & SHA-256 audit chain |
 | **Tier 3: Customer-Provided Data** | — Pending | Awaiting historical anonymized operator dataset |
 | **Tier 4: Customer-Observed Reality** | — Pending | Pre-registered delta measurement from live operator desk |
 | **Tier 5: Production Impact** | — Pending | Realized operational savings & production cutover |
@@ -36,16 +38,18 @@
 
 ## Selected Work
 
-* [**FDE Workbench (Flagship Monorepo)**](https://github.com/kaisen2350/fde-workbench)  
-  Executable control plane for deploying AI into messy operational environments. Built in Python 3.11 / Pydantic v2 / FastAPI with **78 automated tests**, **6 deterministic verification gates**, and zero external network coupling.
-* [**Synthetic Deployment Case 1: Customs Reconciliation**](https://github.com/kaisen2350/fde-workbench/tree/main/case-studies/customs-reconciliation)  
-  BR-277 border corridor: 4-way document cross-check and SOFIA dispatch reconciliation. **223.5% Net 1st-Year ROI**, **1.7-month payback**.
-* [**Synthetic Deployment Case 2: Fluvial Convoy Draft Optimizer**](https://github.com/kaisen2350/fde-workbench/tree/main/case-studies/fluvial-convoy)  
-  Paraguay River Hidrovía: Dynamic draft allocation under shallow pass restrictions (*Paso Queso*). **620.4% Net 1st-Year ROI**, **0.8-month payback**.
-* [**Legacy Enterprise TMS Connector**](https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/integrations/legacy_connector.py)  
-  Connective tissue normalizing messy Latin CSV exports (comma decimals, Spanish dates, noisy carrier plates) into typed domain entities.
-* [**AI Evaluation Harness & Observability Telemetry**](https://github.com/kaisen2350/fde-workbench/tree/main/fde_workbench/evals)  
-  Benchmark evaluation across 50 operational cases tracking task accuracy, p95 latency, token cost, and enforcing **0 unauthorized actions**.
+### 01 — [FDE Workbench](https://github.com/kaisen2350/fde-workbench) · *Primary Evidence*
+Executable control plane for deploying AI into messy operational environments. Built in Python 3.11 / Pydantic v2 / FastAPI with **78 automated tests**, **6 deterministic verification gates**, and zero external network coupling. Grounded in a 24-entity typed domain taxonomy and SHA-256 audit chain.
+
+### 02 — [Legacy Enterprise Integration](https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/integrations/legacy_connector.py) · *Technical Depth*
+Connective tissue normalizing messy Latin CSV exports (comma decimals, Spanish dates, noisy carrier plates) into typed domain entities. Handles parsing errors, field ambiguity, and schema migration without silent data corruption.
+
+### 03 — [Evaluation & Observability](https://github.com/kaisen2350/fde-workbench/tree/main/fde_workbench/evals) · *Production Discipline*
+50-scenario benchmark evaluation harness measuring task accuracy, p95 latency (<10ms), and token costs, while enforcing an uncompromised safety invariant: **0 unauthorized operational actions**. Fine-grained runtime span telemetry is strictly decoupled from compliance audit logs.
+
+### 04 — [Synthetic Deployment Cases](https://github.com/kaisen2350/fde-workbench/tree/main/case-studies) · *Domain Application*
+* **[Customs Reconciliation (BR-277 Border Corridor)](https://github.com/kaisen2350/fde-workbench/tree/main/case-studies/customs-reconciliation)**: 4-way document cross-check and SOFIA dispatch reconciliation. **223.5% Net 1st-Year ROI**, **1.7-month payback**.
+* **[Fluvial Convoy Draft Optimizer (Paraguay River Hidrovía)](https://github.com/kaisen2350/fde-workbench/tree/main/case-studies/fluvial-convoy)**: Dynamic draft allocation under shallow pass restrictions (*Paso Queso*). **620.4% Net 1st-Year ROI**, **0.8-month payback**.
 
 ---
 

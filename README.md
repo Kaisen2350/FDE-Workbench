@@ -29,7 +29,7 @@
 | Evidence Tier | Status | Verification Anchor |
 |---|:---:|---|
 | **Tier 1: Synthetic Reference** | **✓ Active** | 50-scenario benchmark & corridor simulations ([`fde_workbench/evals/`](fde_workbench/evals/)) |
-| **Tier 2: Self-Tested Controls** | **✓ Active** | 78 deterministic unit tests & SHA-256 audit chain ([`tests/`](tests/)) |
+| **Tier 2: Repository-Validated Controls** | **✓ Active** | 78 deterministic unit tests & SHA-256 audit chain ([`tests/`](tests/)) |
 | **Tier 3: Customer-Provided Data** | — Pending | Awaiting historical anonymized operator dataset |
 | **Tier 4: Customer-Observed Reality** | — Pending | Pre-registered delta measurement from live operator desk |
 | **Tier 5: Production Impact** | — Pending | Realized operational savings & production cutover |
