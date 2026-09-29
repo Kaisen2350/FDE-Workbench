@@ -1,6 +1,33 @@
-# Paraguay Export Economy — Forward Deployed Engineer (FDE) Workbench (Phase 1, 1.5, 2 & 3)
+# Paraguay Export Economy — Forward Deployed Engineer (FDE) Workbench
+
+[![CI Gates](https://img.shields.io/badge/CI_Gates-Deterministic_Pass-brightgreen.svg)](.github/workflows/test.yml)
+[![Tests](https://img.shields.io/badge/Tests-72_Passing-blue.svg)](tests/)
+[![Audit Chain](https://img.shields.io/badge/Audit_Chain-SHA--256_Tamper--Free-purple.svg)](#tamper-evident-audit-hash-chain-phase-15)
+[![FDE Curriculum](https://img.shields.io/badge/FDE_Curriculum-5_Applied_Modules-orange.svg)](docs/curriculum/)
 
 > **Mission**: An engineering, research, and operational control plane for a Forward Deployed Engineer (FDE) to model the physical reality of Paraguayan export-oriented enterprises, capture source evidence with explicit provenance, identify mission-critical workflows and bottlenecks via structured discovery, evaluate opportunities across 4 operational dimensions, and bridge findings into canonical **Pilot Specifications** with auditable **Economic Bridges**, 1-click **12-Section Client Deployment Briefs**, and **Multi-Platform Deployment Proof** across Google Gemini, Microsoft Azure, OpenAI, and Databricks Mosaic AI.
+
+---
+
+## 📚 The 5-Module FDE Curriculum Codex
+
+The repository functions both as an operational workbench and as an applied curriculum for Forward Deployed Engineers:
+
+```mermaid
+flowchart LR
+    M1["<b>Module 1</b><br/>Physical Reality &<br/>Domain Ontologies"] --> M2["<b>Module 2</b><br/>Discovery Intake &<br/>Operator Calibration"]
+    M2 --> M3["<b>Module 3</b><br/>Deterministic Control &<br/>State Machines"]
+    M3 --> M4["<b>Module 4</b><br/>The Economic Bridge &<br/>ROI Equations"]
+    M4 --> M5["<b>Module 5</b><br/>Multi-Platform<br/>Enterprise Substrates"]
+```
+
+| Module | Core Operational Focus | Key Deliverables & Code |
+|---|---|---|
+| [**Module 1: Physical Reality & Domain Ontologies**](docs/curriculum/01-domain-ontologies.md) | Modeling real-world friction (river draft, axle weight, customs DNA) over paperwork | 24-Entity Taxonomy, Provenance Enums, Critical Path |
+| [**Module 2: Discovery Intake & Operator Calibration**](docs/curriculum/02-operator-discovery.md) | Extracting ground truth without confirmation bias using assumption-stripped briefs | `DiscoveryIntake` Schema, Operator Interview Kit, 4D Matrix |
+| [**Module 3: Deterministic Control & Governance**](docs/curriculum/03-deterministic-control.md) | "Agent-reported completion is non-authoritative." HITL authority and rollback gates | 5-Stage Decision Pipeline, SHA-256 Audit Chain, Escalations |
+| [**Module 4: The Economic Bridge & ROI Equations**](docs/curriculum/04-economic-bridges.md) | Translating cycle times and exceptions into 10-step auditable EBITDA equations | `PilotEconomicModel`, 12-Section Client Briefs, Payback Months |
+| [**Module 5: Multi-Platform Enterprise Substrates**](docs/curriculum/05-platform-adapters.md) | "Same operational model, different deployment adapter" across enterprise clouds | Gemini Enterprise, Azure AI Foundry, OpenAI, Databricks |
 
 ---
 
@@ -21,7 +48,10 @@
 The workbench is local-first, requires only Python 3.11 with `pydantic` and `fastapi`, and runs with zero external network dependencies.
 
 ```powershell
-# 1. Launch the Workbench Web Interface
+# 1. Install minimal dependencies
+pip install -r requirements.txt
+
+# 2. Launch the Workbench Web Interface
 python run_workbench.py
 
 # Alternatively via the package entrypoint:
@@ -32,7 +62,7 @@ Open your browser at:
 - **Workbench UI**: [http://127.0.0.1:8000](http://127.0.0.1:8000)
 - **Interactive REST API Docs**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
-To run the automated test suite (68 unit tests):
+To run the automated test suite (72 unit tests):
 ```powershell
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
