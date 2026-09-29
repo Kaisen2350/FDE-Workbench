@@ -8,3 +8,5 @@ htmlcov/
 *.db
 *.db-wal
 *.db-shm
+*.salt
+.operator_secret.salt
