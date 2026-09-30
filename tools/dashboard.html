@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>FDE Tradecraft Distribution & Monitoring Dashboard</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    /* Smooth transitions and custom scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(150, 150, 150, 0.3); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(150, 150, 150, 0.5); }
+    .badge-vanguard { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .badge-reservoir { background: rgba(107, 114, 128, 0.15); color: #9ca3af; border: 1px solid rgba(107, 114, 128, 0.3); }
+    .badge-crown { background: rgba(168, 85, 247, 0.15); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); }
+  </style>
+</head>
+<body class="bg-transparent text-[var(--foreground)] antialiased p-4 md:p-6 font-sans">
+
+  <!-- Main Container Card -->
+  <div class="max-w-7xl mx-auto bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-xl overflow-hidden backdrop-blur-sm">
+    
+    <!-- Top Header Bar -->
+    <div class="border-b border-[var(--border)] p-6 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-transparent">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              ● CODEBASE FROZEN @ 9ec505e
+            </span>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+              78 TESTS PASSING
+            </span>
+          </div>
+          <h1 class="text-2xl font-bold tracking-tight text-[var(--foreground)]">
+            FDE Distribution & Posting Calendar Engine
+          </h1>
+          <p class="text-sm text-[var(--muted-foreground)] mt-0.5">
+            Operational visibility for <span class="font-semibold text-[var(--foreground)]">Felix Peña</span> · 
+            <em>"I build the connective tissue between AI systems and operational reality."</em>
+          </p>
+        </div>
+
+        <!-- Quick Stats Banner -->
+        <div class="flex items-center gap-3">
+          <div class="text-center px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-xl">
+            <div class="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Provenance</div>
+            <div id="stat-tier" class="text-sm font-bold text-amber-500">SYNTHETIC</div>
+          </div>
+          <div class="text-center px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-xl">
+            <div class="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Vanguard</div>
+            <div id="stat-vanguard" class="text-sm font-bold text-blue-500">0 / 7 Live</div>
+          </div>
+          <div class="text-center px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-xl">
+            <div class="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Operators</div>
+            <div id="stat-operators" class="text-sm font-bold text-purple-500">0 Contacted</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Falsifiable Observation Scoreboard (8-Stage Tracker) -->
+      <div class="mt-6 pt-5 border-t border-[var(--border)]">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+            The Falsifiable Observation Scoreboard (External Validation Pipeline)
+          </h3>
+          <span class="text-xs text-[var(--muted-foreground)] font-mono">Current Stage: 1. Distribution</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 text-center text-xs font-medium">
+          <div class="p-2 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-600 dark:text-blue-400 font-semibold shadow-xs">
+            1. Distribution<br><span class="text-[10px] font-normal opacity-80">Repo Live ✓</span>
+          </div>
+          <div class="p-2 rounded-lg bg-[var(--background)] border border-[var(--border)] text-[var(--muted-foreground)]">
+            2. Conversation<br><span class="text-[10px] opacity-70">Opener Sent</span>
+          </div>
+          <div class="p-2 rounded-lg bg-[var(--background)] border border-[var(--border)] text-[var(--muted-foreground)]">
+            3. Access<br><span class="text-[10px] opacity-70">Masked CSV</span>
+          </div>
+          <div class="p-2 rounded-lg bg-[var(--background)] border border-[var(--border)] text-[var(--muted-foreground)]">
+            4. Baseline<br><span class="text-[10px] opacity-70">Pre-Registered</span>
+          </div>
+          <div class="p-2 rounded-lg bg-[var(--background)] border border-[var(--border)] text-[var(--muted-foreground)]">
+            5. Intervention<br><span class="text-[10px] opacity-70">Gated Eval</span>
+          </div>
+          <div class="p-2 rounded-lg bg-[var(--background)] border border-[var(--border)] text-[var(--muted-foreground)]">
+            6. Measurement<br><span class="text-[10px] opacity-70">Delta Logged</span>
+          </div>
+          <div class="p-2 rounded-lg bg-[var(--background)] border border-[var(--border)] text-[var(--muted-foreground)]">
+            7. Validation<br><span class="text-[10px] opacity-70">Operator Review</span>
+          </div>
+          <div class="p-2 rounded-lg bg-[var(--background)] border border-[var(--border)] text-[var(--muted-foreground)]">
+            8. Evidence<br><span class="text-[10px] opacity-70">Field Note #13</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls & Filter Tabs -->
+    <div class="p-6 border-b border-[var(--border)] bg-[var(--background)]/50 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-1.5 p-1 bg-[var(--card)] border border-[var(--border)] rounded-xl">
+        <button onclick="setFilter('ALL')" id="tab-ALL" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white transition-all">
+          All Posts (13)
+        </button>
+        <button onclick="setFilter('VANGUARD')" id="tab-VANGUARD" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all">
+          Vanguard Seven (7)
+        </button>
+        <button onclick="setFilter('RESERVOIR')" id="tab-RESERVOIR" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all">
+          Deep Reservoir (5)
+        </button>
+        <button onclick="setFilter('CROWN_JEWEL')" id="tab-CROWN_JEWEL" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all">
+          Field Note #13
+        </button>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2">
+        <a href="https://github.com/Kaisen2350/FDE-Workbench" target="_blank" class="px-3 py-1.5 text-xs font-medium border border-[var(--border)] rounded-lg hover:bg-[var(--card)] text-[var(--foreground)] flex items-center gap-1.5 transition">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          Repo on GitHub
+        </a>
+        <a href="https://www.linkedin.com/in/felixpenamelgarejo/" target="_blank" class="px-3 py-1.5 text-xs font-medium border border-[var(--border)] rounded-lg hover:bg-[var(--card)] text-[var(--foreground)] flex items-center gap-1.5 transition">
+          <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+          LinkedIn Profile
+        </a>
+      </div>
+    </div>
+
+    <!-- Posts Grid -->
+    <div id="posts-container" class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <!-- Injected by JavaScript -->
+    </div>
+
+  </div>
+
+  <!-- Modal for Post Copy Preview -->
+  <div id="copy-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 border-b border-[var(--border)]">
+        <div>
+          <span id="modal-track-badge" class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold"></span>
+          <h3 id="modal-title" class="text-base font-bold text-[var(--foreground)] mt-1"></h3>
+        </div>
+        <button onclick="closeModal()" class="text-[var(--muted-foreground)] hover:text-[var(--foreground)] text-lg font-bold p-1">✕</button>
+      </div>
+
+      <div class="mt-4">
+        <label class="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider block mb-1">
+          Post Copy (Ready for LinkedIn / X)
+        </label>
+        <textarea id="modal-textarea" readonly class="w-full h-72 font-mono text-xs p-3 bg-[var(--background)] border border-[var(--border)] rounded-xl text-[var(--foreground)] focus:outline-hidden resize-none"></textarea>
+      </div>
+
+      <div class="mt-4 flex items-center justify-between">
+        <a id="modal-code-link" href="#" target="_blank" class="text-xs text-blue-500 hover:underline flex items-center gap-1">
+          Inspect Code Anchor ↗
+        </a>
+        <div class="flex gap-2">
+          <button onclick="closeModal()" class="px-4 py-2 text-xs font-medium border border-[var(--border)] rounded-lg hover:bg-[var(--background)]">
+            Close
+          </button>
+          <button onclick="copyModalContent()" id="copy-btn" class="px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition flex items-center gap-1.5 shadow-sm">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+            Copy Text to Clipboard
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Post Data Reservoir
+    const POSTS_DATA = [
+      {
+        id: "FN-01",
+        num: 1,
+        track: "VANGUARD",
+        title: "The Model Isn't the Deployment",
+        thesis: "Enterprise AI fails not at prompt generation, but at the boundary with physical reality and state machines.",
+        date: "Tuesday · Sep 29, 2026",
+        status: "READY_TO_POST",
+        anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/domain/ontology.py",
+        copy: `Enterprise AI demos usually test whether a model can format clean JSON from a PDF invoice. \n\nIn industrial supply chains and cross-border logistics, that demo proves almost nothing.\n\nConsider two synthetic deployment scenarios illustrating these corridor constraints:\n• A Bill of Lading says 1,500 metric tons of soybean meal were loaded, but the hydrometric gauge on the river dropped 40 cm overnight. If you dispatch that push-convoy at full draft, it runs aground at Paso Queso.\n• An export declaration in the customs portal says "Cleared", but the physical báscula scale ticket at the terminal has a 450 kg discrepancy with the invoice. The truck sits in the red channel at the border for 36 hours incurring demurrage fines.\n\nA language model knows nothing about water depth, axle weight, or customs DNA unless you build an operational ontology grounded in physical truth.\n\nThe model is only one component. The deployment is the system surrounding it.\n\nBefore calling an LLM, an FDE builds the connective tissue:\n1. Physical boundaries (silo throughput, weighbridge capacity)\n2. Logistics constraints (convoy drafts, truck axle limits)\n3. Regulatory regimes (customs compliance, phytosanitary certs)\n\nI’ve published the complete 24-entity domain ontology and critical path control plane as an open-source reference workbench:\n\n👉 Code: https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/domain/ontology.py\n\nThe first deliverable of a Forward Deployed Engineer is not a prompt. It is a typed representation of reality.\n\n#AppliedAI #ForwardDeployedEngineering #SystemsArchitecture #SupplyChain #Logistics`
+      },
+      {
+        id: "FN-02",
+        num: 2,
+        track: "VANGUARD",
+        title: "I Deliberately Built the Integration I Didn't Want to Build",
+        thesis: "Connective tissue: normalizing legacy Latin TMS exports (Spanish dates, comma decimals, dirty plates).",
+        date: "Thursday · Oct 01, 2026",
+        status: "PLANNED",
+        anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/integrations/legacy_connector.py",
+        copy: `When entering an enterprise deployment, junior engineers look for GraphQL endpoints. Senior Forward Deployed Engineers look for the 20-year-old on-premise TMS exporting semicolon-delimited CSVs.\n\nHere is what that plumbing looks like in Latin American logistics:\n• Dates formatted as DD/MM/YYYY with Spanish abbreviations.\n• Decimal comma notation ("42.350,00").\n• Driver license plates buried inside unstructured text strings.\n\nInstead of paying 800ms of LLM inference latency to guess string normalization, an FDE builds high-performance deterministic connectors that normalize dirty legacy dumps into typed domain entities in microseconds with zero token billing.\n\n👉 See the implementation: https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/integrations/legacy_connector.py`
+      },
+      {
+        id: "FN-05",
+        num: 5,
+        track: "VANGUARD",
+        title: "“Agent-Reported Completion Is Non-Authoritative”",
+        thesis: "Why an LLM saying 'done' cannot mutate production state. Gating action behind deterministic authority.",
+        date: "Tuesday · Oct 06, 2026",
+        status: "PLANNED",
+        anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/domain/decisions.py",
+        copy: `If an AI agent generates the JSON string: \n{"status": "CLEARED", "action": "DISPATCH_TRUCK"}\n...did the shipment actually clear customs?\n\nIn our workbench architecture, the answer is an inviolable NO.\n\nAgent-reported completion is strictly advisory. An autonomous model is prohibited from mutating production ERP or SOFIA customs state.\n\nIn our 5-stage decision engine, every recommendation passes through deterministic validation and requires a cryptographically signed human authority token before an action executes.\n\n👉 Architecture: https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/domain/decisions.py`
+      },
+      {
+        id: "FN-06",
+        num: 6,
+        track: "VANGUARD",
+        title: "A Successful AI Demo Proves Almost Nothing",
+        thesis: "Building a 50-scenario benchmark: task success, schema validity, p95 latency, and zero unauthorized actions.",
+        date: "Thursday · Oct 08, 2026",
+        status: "PLANNED",
+        anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/evals/harness.py",
+        copy: `An AI demo proves a model can generate tokens on a happy path. An evaluation harness proves a system can survive 50 dirty operational scenarios without a single unauthorized mutation.\n\nTraditional ML accuracy metrics (98%) are useless if the remaining 2% represents unauthorized customs filings or unverified bank transfers. Safety is binary: unauthorized_actions must equal strictly zero.\n\n👉 Benchmark harness: https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/evals/harness.py`
+      },
+      {
+        id: "FN-07",
+        num: 7,
+        track: "VANGUARD",
+        title: "Auditability and Observability Are Different Systems",
+        thesis: "Forensic cryptographic audit trails vs. live runtime telemetry (p50/p95 latency, tokens/sec, cost).",
+        date: "Tuesday · Oct 13, 2026",
+        status: "PLANNED",
+        anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/telemetry/tracer.py",
+        copy: `Auditability asks: "What happened, and can I prove it forensically to a customs inspector?" (Handled by our SHA-256 append-only hash chain).\n\nObservability asks: "Why did it happen, where was the latency, and what did it cost?" (Handled by span-level trace trees calculating p95 latency and inference billing).\n\nConflating the two creates systems that fail both auditors and on-call engineers.\n\n👉 Tracing engine: https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/telemetry/tracer.py`
+      },
+      {
+        id: "FN-08",
+        num: 8,
+        track: "VANGUARD",
+        title: "“We Saved 40 Hours” Isn't an ROI Calculation",
+        thesis: "The 10-step mathematical bridge from cycle time reduction to annual EBITDA and payback months.",
+        date: "Thursday · Oct 15, 2026",
+        status: "PLANNED",
+        anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/case-studies/customs-reconciliation/economics.md",
+        copy: `Telling an enterprise CFO that an AI deployment "saved 40 hours of manual review" gets a blank stare. If saved hours don't reduce overtime, prevent penalties, or accelerate cash collection, the net financial impact on the P&L is exactly $0.\n\nHere is how an FDE builds the 10-step mathematical bridge from cycle time to EBITDA, demurrage avoidance, and payback months.\n\n👉 Economic Model: https://github.com/Kaisen2350/FDE-Workbench/blob/main/case-studies/customs-reconciliation/economics.md`
+      },
+      {
+        id: "FN-12",
+        num: 12,
+        track: "VANGUARD",
+        title: "What I Would Change Before Putting This in Front of a Live Customer",
+        thesis: "Senior engineering judgment: what's missing (distributed tracing, network firewalls, live ERP OAuth tokens).",
+        date: "Tuesday · Oct 20, 2026",
+        status: "PLANNED",
+        anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/README.md",
+        copy: `The clearest indicator of engineering seniority isn't claiming your prototype is "enterprise-ready." It is knowing precisely what will break when you move from a local control plane to enterprise infrastructure.\n\nHere are the 5 architectural deficits in our reference workbench (IAM, OT perimeters, SQLite concurrency, distributed headers, and shadow-mode drift) and how I would resolve them in production.\n\n👉 Retrospective: https://github.com/Kaisen2350/FDE-Workbench/blob/main/README.md`
+      },
+      {
+        id: "FN-03",
+        num: 3,
+        track: "RESERVOIR",
+        title: "Why Provenance is an Engineering Primitive",
+        thesis: "Why the system refuses to treat CUSTOMER_PROVIDED claims the same as CUSTOMER_OBSERVED telemetry.",
+        date: "Reserved (Mid-Week)",
+        status: "RESERVED",
+        anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/domain/provenance.py",
+        copy: `Data provenance is not metadata. It is an engineering control.\n\nOur control plane distinguishes between SYNTHETIC, CUSTOMER_PROVIDED, and CUSTOMER_OBSERVED evidence, refusing to trigger production decisions on unverified self-reported claims.\n\n👉 Code: https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/domain/provenance.py`
+      },
+      {
+        id: "FN-04",
+        num: 4,
+        track: "RESERVOIR",
+        title: "The First Thing an FDE Builds Isn't Software",
+        thesis: "Customer interviews should produce schemas. The assumption-stripped leave-behind pattern.",
+        date: "Reserved (Mid-Week)",
+        status: "RESERVED",
+        anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/docs/tradecraft/02-operator-discovery.md",
+        copy: `The deliverable of technical discovery is not meeting minutes. It is a typed schema.\n\nHow to run assumption-stripped calibration sessions with terminal operators without creating confirmation bias.\n\n👉 Protocol: https://github.com/Kaisen2350/FDE-Workbench/blob/main/docs/tradecraft/02-operator-discovery.md`
+      },
+      {
+        id: "FN-09",
+        num: 9,
+        track: "RESERVOIR",
+        title: "Same Operational Model. Different Deployment Substrate",
+        thesis: "Decoupling the domain control plane from enterprise clouds (Gemini, Azure, OpenAI, Databricks).",
+        date: "Reserved (Mid-Week)",
+        status: "RESERVED",
+        anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/domain/adapters/",
+        copy: `Enterprise clients rarely adopt vendor-locked architectures. Decoupling the domain ontology and deterministic state engines from cloud execution substrates (Vertex AI, Azure OpenAI, Databricks Mosaic).\n\n👉 Adapters: https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/domain/adapters/`
+      },
+      {
+        id: "FN-10",
+        num: 10,
+        track: "RESERVOIR",
+        title: "How I'd Approach Customs Reconciliation as an FDE",
+        thesis: "Synthetic case study: 100 outbound trucks on the BR-277 border corridor (Modeled 223.5% ROI).",
+        date: "Technical Whitepaper",
+        status: "RESERVED",
+        anchor: "https://github.com/Kaisen2350/FDE-Workbench/tree/main/case-studies/customs-reconciliation",
+        copy: `A complete synthetic deployment brief: 4-way document cross-checks along the Ciudad del Este to Paranaguá corridor, modeled demurrage avoidance, and architecture specifications.\n\n👉 Case study: https://github.com/Kaisen2350/FDE-Workbench/tree/main/case-studies/customs-reconciliation`
+      },
+      {
+        id: "FN-11",
+        num: 11,
+        track: "RESERVOIR",
+        title: "How I'd Approach Fluvial Convoy Allocation",
+        thesis: "Synthetic case study: 16-barge push convoys under low-water river restrictions (Modeled 620.4% ROI).",
+        date: "Technical Whitepaper",
+        status: "RESERVED",
+        anchor: "https://github.com/Kaisen2350/FDE-Workbench/tree/main/case-studies/fluvial-convoy",
+        copy: `Hydro-dynamic barge loading draft optimization on the Hidrovía Paraguay-Paraná. Balancing hull stress, shallow river passes, and Port Captain authority gates.\n\n👉 Case study: https://github.com/Kaisen2350/FDE-Workbench/tree/main/case-studies/fluvial-convoy`
+      },
+      {
+        id: "FN-13",
+        num: 13,
+        track: "CROWN_JEWEL",
+        title: "What Broke When My Synthetic FDE System Met a Real Operator",
+        thesis: "Empirical post-mortem: where the synthetic model broke, what reality taught us, and the resulting architectural adaptation.",
+        date: "Upon Field Validation",
+        status: "LOCKED",
+        anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/docs/tradecraft/04-operator-validation-protocol.md",
+        copy: `[AWAITING OPERATOR OBSERVATION]\n\nThis post will be authored when real operator contact occurs. It will document where our synthetic assumptions mismatched physical reality, and why the architecture had to adapt.\n\nRule: The next commit in this repository will be: "This changed because the field showed us something our synthetic model got wrong."`
+      }
+    ];
+
+    let currentFilter = 'ALL';
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      ['ALL', 'VANGUARD', 'RESERVOIR', 'CROWN_JEWEL'].forEach(tab => {
+        const el = document.getElementById(`tab-${tab}`);
+        if (tab === filter) {
+          el.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white transition-all shadow-xs";
+        } else {
+          el.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all";
+        }
+      });
+      renderPosts();
+    }
+
+    function renderPosts() {
+      const container = document.getElementById('posts-container');
+      const filtered = POSTS_DATA.filter(p => {
+        if (currentFilter === 'ALL') return true;
+        return p.track === currentFilter;
+      });
+
+      container.innerHTML = filtered.map(post => {
+        const badgeClass = post.track === 'VANGUARD' ? 'badge-vanguard' : post.track === 'CROWN_JEWEL' ? 'badge-crown' : 'badge-reservoir';
+        const isReady = post.status === 'READY_TO_POST';
+        const isLocked = post.status === 'LOCKED';
+        
+        return `
+          <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 flex flex-col justify-between hover:border-blue-500/40 hover:shadow-md transition-all">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold ${badgeClass}">
+                  ${post.track} #${String(post.num).padStart(2, '0')}
+                </span>
+                <span class="text-[11px] font-mono font-medium ${isReady ? 'text-emerald-500 font-bold' : isLocked ? 'text-purple-500' : 'text-[var(--muted-foreground)]'}">
+                  ${post.status}
+                </span>
+              </div>
+              <h4 class="font-bold text-sm text-[var(--foreground)] leading-snug mb-1.5">
+                ${post.title}
+              </h4>
+              <p class="text-xs text-[var(--muted-foreground)] line-clamp-2 leading-relaxed mb-3">
+                ${post.thesis}
+              </p>
+            </div>
+
+            <div class="pt-3 border-t border-[var(--border)] mt-2">
+              <div class="flex items-center justify-between text-[11px] text-[var(--muted-foreground)] mb-3 font-mono">
+                <span>🗓️ ${post.date}</span>
+                <span>LinkedIn / X</span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button onclick="openModal('${post.id}')" class="flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg bg-[var(--background)] border border-[var(--border)] hover:bg-blue-600 hover:text-white hover:border-blue-600 transition text-[var(--foreground)] text-center">
+                  ${isReady ? '🚀 View & Copy Post' : 'Inspect Copy'}
+                </button>
+                <a href="${post.anchor}" target="_blank" title="Inspect Code Anchor on GitHub" class="p-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--background)] text-[var(--muted-foreground)] hover:text-blue-500 transition">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    let activeModalPost = null;
+
+    function openModal(postId) {
+      const post = POSTS_DATA.find(p => p.id === postId);
+      if (!post) return;
+      activeModalPost = post;
+
+      document.getElementById('modal-track-badge').innerText = `${post.track} #${post.num}`;
+      document.getElementById('modal-track-badge').className = `px-2 py-0.5 rounded text-[11px] font-mono font-bold ${post.track === 'VANGUARD' ? 'badge-vanguard' : post.track === 'CROWN_JEWEL' ? 'badge-crown' : 'badge-reservoir'}`;
+      document.getElementById('modal-title').innerText = post.title;
+      document.getElementById('modal-textarea').value = post.copy;
+      document.getElementById('modal-code-link').href = post.anchor;
+      
+      const copyBtn = document.getElementById('copy-btn');
+      copyBtn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg> Copy Text to Clipboard`;
+      copyBtn.className = "px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition flex items-center gap-1.5 shadow-sm";
+
+      document.getElementById('copy-modal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('copy-modal').classList.add('hidden');
+    }
+
+    function copyModalContent() {
+      const textarea = document.getElementById('modal-textarea');
+      navigator.clipboard.writeText(textarea.value).then(() => {
+        const copyBtn = document.getElementById('copy-btn');
+        copyBtn.innerHTML = `✓ Copied to Clipboard!`;
+        copyBtn.className = "px-4 py-2 text-xs font-semibold bg-emerald-600 text-white rounded-lg transition flex items-center gap-1.5 shadow-sm";
+      });
+    }
+
+    // Initialize
+    renderPosts();
+  </script>
+</body>
+</html>

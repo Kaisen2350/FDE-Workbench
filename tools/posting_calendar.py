@@ -158,9 +158,21 @@ def cmd_log_operator(args):
     print(f"[LOGGED] Operator contact '{args.name}' ({args.company}) recorded at stage: {args.stage}")
     print(f"         Total conversations: {sb['conversations_initiated']} | Replies: {sb['operator_replies']}")
 
+def cmd_dashboard(args):
+    import webbrowser
+    dash_path = Path(__file__).parent / "dashboard.html"
+    if not dash_path.exists():
+        print(f"[ERROR] Dashboard file not found at {dash_path}")
+        sys.exit(1)
+    webbrowser.open(dash_path.as_uri())
+    print(f"[OPENED] Visual Dashboard launched in browser: {dash_path}")
+
 def main():
     parser = argparse.ArgumentParser(description="FDE Posting Calendar & Visibility Engine")
     subparsers = parser.add_subparsers(dest="command", required=True)
+    
+    p_dash = subparsers.add_parser("dashboard", help="Open visual calendar dashboard in browser")
+    p_dash.set_defaults(func=cmd_dashboard)
     
     p_list = subparsers.add_parser("list", help="List all scheduled posts")
     p_list.add_argument("--track", choices=["vanguard", "reservoir", "crown_jewel"], help="Filter by track")
