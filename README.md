@@ -24,17 +24,46 @@
 
 ---
 
-## 📊 Evidence Status Ladder
+## 🔒 Public Data Boundary
 
-| Evidence Tier | Status | Verification Anchor |
-|---|:---:|---|
-| **Tier 1: Synthetic Reference** | **✓ Active** | 50-scenario benchmark & corridor simulations ([`fde_workbench/evals/`](fde_workbench/evals/)) |
-| **Tier 2: Repository-Validated Controls** | **✓ Active** | 78 deterministic unit tests & SHA-256 audit chain ([`tests/`](tests/)) |
-| **Tier 3: Customer-Provided Data** | — Pending | Awaiting historical anonymized operator dataset |
-| **Tier 4: Customer-Observed Reality** | — Pending | Pre-registered delta measurement from live operator desk |
-| **Tier 5: Production Impact** | — Pending | Realized operational savings & production cutover |
+> **Hard Public Repository Invariant**: All datasets, fixtures, benchmarks, and operational scenarios committed to this repository are **synthetic by construction** or explicitly authorized for public redistribution. Real customer, operator, proprietary, personally identifiable, confidential, regulated, or production-derived data are **never committed to any public repository**. 
+>
+> When real-world validation occurs, the test boundary moves to the operator's controlled private environment—never the public codebase.
+>
+> *Engineering Rule: "If real data is required to test the system, the test boundary moves to the private environment—not the public repository."*
 
-> **Epistemic Invariant**: Practice environments should not be represented as customer experience or production evidence. The next evidence tier will come strictly from external operational validation.
+```text
+PUBLIC FDE WORKBENCH (Code & Methodology)
+        │
+        ├── Synthetic fixtures & domain ontology
+        ├── Synthetic operational scenarios (Corridors)
+        ├── Deterministic evaluation & state gates (78 tests)
+        ├── Reference integrations (LegacyTMSConnector)
+        └── Modeled economics (10-step EBITDA bridge)
+                │
+                │  deployment boundary (Never crossed into public git)
+                ▼
+PRIVATE OPERATOR ENVIRONMENT (Customer Substrate)
+        │
+        ├── Customer-provided data & historical archives
+        ├── Customer systems (SOFIA, live ERPs, báscula scales)
+        ├── Live observations & empirical friction
+        └── Production impact & authorized case studies
+```
+
+---
+
+## 📊 Evidence Status Ladder & Environment Separation
+
+| Evidence Tier | Public GitHub Repository | Private Operator Engagement | Verification Anchor |
+|---|:---:|:---:|---|
+| **Tier 1: Synthetic Reference** | **✓ Active** | **✓ Active** | 50-scenario benchmark & corridor simulations ([`fde_workbench/evals/`](fde_workbench/evals/)) |
+| **Tier 2: Repository-Validated Controls** | **✓ Active** | **✓ Active** | 78 deterministic unit tests & SHA-256 audit chain ([`tests/`](tests/)) |
+| **Tier 3: Customer-Provided Data** | *Never committed* | ⏳ Pending | Operator historical dataset tested in private runtime |
+| **Tier 4: Customer-Observed Reality** | *Never committed* | ⏳ Pending | Pre-registered delta measurement from live operator desk |
+| **Tier 5: Production Impact** | *Never committed* | ⏳ Pending | Realized operational savings & production cutover |
+
+> **Epistemic Invariant**: Practice environments should not be represented as customer experience or production evidence. The code and engineering methodology are public; the customer's operational substrate is strictly private.
 
 ---
 

@@ -9,17 +9,17 @@
 
 ---
 
-## Evidence Status Ladder
+## Evidence Status Ladder & Environment Separation
 
-| Evidence Tier | Status | Verification Anchor |
-|---|:---:|---|
-| **Tier 1: Synthetic Reference** | **✓ Active** | 50-scenario benchmark & corridor simulations |
-| **Tier 2: Repository-Validated Controls** | **✓ Active** | 78 deterministic unit tests & SHA-256 audit chain |
-| **Tier 3: Customer-Provided Data** | — Pending | Awaiting historical anonymized operator dataset |
-| **Tier 4: Customer-Observed Reality** | — Pending | Pre-registered delta measurement from live operator desk |
-| **Tier 5: Production Impact** | — Pending | Realized operational savings & production cutover |
+| Evidence Tier | Public GitHub Repository | Private Operator Engagement | Verification Anchor |
+|---|:---:|:---:|---|
+| **Tier 1: Synthetic Reference** | **✓ Active** | **✓ Active** | 50-scenario benchmark & corridor simulations |
+| **Tier 2: Repository-Validated Controls** | **✓ Active** | **✓ Active** | 78 deterministic unit tests & SHA-256 audit chain |
+| **Tier 3: Customer-Provided Data** | *Never committed* | ⏳ Pending | Tested inside operator environment / private runtime |
+| **Tier 4: Customer-Observed Reality** | *Never committed* | ⏳ Pending | Pre-registered delta measurement from live operator desk |
+| **Tier 5: Production Impact** | *Never committed* | ⏳ Pending | Realized operational savings & production cutover |
 
-> *The next evidence tier will come strictly from external operational validation.*
+> **Public Data Boundary Invariant**: Public repositories are **synthetic by construction**. Real customer data, proprietary schemas, and production-derived records are **never committed** to any public repository. When real-world validation occurs, the execution boundary moves to the operator's controlled private environment.
 
 ---
 

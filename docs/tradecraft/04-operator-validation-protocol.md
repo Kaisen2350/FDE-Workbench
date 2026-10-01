@@ -47,9 +47,10 @@ Evaluated deterministically across the batch:
 6. **Downstream Economic Consequence**: Modeled demurrage or administrative fees avoided (or incurred due to false alerts).
 
 ### Part 4: Evidence & Provenance Ladder
-- Raw incoming data is labeled `CUSTOMER_PROVIDED`.
+- Raw incoming data is labeled `CUSTOMER_PROVIDED` within the private execution environment.
 - Live desk observations and verified deltas are promoted to `CUSTOMER_OBSERVED`.
 - Cryptographic SHA-256 decision records and span telemetry are committed to an immutable audit ledger.
+- **Hard Public Boundary**: Customer datasets, raw logs, proprietary schemas, and production traces are **never committed to any public repository**. Any public case study authored from the engagement contains only aggregate metrics, synthetic reproductions, or explicitly authorized high-level summaries.
 
 ---
 
