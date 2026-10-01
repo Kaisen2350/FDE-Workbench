@@ -49,6 +49,18 @@ class TestIntegrations(unittest.TestCase):
         for e in evidence:
             self.assertEqual(e.provenance, ProvenanceType.CUSTOMER_OBSERVED)
 
+    def test_synthetic_fixture_contains_zero_production_pii(self):
+        """Invariant 8: Assert legacy connector fixtures are explicitly synthetic and free of PII."""
+        # Must not contain real civilian names
+        prohibited_names = ["JUAN PEREZ", "RODRIGO DUARTE", "MIGUEL BENITEZ", "TRANSPORTE SAN BLAS"]
+        for prohibited in prohibited_names:
+            self.assertNotIn(prohibited, MESSY_TMS_SAMPLE_CSV)
+
+        # Must explicitly contain synthetic demonstration markers
+        self.assertIn("SYNTHETIC", MESSY_TMS_SAMPLE_CSV)
+        self.assertIn("CHOFER FICTICIO", MESSY_TMS_SAMPLE_CSV)
+        self.assertIn("DSP-SYN-", MESSY_TMS_SAMPLE_CSV)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -12,8 +12,10 @@ In live enterprise environments, your AI system will be handed an export from a 
 * Semicolon-delimited rows with missing columns.
 * Numbers formatted in Latin/Mercosur convention: `"42.350,00"` (periods for thousands, commas for decimals).
 * Dates formatted as `"23/09/2026"`.
-* Dirty string identifiers: `"JUAN PEREZ (CHAPA AGY-991 / REMOLQUE 102)"`.
+* Dirty string identifiers: `"CHOFER FICTICIO ALPHA (CHAPA SYN-991 / REMOLQUE 102)"`.
 * Hidden quality alerts like moisture exceeding 14.0% buried in an unparsed column.
+
+*(Note: In accordance with DoD Invariant 8, all sample rows and carrier identities in this repository are synthetic by construction. Zero customer or driver PII is committed.)*
 
 If you feed that directly to an LLM, you are paying token costs to have a probabilistic model guess string parsing—and fail 4% of the time when a driver's name contains a semicolon or quotation mark.
 

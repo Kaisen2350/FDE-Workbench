@@ -32,13 +32,16 @@ class IngestionReport(BaseModel):
     anomaly_details: List[str] = Field(default_factory=list)
 
 
-# Sample messy raw export from a 2004 Paraguayan Trans-Chaco TMS
+# Synthetic Demonstration Fixture: Modeled to simulate legacy Windows XP-era CSV parsing.
+# ALL DATA IN THIS FIXTURE IS FULLY SYNTHETIC BY CONSTRUCTION (DoD Invariant 8).
+# Zero real customer, driver, vehicle plate, or proprietary data is committed to this repository.
 MESSY_TMS_SAMPLE_CSV = """NRO_DESPACHO;FECHA_SALIDA;TRANSPORTISTA_RAZON;CHOFER_Y_CHAPA;PRODUCTO_DESC;PESO_BRUTO_KG;TARA_KG;HUMEDAD_PCT;DESTINO_FINAL
-DSP-2026-8801;23/09/2026;TRANSPORTE SAN BLAS S.R.L.;JUAN PEREZ (CHAPA AGY-991 / REMOLQUE 102);HARINA DE SOJA PELLETS 46.5%;"42.350,00";"15.330,00";12,4%;FOZ DO IGUACU - BR
-DSP-2026-8802;23/09/2026;LOGISTICA DEL MERCOSUR S.A.;RODRIGO DUARTE (CHAPA BHF-442);ACEITE CRUDO DE SOJA EN FLEXITANK;"39.120,50";"14.100,00";0,2%;PARANAGUA - BR
-DSP-2026-8803;24/09/2026;TRANS-CHACO LINEAS TERRESTRES;;HARINA DE SOJA PELLETS 46.5%;"41.800,00";"15.100,00";14,8%;FOZ DO IGUACU - BR
-DSP-2026-8804;24/09/2026;FLETES GUARANI S.A.;MIGUEL BENITEZ (CHAPA CKX-119);"";"38.500,00";"14.000,00";11,9%;SANTA FE - AR
+DSP-SYN-8801;23/09/2026;TRANSPORTADORA SYNTHETIC SUR S.A.;CHOFER FICTICIO ALPHA (CHAPA SYN-991 / REMOLQUE 102);HARINA DE SOJA PELLETS 46.5%;"42.350,00";"15.330,00";12,4%;FOZ DO IGUACU - BR
+DSP-SYN-8802;23/09/2026;LOGISTICA MOCK MERCOSUR S.A.;CHOFER FICTICIO BETA (CHAPA SYN-442);ACEITE CRUDO DE SOJA EN FLEXITANK;"39.120,50";"14.100,00";0,2%;PARANAGUA - BR
+DSP-SYN-8803;24/09/2026;TRANS-DEMO TERRESTRE S.A.;;HARINA DE SOJA PELLETS 46.5%;"41.800,00";"15.100,00";14,8%;FOZ DO IGUACU - BR
+DSP-SYN-8804;24/09/2026;FLETES SIMULADOS GUARANI S.A.;CHOFER FICTICIO GAMMA (CHAPA SYN-119);"";"38.500,00";"14.000,00";11,9%;SANTA FE - AR
 """
+
 
 
 class LegacyTMSConnector:
@@ -160,7 +163,7 @@ class LegacyTMSConnector:
             # Create EvidenceRecord
             evidence = EvidenceRecord(
                 id=f"evi-tms-{dispatch_id.lower()}",
-                source="Trans-Chaco TMS (2004 Legacy CSV Export)",
+                source="Synthetic Reference TMS (Legacy Normalized Stream)",
                 source_type=EvidenceSourceType.ERP_RECORD,
                 provenance=provenance,
                 confidence=0.92,
