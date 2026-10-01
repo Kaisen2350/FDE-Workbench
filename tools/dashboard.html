@@ -307,7 +307,7 @@
         date: "Tuesday · Sep 29, 2026",
         status: "READY_TO_POST",
         anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/domain/ontology.py",
-        copy: `Most conversations about applied AI revolve around model weights: \nWhich foundation model scores higher on MMLU? How do we prompt it to format JSON?\n\nWhen you deploy into industrial supply chains, logistics corridors, or regulated trade, you quickly realize: the model is the easiest 10% of the system.\n\nConsider two synthetic deployment scenarios illustrating these corridor constraints:\n• A Bill of Lading says 1,500 metric tons of soybean meal were loaded, but the hydrometric gauge on the river dropped 40 cm overnight. If you dispatch that push-convoy at full draft, it runs aground at Paso Queso.\n• An export declaration in the customs portal says "Cleared", but the physical báscula scale ticket at the terminal has a 450 kg discrepancy with the invoice. The truck will sit in the red channel at the border for 36 hours incurring demurrage fines.\n\nA language model knows nothing about water depth, axle weight, or customs DNA unless you build an operational ontology grounded in physical truth.\n\nIn the FDE Workbench, before calling a single model, we model the physical reality through 24 strongly typed domain entities:\n• Infrastructure limits (silo throughput, weighbridge capacity)\n• Logistics constraints (barge convoy drafts, truck bitren axle limits)\n• Regulatory regimes (SEPRELAD GRC compliance, SENAVE phytosanitary certs)\n\nThe first deliverable of a Forward Deployed Engineer is not a prompt. It is a typed representation of reality.\n\nCode implementation & typed domain model:\n👉 https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/domain/ontology.py`
+        copy: `The Model Isn't the Deployment\n\nMost conversations about applied AI revolve around model weights: \nWhich foundation model scores higher on MMLU? How do we prompt it to format JSON?\n\nWhen you deploy into industrial supply chains, logistics corridors, or regulated trade, you quickly realize: the model is the easiest 10% of the system.\n\nConsider two synthetic deployment scenarios illustrating these corridor constraints:\n• A Bill of Lading says 1,500 metric tons of soybean meal were loaded, but the hydrometric gauge on the river dropped 40 cm overnight. If you dispatch that push-convoy at full draft, it runs aground at Paso Queso.\n• An export declaration in the customs portal says "Cleared", but the physical báscula scale ticket at the terminal has a 450 kg discrepancy with the invoice. The truck will sit in the red channel at the border for 36 hours incurring demurrage fines.\n\nA language model knows nothing about water depth, axle weight, or customs DNA unless you build an operational ontology grounded in physical truth.\n\nIn the FDE Workbench, before calling a single model, we model the physical reality through 24 strongly typed domain entities:\n• Infrastructure limits (silo throughput, weighbridge capacity)\n• Logistics constraints (barge convoy drafts, truck bitren axle limits)\n• Regulatory regimes (SEPRELAD GRC compliance, SENAVE phytosanitary certs)\n\nThe first deliverable of a Forward Deployed Engineer is not a prompt. It is a typed representation of reality.\n\nCode implementation & typed domain model:\n👉 https://github.com/kaisen2350/fde-workbench/blob/main/fde_workbench/domain/ontology.py`
       },
       {
         id: "FN-02",
@@ -318,7 +318,7 @@
         date: "Thursday · Oct 01, 2026",
         status: "PLANNED",
         anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/integrations/legacy_connector.py",
-        copy: `Enterprise AI demos assume clean JSON APIs. In reality, legacy systems dump Windows-1252 CSVs with Spanish dates ('14 de marzo de 2026') and comma decimals ('1.450,50').\n\nInstead of waiting for an enterprise to modernize their TMS, an FDE builds defensive ingestion: parse, validate, and convert messy inputs into typed domain entities without crashing on corrupted rows.\n\n👉 Code: https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/integrations/legacy_connector.py`
+        copy: `I Deliberately Built the Integration I Didn't Want to Build\n\nEnterprise AI demos assume clean JSON APIs. In reality, legacy systems dump Windows-1252 CSVs with Spanish dates ('14 de marzo de 2026') and comma decimals ('1.450,50').\n\nInstead of waiting for an enterprise to modernize their TMS, an FDE builds defensive ingestion: parse, validate, and convert messy inputs into typed domain entities without crashing on corrupted rows.\n\n👉 Code: https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/integrations/legacy_connector.py`
       },
       {
         id: "FN-05",
@@ -329,7 +329,7 @@
         date: "Tuesday · Oct 06, 2026",
         status: "PLANNED",
         anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/domain/decisions.py",
-        copy: `The most dangerous architecture in enterprise AI is letting an LLM execute write actions based on its own assessment of completion.\n\nIn our workbench, agent actions are suggestions. State mutation requires deterministic verification gates: customs validation, supervisor signature, and tamper-evident audit hashing.\n\n👉 Code: https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/domain/decisions.py`
+        copy: `“Agent-Reported Completion Is Non-Authoritative”\n\nThe most dangerous architecture in enterprise AI is letting an LLM execute write actions based on its own assessment of completion.\n\nIn our workbench, agent actions are suggestions. State mutation requires deterministic verification gates: customs validation, supervisor signature, and tamper-evident audit hashing.\n\n👉 Code: https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/domain/decisions.py`
       },
       {
         id: "FN-06",
@@ -340,7 +340,7 @@
         date: "Thursday · Oct 08, 2026",
         status: "PLANNED",
         anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/evals/harness.py",
-        copy: `Anyone can make an AI model succeed on 3 cherry-picked demo inputs. Real deployments face edge cases, malicious prompt injections, and missing fields.\n\nWe evaluate our control plane across a 50-scenario harness tracking latency, token spend, schema concordance, and an invariant of zero unauthorized mutations.\n\n👉 Code: https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/evals/harness.py`
+        copy: `A Successful AI Demo Proves Almost Nothing\n\nAnyone can make an AI model succeed on 3 cherry-picked demo inputs. Real deployments face edge cases, malicious prompt injections, and missing fields.\n\nWe evaluate our control plane across a 50-scenario harness tracking latency, token spend, schema concordance, and an invariant of zero unauthorized mutations.\n\n👉 Code: https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/evals/harness.py`
       },
       {
         id: "FN-07",
@@ -351,7 +351,7 @@
         date: "Tuesday · Oct 13, 2026",
         status: "PLANNED",
         anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/telemetry/tracer.py",
-        copy: `Observability is for the engineering team: spans, p95 latency, token throughput, and cost per decision.\n\nAuditability is for legal and regulators: SHA-256 tamper-evident hash chains proving exactly which model, weights, and human supervisor signed off on a high-value state transition.\n\n👉 Telemetry & Audit: https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/telemetry/tracer.py`
+        copy: `Auditability and Observability Are Different Systems\n\nObservability is for the engineering team: spans, p95 latency, token throughput, and cost per decision.\n\nAuditability is for legal and regulators: SHA-256 tamper-evident hash chains proving exactly which model, weights, and human supervisor signed off on a high-value state transition.\n\n👉 Telemetry & Audit: https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/telemetry/tracer.py`
       },
       {
         id: "FN-08",
@@ -362,7 +362,7 @@
         date: "Thursday · Oct 15, 2026",
         status: "PLANNED",
         anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/case-studies/customs-reconciliation/economics.md",
-        copy: `Saying 'we saved 40 hours of clerical work' will get you dismissed by the CFO. Time saved only matters if it eliminates demurrage penalties, accelerates working capital turn, or increases terminal throughput.\n\nHere is the 10-step mathematical bridge from cycle time reduction to EBITDA impact.\n\n👉 Economic Model: https://github.com/Kaisen2350/FDE-Workbench/blob/main/case-studies/customs-reconciliation/economics.md`
+        copy: `“We Saved 40 Hours” Isn't an ROI Calculation\n\nSaying 'we saved 40 hours of clerical work' will get you dismissed by the CFO. Time saved only matters if it eliminates demurrage penalties, accelerates working capital turn, or increases terminal throughput.\n\nHere is the 10-step mathematical bridge from cycle time reduction to EBITDA impact.\n\n👉 Economic Model: https://github.com/Kaisen2350/FDE-Workbench/blob/main/case-studies/customs-reconciliation/economics.md`
       },
       {
         id: "FN-12",
@@ -373,7 +373,7 @@
         date: "Tuesday · Oct 20, 2026",
         status: "PLANNED",
         anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/README.md",
-        copy: `The difference between a junior and senior engineer is knowing what not to trust in your own codebase.\n\nBefore deploying this workbench into live production, here are the 4 failure modes I would harden: distributed tracing persistence, mutual TLS at the gateway, and rate-limiting on legacy backends.\n\n👉 Technical Architecture: https://github.com/Kaisen2350/FDE-Workbench/blob/main/README.md`
+        copy: `What I Would Change Before Putting This in Front of a Live Customer\n\nThe difference between a junior and senior engineer is knowing what not to trust in your own codebase.\n\nBefore deploying this workbench into live production, here are the 4 failure modes I would harden: distributed tracing persistence, mutual TLS at the gateway, and rate-limiting on legacy backends.\n\n👉 Technical Architecture: https://github.com/Kaisen2350/FDE-Workbench/blob/main/README.md`
       },
       {
         id: "FN-03",
@@ -384,7 +384,7 @@
         date: "Reserved (Mid-Week)",
         status: "RESERVED",
         anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/domain/provenance.py",
-        copy: `Data provenance is not metadata. It is an engineering control.\n\nOur control plane distinguishes between SYNTHETIC, CUSTOMER_PROVIDED, and CUSTOMER_OBSERVED evidence, refusing to trigger production decisions on unverified self-reported claims.\n\n👉 Code: https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/domain/provenance.py`
+        copy: `Why Provenance is an Engineering Primitive\n\nData provenance is not metadata. It is an engineering control.\n\nOur control plane distinguishes between SYNTHETIC, CUSTOMER_PROVIDED, and CUSTOMER_OBSERVED evidence, refusing to trigger production decisions on unverified self-reported claims.\n\n👉 Code: https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/domain/provenance.py`
       },
       {
         id: "FN-04",
@@ -395,7 +395,7 @@
         date: "Reserved (Mid-Week)",
         status: "RESERVED",
         anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/docs/tradecraft/02-operator-discovery.md",
-        copy: `The deliverable of technical discovery is not meeting minutes. It is a typed schema.\n\nHow to run assumption-stripped calibration sessions with terminal operators without creating confirmation bias.\n\n👉 Protocol: https://github.com/Kaisen2350/FDE-Workbench/blob/main/docs/tradecraft/02-operator-discovery.md`
+        copy: `The First Thing an FDE Builds Isn't Software\n\nThe deliverable of technical discovery is not meeting minutes. It is a typed schema.\n\nHow to run assumption-stripped calibration sessions with terminal operators without creating confirmation bias.\n\n👉 Protocol: https://github.com/Kaisen2350/FDE-Workbench/blob/main/docs/tradecraft/02-operator-discovery.md`
       },
       {
         id: "FN-09",
@@ -406,7 +406,7 @@
         date: "Reserved (Mid-Week)",
         status: "RESERVED",
         anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/domain/adapters/",
-        copy: `Enterprise clients rarely adopt vendor-locked architectures. Decoupling the domain ontology and deterministic state engines from cloud execution substrates (Vertex AI, Azure OpenAI, Databricks Mosaic).\n\n👉 Adapters: https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/domain/adapters/`
+        copy: `Same Operational Model. Different Deployment Substrate\n\nEnterprise clients rarely adopt vendor-locked architectures. Decoupling the domain ontology and deterministic state engines from cloud execution substrates (Vertex AI, Azure OpenAI, Databricks Mosaic).\n\n👉 Adapters: https://github.com/Kaisen2350/FDE-Workbench/blob/main/fde_workbench/domain/adapters/`
       },
       {
         id: "FN-10",
@@ -417,7 +417,7 @@
         date: "Technical Whitepaper",
         status: "RESERVED",
         anchor: "https://github.com/Kaisen2350/FDE-Workbench/tree/main/case-studies/customs-reconciliation",
-        copy: `A complete synthetic deployment brief: 4-way document cross-checks along the Ciudad del Este to Paranaguá corridor, modeled demurrage avoidance, and architecture specifications.\n\n👉 Case study: https://github.com/Kaisen2350/FDE-Workbench/tree/main/case-studies/customs-reconciliation`
+        copy: `How I'd Approach Customs Reconciliation as an FDE\n\nA complete synthetic deployment brief: 4-way document cross-checks along the Ciudad del Este to Paranaguá corridor, modeled demurrage avoidance, and architecture specifications.\n\n👉 Case study: https://github.com/Kaisen2350/FDE-Workbench/tree/main/case-studies/customs-reconciliation`
       },
       {
         id: "FN-11",
@@ -428,7 +428,7 @@
         date: "Technical Whitepaper",
         status: "RESERVED",
         anchor: "https://github.com/Kaisen2350/FDE-Workbench/tree/main/case-studies/fluvial-convoy",
-        copy: `Hydro-dynamic barge loading draft optimization on the Hidrovía Paraguay-Paraná. Balancing hull stress, shallow river passes, and Port Captain authority gates.\n\n👉 Case study: https://github.com/Kaisen2350/FDE-Workbench/tree/main/case-studies/fluvial-convoy`
+        copy: `How I'd Approach Fluvial Convoy Allocation\n\nHydro-dynamic barge loading draft optimization on the Hidrovía Paraguay-Paraná. Balancing hull stress, shallow river passes, and Port Captain authority gates.\n\n👉 Case study: https://github.com/Kaisen2350/FDE-Workbench/tree/main/case-studies/fluvial-convoy`
       },
       {
         id: "FN-13",
@@ -439,7 +439,7 @@
         date: "Upon Field Validation",
         status: "LOCKED",
         anchor: "https://github.com/Kaisen2350/FDE-Workbench/blob/main/docs/tradecraft/04-operator-validation-protocol.md",
-        copy: `[AWAITING OPERATOR OBSERVATION]\n\nThis post will be authored when real operator contact occurs. It will document where our synthetic assumptions mismatched physical reality, and why the architecture had to adapt.\n\nRule: The next commit in this repository will be: "This changed because the field showed us something our synthetic model got wrong."`
+        copy: `What Broke When My Synthetic FDE System Met a Real Operator\n\n[AWAITING OPERATOR OBSERVATION]\n\nThis post will be authored when real operator contact occurs. It will document where our synthetic assumptions mismatched physical reality, and why the architecture had to adapt.\n\nRule: The next commit in this repository will be: "This changed because the field showed us something our synthetic model got wrong."`
       }
     ];
 
@@ -519,7 +519,10 @@
       document.getElementById('modal-track-badge').innerText = `${post.track} #${post.num}`;
       document.getElementById('modal-track-badge').className = `px-2.5 py-0.5 rounded text-[11px] font-mono font-bold ${post.track === 'VANGUARD' ? 'badge-vanguard' : post.track === 'CROWN_JEWEL' ? 'badge-crown' : 'badge-reservoir'}`;
       document.getElementById('modal-title').innerText = post.title;
-      document.getElementById('modal-textarea').value = post.copy;
+      const formattedCopy = post.copy.trim().startsWith(post.title.trim())
+        ? post.copy
+        : `${post.title}\n\n${post.copy}`;
+      document.getElementById('modal-textarea').value = formattedCopy;
       document.getElementById('modal-code-link').href = post.anchor;
       
       const modal = document.getElementById('copy-modal');
