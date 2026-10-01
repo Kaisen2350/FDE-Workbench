@@ -1,12 +1,37 @@
+# Python bytecode & cache
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Local databases & WAL files
 *.db
 *.db-wal
 *.db-shm
+*.sqlite
+*.sqlite3
+
+# Cryptographic salts, keys & tokens
 *.salt
 .operator_secret.salt
+*.key
+*.pem
+*.pfx
+*.p12
+*.crt
+
+# Environment variables & credentials
+.env
+.env.*
+*.env
+credentials.json
+client_secret*.json
+*.token
+
+# Local scratch & OS files
+.DS_Store
+Thumbs.db
+*.bak
+*.log
