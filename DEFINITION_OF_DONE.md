@@ -5,11 +5,11 @@
 
 ---
 
-## The 7 Core Invariants
+## The 8 Core Invariants
 
 ### Invariant 1: Automated Test Suite & Non-Decreasing Regression Baseline
 * **Standard**: Full test suite passes with zero failures and zero errors across all domain, synthetic generator, SQLite storage, API, and platform adapter test suites.
-* **Baseline & Monotonicity Rule**: Total test count must be **strictly non-decreasing** across changes (current baseline: $\ge$ 72 passing tests). The addition of new tests for customer field requirements, live connectors, and edge cases is encouraged and monotonically ratchets the baseline upward.
+* **Baseline & Monotonicity Rule**: Total test count must be **strictly non-decreasing** across changes (current baseline: $\ge$ 78 passing tests). The addition of new tests for customer field requirements, live connectors, and edge cases is encouraged and monotonically ratchets the baseline upward.
 * **Enforcement Rule**: Any commit or modification that introduces test failures, skips tests, or decreases the passing test count below the established baseline violates the Definition of Done.
 * **Verification Command**:
   ```powershell
@@ -87,6 +87,22 @@
   ```powershell
   python -m unittest tests.test_pilots.TestPilotEngine.test_zero_occurrences_of_pilot_assumption_values_in_calibration_brief -v
   ```
+
+---
+
+### Invariant 8: Hard Public Repository Data Boundary & Air-Gapped Operator Substrate
+* **Standard**: All datasets, fixtures, benchmarks, synthetic companies, and operational scenarios committed to this repository are **synthetic by construction** or explicitly authorized for public redistribution.
+* **Non-Negotiable Prohibition**: Real customer, operator, proprietary, personally identifiable (PII), confidential, regulated, or production-derived data are **never committed to any public repository** under any circumstance.
+* **Posture**:
+  $$\text{Public repository} = \text{Synthetic by construction}$$
+  $$\text{Private engagement} = \text{Real operational data stays with the operator}$$
+* **The Air-Gapped Test Boundary Rule**:
+  > *"If real data is required to test the system, the test boundary moves to the private environment—not the public repository."*
+* **Evidence Ladder Demarcation**:
+  * **Public GitHub Repository**: Synthetic reference fixtures, repository-validated deterministic controls, generic schemas/interfaces, and modeled economics. Demonstrates *how you engineer*.
+  * **Private Operator Environment**: Customer-provided data, customer production systems (DNA SOFIA, live ERPs, báscula scales), live observations, and measured production impact. Demonstrates *what happens with real operational data*.
+* **Case Study Publication Rule**: Evidence from real-world engagements is never published as an exported slice or raw operational trace. Real-world validation may only appear in public channels as an operator-approved, deliberately authored case study with anonymized or synthetic reference figures.
+* **Verification & Enforcement**: Automated tests verify that synthetic watermarks are embedded across all generated entities and briefs (`test_synthetic_data_watermark`), and no customer credentials or private datasets exist in the tracked repository tree.
 
 ---
 
